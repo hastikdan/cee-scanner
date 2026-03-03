@@ -18,9 +18,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
 .logo-dot{width:5px;height:5px;background:var(--acid);border-radius:50%;animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 .nav-tabs{display:flex;gap:2px}
-.nav-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;color:var(--sub);background:transparent;border:none;font-family:var(--font);transition:all .2s}
-.nav-tab:hover{color:var(--tx)}
-.nav-tab.active{background:var(--bg3);color:var(--tx)}
+.nav-tab{padding:7px 18px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;color:var(--sub);background:transparent;border:1px solid transparent;font-family:var(--font);transition:all .2s}
+.nav-tab:hover{color:var(--tx);border-color:var(--b3)}
+.nav-tab.active{background:var(--bg3);color:var(--acid);border-color:var(--b3)}
 .nav-right{display:flex;align-items:center;gap:10px}
 .btn-signin{padding:6px 16px;border:1px solid var(--b3);background:transparent;color:var(--sub);border-radius:6px;font-family:var(--font);font-size:11px;font-weight:600;letter-spacing:1px;cursor:pointer;transition:all .2s}
 .btn-signin:hover{border-color:var(--acid);color:var(--acid)}
@@ -42,10 +42,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
 .kpi-n{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--acid);line-height:1}
 .kpi-l{font-size:9px;letter-spacing:2px;color:var(--sub);margin-top:4px;font-weight:600}
 /* SEARCH */
-.search-wrap{max-width:1060px;margin:0 auto 28px;padding:0 28px}
-.search-box{background:var(--bg2);border:1px solid var(--b3);border-radius:10px;padding:5px 5px 5px 18px;display:flex;align-items:center;gap:10px;transition:border-color .2s;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.search-wrap{max-width:1060px;margin:0 auto 28px;padding:0 28px;display:flex;align-items:center;gap:12px}
+.search-box{background:var(--bg2);border:1px solid var(--b3);border-radius:10px;padding:5px 5px 5px 18px;display:flex;align-items:center;gap:10px;transition:border-color .2s;box-shadow:0 4px 24px rgba(0,0,0,.3);width:500px;flex-shrink:0}
 .search-box:focus-within{border-color:var(--acid)}
-.search-in{flex:1;background:transparent;border:none;outline:none;color:var(--tx);font-family:var(--mono);font-size:13px;padding:9px 0}
+.search-in{flex:1;background:transparent;border:none;outline:none;color:var(--tx);font-family:var(--mono);font-size:13px;padding:9px 0;min-width:0}
 .search-in::placeholder{color:var(--sub2)}
 .btn-add{padding:9px 16px;background:transparent;color:var(--acid);border:1px solid rgba(200,255,0,.25);border-radius:7px;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;white-space:nowrap}
 .btn-add:hover{background:rgba(200,255,0,.07);border-color:var(--acid)}
@@ -192,7 +192,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
 .toast.show{transform:translateY(0);opacity:1}
 .toast.ok{border-color:rgba(0,232,122,.35);color:var(--green)}
 .toast.err{border-color:rgba(255,59,92,.35);color:var(--red)}
-@media(max-width:680px){.tbl-hdr,.drow{grid-template-columns:1fr 50px 70px}.drow .dots,.drow .drow-ctag,.tbl-hdr .th:nth-child(3),.tbl-hdr .th:nth-child(4){display:none}.topbar{padding:0 14px}.hero,.search-wrap,.explore-main,.my-wrap{padding-left:14px;padding-right:14px}.rp-grid{grid-template-columns:1fr}.nav-tabs{display:none}}
+@media(max-width:680px){.tbl-hdr,.drow{grid-template-columns:1fr 50px 70px}.drow .dots,.drow .drow-ctag,.tbl-hdr .th:nth-child(3),.tbl-hdr .th:nth-child(4){display:none}.topbar{padding:0 14px}.hero,.search-wrap,.explore-main,.my-wrap{padding-left:14px;padding-right:14px}.rp-grid{grid-template-columns:1fr}.nav-tabs{display:flex}}
 </style>
 </head>
 <body>
@@ -225,13 +225,22 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
       <div class="kpi"><span class="kpi-n">4</span><span class="kpi-l">THREAT FEEDS</span></div>
     </div>
   </div>
-  <div class="search-wrap">
+
+  <!-- MAIN TAB BAR -->
+  <div style="max-width:1060px;margin:0 auto 24px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div style="display:flex;background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:4px;gap:4px">
+      <button id="mainTabExplore" onclick="showPage('explore',this);document.querySelectorAll('.nav-tab').forEach((t,i)=>{t.classList.toggle('active',i===0)})" style="padding:9px 28px;border-radius:7px;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;background:var(--acid);color:var(--bg);transition:all .2s" id="bigTabExplore">&#128269; Explore Domains</button>
+      <button id="mainTabMy" onclick="showPage('mydomains',this);document.querySelectorAll('.nav-tab').forEach((t,i)=>{t.classList.toggle('active',i===1)})" style="padding:9px 28px;border-radius:7px;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;background:transparent;color:var(--sub);transition:all .2s" id="bigTabMy">&#128274; My Domains</button>
+    </div>
+    <button class="btn-add" onclick="showAddDomain()" style="padding:10px 20px;font-size:12px">&#43; Add Domain</button>
+  </div>
+  <div class="search-wrap" id="searchSection">
     <div class="search-box">
       <span style="color:var(--sub2);font-size:15px;flex-shrink:0">&#8981;</span>
       <input class="search-in" id="searchIn" type="text" placeholder="Search &#8212; alza.cz, allegro.pl, otpbank.hu ..." oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter')doSearch()"/>
-      <button class="btn-add" onclick="showAddDomain()">+ Add Domain</button>
       <button class="btn-srch" onclick="doSearch()">Search</button>
     </div>
+    <button class="btn-add" onclick="showAddDomain()">+ Add Domain</button>
   </div>
   <div class="sr-wrap" id="srWrap"></div>
   <div class="explore-main">
@@ -259,14 +268,14 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
       <div class="login-required">
         <div class="lr-icon">&#128274;</div>
         <div class="lr-title">Sign in to access My Domains</div>
-        <p class="lr-sub">Track and monitor your own domains.<br/>Add any domain for $10 &#8212; weekly scans included for 1 year.</p>
+        <p class="lr-sub">Sign in to track and monitor your added domains.<br/>Adding domains is free &#8212; upgrade to full reports anytime.</p>
         <button class="btn-primary" style="width:auto;padding:10px 28px" onclick="showLogin()">Sign in with Google</button>
       </div>
     </div>
     <div id="myDashboard" style="display:none">
       <div class="my-hdr">
         <h2>My Domains</h2>
-        <button class="btn-add" onclick="showAddDomain()">+ Add Domain &#8212; $10</button>
+        <button class="btn-add" onclick="showAddDomain()">+ Add Domain</button>
       </div>
       <div id="myDomainList"></div>
     </div>
@@ -294,7 +303,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
   <div class="modal">
     <button class="modal-x" onclick="closeOverlay('ovAdd')">&#10005;</button>
     <h2>Add Domain</h2>
-    <p class="modal-sub">$10 one-time &#8212; full report + weekly monitoring for 1 year.</p>
+    <p class="modal-sub">Add any domain to scan it for free. Upgrade to a full paid report anytime.</p>
     <div class="fl"><label>DOMAIN NAME</label><input class="fi" id="newDomainIn" type="text" placeholder="e.g. mycompany.cz" oninput="checkDomainInput(this.value)"/></div>
     <div class="fl"><label>COUNTRY</label>
       <select class="fi" id="newCountrySel">
@@ -303,7 +312,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
         <option value="ro">Romania</option><option value="other">Other</option>
       </select>
     </div>
-    <button class="btn-primary" id="btnSubmitDomain" onclick="proceedToPay()" disabled>Continue to Payment &#8594;</button>
+    <button class="btn-primary" id="btnSubmitDomain" onclick="submitFreeDomain()" disabled>Add &amp; Scan Domain &#8594;</button>
   </div>
 </div>
 
@@ -312,7 +321,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
   <div class="pay-modal">
     <button class="modal-x" onclick="closeOverlay('ovPay')" style="position:absolute;top:13px;right:13px">&#10005;</button>
     <div class="pay-hdr">
-      <div class="pay-lbl">FULL REPORT + WEEKLY MONITORING</div>
+      <div class="pay-lbl">FULL REPORT + WEEKLY MONITORING &#8212; $10</div>
       <div class="pay-dom" id="payDomainLabel">domain.com</div>
       <div class="pay-price">$10 <span>one-time</span></div>
     </div>
@@ -336,7 +345,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:14px
   <div class="success-modal">
     <div style="font-size:42px">&#9989;</div>
     <h2>Domain Added!</h2>
-    <p>Full report for <strong id="successDomainLabel"></strong> is being generated. Weekly scans are now active.</p>
+    <p>Full report for <strong id="successDomainLabel"></strong> is now unlocked. Weekly scans are active — you'll get an email if anything changes.</p>
     <button class="btn-suc" onclick="closeOverlay('ovSuccess');showPage('mydomains')">View My Domains &#8594;</button>
   </div>
 </div>
@@ -383,8 +392,20 @@ function showPage(name,btn){
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  if(name==='mydomains')renderMyDomains();
+  if(name==='mydomains') renderMyDomains();
   window.scrollTo(0,0);
+  // Update big tab buttons
+  const be=document.getElementById('bigTabExplore');
+  const bm=document.getElementById('bigTabMy');
+  if(be&&bm){
+    if(name==='explore'){
+      be.style.background='var(--acid)';be.style.color='var(--bg)';
+      bm.style.background='transparent';bm.style.color='var(--sub)';
+    } else {
+      bm.style.background='var(--acid)';bm.style.color='var(--bg)';
+      be.style.background='transparent';be.style.color='var(--sub)';
+    }
+  }
 }
 
 function showLogin(){document.getElementById('ovLogin').classList.add('show');}
@@ -422,25 +443,54 @@ function updateAuthUI(){
   if(show){document.getElementById('userAv').src=currentUser.avatar;document.getElementById('userNm').textContent=currentUser.name;document.getElementById('myLoginRequired').style.display='none';document.getElementById('myDashboard').style.display='block';}
 }
 
-function showAddDomain(){if(!currentUser){showLogin();return;}document.getElementById('ovAdd').classList.add('show');}
+function showAddDomain(){document.getElementById('ovAdd').classList.add('show');}
 function checkDomainInput(v){document.getElementById('btnSubmitDomain').disabled=!/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(v);}
 
 function proceedToPay(){
+  // kept for backward compat — redirects to free submit
+  submitFreeDomain();
+}
+
+function submitFreeDomain(){
   const d=document.getElementById('newDomainIn').value.trim();
   if(!d)return;
-  payingDomain={domain:d,country:document.getElementById('newCountrySel').value};
+  const country=document.getElementById('newCountrySel').value;
   closeOverlay('ovAdd');
-  document.getElementById('payDomainLabel').textContent=d;
-  document.getElementById('ovPay').classList.add('show');
+  // Add to My Domains list (free)
+  const entry={domain:d,country,status:'scanning',added:new Date().toISOString(),nextScan:nextWeek(),scans:[],paid:false};
+  myDomains.unshift(entry);
+  // Simulate scan completing
+  setTimeout(()=>{
+    entry.status='active';
+    const s=seed(entry.domain);
+    entry.scans=[{date:new Date().toISOString(),risk:(s%65)+8}];
+    renderMyDomains();
+    toast('✓ '+d+' scanned and added','ok');
+  },4000);
+  // If logged in — go to My Domains; if not, prompt login
+  if(currentUser){
+    showPage('mydomains');
+    renderMyDomains();
+    toast('Scanning '+d+'...','ok');
+  } else {
+    toast('Domain added! Sign in to track it in My Domains','ok');
+    setTimeout(()=>showLogin(),1500);
+  }
 }
 
 function processPayment(){
   closeOverlay('ovPay');
   window.open(STRIPE_LINK+'?client_reference_id='+encodeURIComponent((currentUser?currentUser.email:'anon')+'|'+payingDomain.domain),'_blank');
   setTimeout(()=>{
-    const entry={domain:payingDomain.domain,country:payingDomain.country,status:'scanning',added:new Date().toISOString(),nextScan:nextWeek(),scans:[]};
-    myDomains.unshift(entry);
-    setTimeout(()=>{entry.status='active';const s=seed(entry.domain);entry.scans=[{date:new Date().toISOString(),risk:(s%65)+8}];renderMyDomains();},5000);
+    // Mark existing entry as paid or add new one
+    let entry = myDomains.find(d=>d.domain===payingDomain.domain);
+    if(entry){
+      entry.paid=true;
+    } else {
+      entry={domain:payingDomain.domain,country:payingDomain.country,status:'scanning',added:new Date().toISOString(),nextScan:nextWeek(),scans:[],paid:true};
+      myDomains.unshift(entry);
+      setTimeout(()=>{entry.status='active';const s=seed(entry.domain);entry.scans=[{date:new Date().toISOString(),risk:(s%65)+8}];renderMyDomains();},5000);
+    }
     document.getElementById('successDomainLabel').textContent=payingDomain.domain;
     document.getElementById('ovSuccess').classList.add('show');
     renderMyDomains();
@@ -497,7 +547,17 @@ function buildTeaser(domain){
 }
 
 function addFromReport(domain){
-  if(!currentUser){showLogin();return;}
+  buyReport(domain);
+}
+
+function addFreeFromReport(domain){
+  // Add domain for free, prompt login if needed
+  document.getElementById('newDomainIn').value=domain;
+  document.getElementById('newCountrySel').value=DMAP[domain]||'cz';
+  submitFreeDomain();
+}
+
+function buyReport(domain){
   payingDomain={domain,country:DMAP[domain]||'other'};
   document.getElementById('payDomainLabel').textContent=domain;
   document.getElementById('ovPay').classList.add('show');
