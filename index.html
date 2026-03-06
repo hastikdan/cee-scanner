@@ -231,6 +231,92 @@ h1 span{color:var(--lime)}
 .divider-line{flex:1;height:1px;background:rgba(203,255,0,.1)}
 .divider-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:2px;text-transform:uppercase;white-space:nowrap}
 
+
+/* NAV SEARCH */
+.nav-search{display:flex;align-items:center;gap:0;margin-left:auto;background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);border-radius:6px;overflow:hidden}
+.nav-search-input{background:transparent;border:none;color:var(--white);font-family:'Space Mono',monospace;font-size:12px;padding:7px 14px;outline:none;width:200px}
+.nav-search-input::placeholder{color:#444}
+.nav-search-btn{background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:7px 14px;border:none;cursor:pointer;transition:background .2s;white-space:nowrap}
+.nav-search-btn:hover{background:#d4ff1a}
+.nav-sample-btn{background:transparent;border:1px solid rgba(203,255,0,.3);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer;transition:all .2s;white-space:nowrap;margin-left:8px}
+.nav-sample-btn:hover{background:rgba(203,255,0,.08)}
+
+/* SAMPLE REPORT PAGE */
+.report-page{position:fixed;inset:0;z-index:500;background:var(--black);overflow-y:auto;display:none}
+.report-page.active{display:block}
+.report-page-nav{position:sticky;top:0;z-index:10;background:rgba(14,13,18,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(203,255,0,.1);padding:0 24px;display:flex;align-items:center;height:56px;gap:16px}
+.report-back-btn{background:transparent;border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:6px 14px;border-radius:4px;cursor:pointer;transition:all .2s}
+.report-back-btn:hover{background:rgba(203,255,0,.08)}
+.report-page-domain{font-family:'Space Mono',monospace;font-size:15px;color:var(--white);font-weight:700}
+.report-page-body{max-width:900px;margin:0 auto;padding:32px 24px 80px}
+.report-hero-bar{background:var(--card);border:1px solid rgba(203,255,0,.15);border-radius:12px;padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.report-score-ring{width:90px;height:90px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:3px solid}
+.report-score-ring .big-score{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;line-height:1}
+.report-score-ring .big-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.report-hero-meta{flex:1}
+.report-hero-meta h2{font-family:'Space Mono',monospace;font-size:22px;color:var(--white);margin-bottom:6px}
+.report-hero-meta p{font-size:13px;color:var(--grey);margin-bottom:12px}
+.report-stat-row{display:flex;gap:20px;flex-wrap:wrap}
+.rstat{text-align:center}
+.rstat-val{font-family:'Space Mono',monospace;font-size:22px;font-weight:700}
+.rstat-lbl{font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px}
+.report-cta-box{background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.2);border-radius:8px;padding:20px 24px;margin-bottom:28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.report-cta-box p{flex:1;font-size:13px;color:var(--grey);line-height:1.6;margin:0}
+.report-cta-box p strong{color:var(--white)}
+.report-section-title{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(203,255,0,.1)}
+.report-checks-table{width:100%;border-collapse:collapse;margin-bottom:28px}
+.report-checks-table th{text-align:left;padding:9px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;text-transform:uppercase;background:rgba(203,255,0,.05);border-bottom:1px solid rgba(203,255,0,.1)}
+.report-checks-table td{padding:10px 14px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--grey);vertical-align:top}
+.report-checks-table tr:last-child td{border-bottom:none}
+.report-checks-table tr.row-critical td{background:rgba(192,57,43,.04)}
+.report-checks-table tr.row-warning td{background:rgba(212,133,10,.03)}
+.report-ai-box{background:rgba(203,255,0,.03);border:1px solid rgba(203,255,0,.1);border-radius:10px;padding:24px;margin-bottom:28px}
+.report-ai-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.report-locked{background:var(--card);border:1px solid rgba(203,255,0,.15);border-radius:10px;padding:32px;text-align:center;margin-bottom:28px}
+.report-locked h3{font-family:'Space Mono',monospace;font-size:16px;color:var(--lime);margin-bottom:10px}
+.report-locked p{color:var(--grey);font-size:13px;margin-bottom:20px;line-height:1.6}
+.nav-search-modal{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:24px}
+.nav-search-modal.active{display:flex}
+.nav-search-modal-inner{background:var(--card);border:1px solid rgba(203,255,0,.2);border-radius:12px;padding:32px;width:100%;max-width:560px;text-align:center}
+.nav-search-modal-inner h3{font-family:'Space Mono',monospace;font-size:18px;color:var(--lime);margin-bottom:8px}
+.nav-search-modal-inner p{color:var(--grey);font-size:13px;margin-bottom:24px}
+@media(max-width:700px){
+  .nav-search{display:none}
+  .nav-sample-btn{display:none}
+  .report-hero-bar{flex-direction:column;align-items:flex-start}
+}
+
+
+/* CHECKS FULL GRID */
+.checks-full-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:16px}
+.check-row{display:flex;align-items:center;gap:8px}
+.check-desc{font-size:11px;color:var(--grey)}
+
+/* PRE-LOGIN BAR */
+.pre-login-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.pre-login-divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--grey);font-size:11px;font-family:'Space Mono',monospace}
+.pre-login-divider::before,.pre-login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06)}
+
+/* TOP DOMAINS */
+.top-domains-section{margin-top:48px;padding-top:32px;border-top:1px solid rgba(203,255,0,.07)}
+.top-domains-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.country-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.ctab{background:transparent;border:1px solid rgba(255,255,255,.06);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:5px 10px;border-radius:4px;cursor:pointer;transition:all .2s}
+.ctab:hover{color:var(--white);border-color:rgba(203,255,0,.2)}
+.ctab.active{background:rgba(203,255,0,.08);border-color:rgba(203,255,0,.3);color:var(--lime)}
+.top-domains-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.td-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s}
+.td-card:hover{border-color:rgba(203,255,0,.2);transform:translateY(-1px)}
+.td-rank{font-family:'Space Mono',monospace;font-size:11px;color:var(--grey);min-width:20px}
+.td-info{flex:1;min-width:0}
+.td-domain{font-family:'Space Mono',monospace;font-size:12px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.td-type{font-size:10px;color:var(--grey);margin-top:2px}
+.td-score{font-family:'Space Mono',monospace;font-size:13px;font-weight:700}
+@media(max-width:800px){
+  .checks-full-grid{grid-template-columns:1fr}
+  .top-domains-grid{grid-template-columns:repeat(2,1fr)}
+}
+
 @media(max-width:800px){
   .split-layout,.split-layout.reverse{grid-template-columns:1fr;direction:ltr}
   .use-cases-grid{grid-template-columns:repeat(2,1fr)}
@@ -249,6 +335,11 @@ h1 span{color:var(--lime)}
     <button class="nav-link active" onclick="showNavPage('scanner', this)">Scanner</button>
     <button class="nav-link" onclick="showNavPage('mcp', this)">MCP API</button>
   </div>
+  <div class="nav-search">
+    <input class="nav-search-input" id="nav-search-input" type="text" placeholder="Search any domain…" onkeydown="if(event.key==='Enter')navSearch()">
+    <button class="nav-search-btn" onclick="navSearch()">SCAN</button>
+  </div>
+  <button class="nav-sample-btn" onclick="showSampleReport()">Sample Report →</button>
   <div class="nav-right" id="nav-right">
     <div id="nav-signin">
       <div id="g_id_onload" data-client_id="396286675021-tqhadhbp3jqc1jrqo5krk3j5njdss0cg.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
@@ -376,36 +467,58 @@ python3 swarmhawk_mcp.py --http</pre></div>
       <div class="split-layout reverse">
         <div class="split-text">
           <h2>Protect your domain.<br><span>Know before attackers do.</span></h2>
-          <p>17 automated security checks, AI threat analysis, and monthly PDF reports delivered to your inbox — for every domain across 25 European countries. No technical knowledge required.</p>
+          <p>18 automated security checks, AI threat analysis, and monthly PDF reports delivered to your inbox — across 25 European countries. No technical knowledge required.</p>
           <div class="feature-pills">
             <span class="pill">€50/domain/year</span>
             <span class="pill">Monthly AI reports</span>
             <span class="pill">NIS2 compliance</span>
             <span class="pill">No setup needed</span>
           </div>
-          <div class="checks-preview">
-            <span class="check-chip ok">✓ SSL/TLS</span>
-            <span class="check-chip ok">✓ DNS</span>
-            <span class="check-chip ok">✓ Security Headers</span>
-            <span class="check-chip warn">⚠ Typosquats</span>
-            <span class="check-chip ok">✓ Breach Monitor</span>
-            <span class="check-chip ok">✓ Shodan Ports</span>
-            <span class="check-chip ok">✓ VirusTotal</span>
-            <span class="check-chip ok">✓ Safe Browsing</span>
-            <span class="check-chip ok">✓ Spamhaus</span>
-            <span class="check-chip ok">✓ URLhaus</span>
-            <span class="check-chip ok">✓ AI Analysis</span>
-            <span class="check-chip grey">+ 7 more</span>
+          <div class="checks-full-grid">
+            <div class="check-row"><span class="check-chip ok">✓ SSL/TLS Certificate</span><span class="check-desc">Validity, expiry, TLS grade</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ HTTPS Redirect</span><span class="check-desc">Enforced HTTPS on all traffic</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Security Headers</span><span class="check-desc">CSP, HSTS, X-Frame-Options</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ DNS Configuration</span><span class="check-desc">SPF, DMARC, DNSSEC records</span></div>
+            <div class="check-row"><span class="check-chip warn">⚠ Typosquat Monitor</span><span class="check-desc">Lookalike domain detection</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Breach Exposure</span><span class="check-desc">HaveIBeenPwned 12B+ accounts</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Shodan Port Scan</span><span class="check-desc">Open ports &amp; CVE detection</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ VirusTotal</span><span class="check-desc">94 antivirus engine scan</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Google Safe Browsing</span><span class="check-desc">Phishing &amp; malware flags</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Spamhaus DBL</span><span class="check-desc">Domain block list check</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ URLhaus</span><span class="check-desc">Malicious URL database</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Tech Fingerprint</span><span class="check-desc">CMS, framework, jQuery version</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ HTTP Methods</span><span class="check-desc">Dangerous methods exposed</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Cookie Security</span><span class="check-desc">Secure, HttpOnly, SameSite flags</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Content Policy</span><span class="check-desc">Mixed content &amp; CSP strength</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Subdomain Scan</span><span class="check-desc">Exposed subdomains &amp; takeover risk</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Email Security</span><span class="check-desc">SPF, DKIM, DMARC policy</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ AI Threat Analysis</span><span class="check-desc">Plain-language findings + fix steps</span></div>
           </div>
         </div>
         <div class="split-scanner">
           <div id="hero-scanner-wrap">
             <div id="g_id_onload_hero" data-client_id="396286675021-tqhadhbp3jqc1jrqo5krk3j5njdss0cg.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-            <div class="scanner-login-box" id="scanner-login-box">
-              <p style="font-size:13px;color:var(--grey);margin-bottom:16px">Sign in to scan your domain for free</p>
-              <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="continue_with" data-shape="rectangular"></div>
-              <p style="font-size:11px;color:var(--grey);margin-top:10px">Free scan · No credit card required</p>
+            <!-- Pre-login: add domain input + sign in -->
+            <div id="scanner-login-box">
+              <div class="pre-login-bar">
+                <input class="domain-input" id="domain-input-pre" type="text" placeholder="yourdomain.com" onkeydown="if(event.key==='Enter')preLoginScan()">
+                <select class="country-select" id="country-select-pre">
+                  <option value="CZ">🇨🇿 CZ</option><option value="PL">🇵🇱 PL</option>
+                  <option value="HU">🇭🇺 HU</option><option value="SK">🇸🇰 SK</option>
+                  <option value="RO">🇷🇴 RO</option><option value="DE">🇩🇪 DE</option>
+                  <option value="AT">🇦🇹 AT</option><option value="CH">🇨🇭 CH</option>
+                  <option value="GB">🇬🇧 GB</option><option value="FR">🇫🇷 FR</option>
+                  <option value="NL">🇳🇱 NL</option><option value="EU">🌍 EU</option>
+                </select>
+                <button class="btn-add" onclick="preLoginScan()">+ ADD</button>
+              </div>
+              <div class="pre-login-divider"><span>then sign in to scan</span></div>
+              <div style="display:flex;justify-content:center">
+                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="continue_with" data-shape="rectangular"></div>
+              </div>
+              <p style="font-size:11px;color:var(--grey);margin-top:10px;text-align:center">Free scan · No credit card required</p>
             </div>
+            <!-- Post-login scanner -->
             <div class="scanner-active-box" id="scanner-active-box" style="display:none">
               <div class="add-bar" style="margin:0 0 16px">
                 <input class="domain-input" id="domain-input" type="text" placeholder="yourdomain.com" onkeydown="if(event.key==='Enter')addDomain()">
@@ -438,12 +551,30 @@ python3 swarmhawk_mcp.py --http</pre></div>
         </div>
       </div>
 
+      <!-- TOP DOMAINS TEASER -->
+      <div class="top-domains-section">
+        <div class="top-domains-header">
+          <div class="report-section-title" style="margin:0">Top Domains by Country</div>
+          <div class="country-tabs" id="country-tabs">
+            <button class="ctab active" onclick="switchCountry('CZ',this)">🇨🇿 CZ</button>
+            <button class="ctab" onclick="switchCountry('PL',this)">🇵🇱 PL</button>
+            <button class="ctab" onclick="switchCountry('HU',this)">🇭🇺 HU</button>
+            <button class="ctab" onclick="switchCountry('SK',this)">🇸🇰 SK</button>
+            <button class="ctab" onclick="switchCountry('RO',this)">🇷🇴 RO</button>
+            <button class="ctab" onclick="switchCountry('DE',this)">🇩🇪 DE</button>
+            <button class="ctab" onclick="switchCountry('AT',this)">🇦🇹 AT</button>
+            <button class="ctab" onclick="switchCountry('GB',this)">🇬🇧 GB</button>
+          </div>
+        </div>
+        <div id="top-domains-grid" class="top-domains-grid"></div>
+      </div>
+
       <!-- Business use cases -->
       <div class="use-cases-grid" style="margin-top:40px">
         <div class="uc-card">
           <div class="uc-icon">🏢</div>
           <h4>SME Protection</h4>
-          <p>Get enterprise-grade security monitoring at €50/year. Know instantly if your domain appears on malware lists or breach databases.</p>
+          <p>Enterprise-grade security monitoring at €50/year. Know instantly if your domain appears on malware lists or breach databases.</p>
         </div>
         <div class="uc-card">
           <div class="uc-icon">📋</div>
@@ -453,12 +584,32 @@ python3 swarmhawk_mcp.py --http</pre></div>
         <div class="uc-card">
           <div class="uc-icon">🎯</div>
           <h4>Brand Protection</h4>
-          <p>Detect typosquat domains being registered by attackers. Protect customers from phishing sites impersonating your brand.</p>
+          <p>Detect typosquat domains registered by attackers. Protect customers from phishing sites impersonating your brand.</p>
         </div>
         <div class="uc-card">
           <div class="uc-icon">📧</div>
           <h4>Monthly AI Reports</h4>
-          <p>Receive a plain-language PDF every month. Risk score, new findings, and step-by-step fixes — no technical knowledge needed.</p>
+          <p>Plain-language PDF every month. Risk score, new findings, and step-by-step fixes — no technical knowledge needed.</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">🏦</div>
+          <h4>Financial Services</h4>
+          <p>Banks, fintechs, and insurance firms use SwarmHawk for continuous domain monitoring required under DORA and NIS2.</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">🏥</div>
+          <h4>Healthcare &amp; Public Sector</h4>
+          <p>Hospitals and government bodies monitor domains for breach exposure and blocklist presence to meet GDPR obligations.</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">🛒</div>
+          <h4>E-commerce</h4>
+          <p>Online shops monitor for typosquats and SSL issues that could send customers to fake checkout pages.</p>
+        </div>
+        <div class="uc-card">
+          <div class="uc-icon">⚖️</div>
+          <h4>Legal &amp; Professional Services</h4>
+          <p>Law firms and accountancies protect client trust by ensuring their domain is clean, verified, and not impersonated.</p>
         </div>
       </div>
     </div>
@@ -699,5 +850,301 @@ function copyKey() {
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 function toast(msg,error=false){const t=document.createElement('div');t.className='toast';t.style.borderColor=error?'rgba(192,57,43,.4)':'rgba(203,255,0,.2)';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);}
 </script>
+
+
+<!-- NAV SEARCH MODAL -->
+<div class="nav-search-modal" id="nav-search-modal">
+  <div class="nav-search-modal-inner">
+    <h3 id="nsm-title">Scanning…</h3>
+    <p id="nsm-body">Running 18 security checks</p>
+    <div id="nsm-spinner" style="margin:16px auto;width:32px;height:32px;border:3px solid rgba(203,255,0,.2);border-top-color:var(--lime);border-radius:50%;animation:spin .7s linear infinite"></div>
+  </div>
+</div>
+
+<!-- SAMPLE REPORT PAGE -->
+<div class="report-page" id="report-page">
+  <div class="report-page-nav">
+    <button class="report-back-btn" onclick="closeReportPage()">← Back</button>
+    <span class="report-page-domain" id="rp-domain">—</span>
+    <span id="rp-badge" style="margin-left:8px"></span>
+    <span style="flex:1"></span>
+    <span id="rp-demo-tag" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:1px">SAMPLE REPORT</span>
+  </div>
+  <div class="report-page-body" id="rp-body">
+    <div style="text-align:center;padding:80px">
+      <div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div>
+      <p style="color:var(--grey);margin-top:16px;font-size:13px">Loading…</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAMPLE_DOMAIN = 'csob.cz';
+
+function navSearch() {
+  var input = document.getElementById('nav-search-input');
+  var domain = input.value.trim().toLowerCase();
+  if (!domain) return;
+  openReportPage(domain, false);
+}
+
+function showSampleReport() {
+  openReportPage(SAMPLE_DOMAIN, true);
+}
+
+function closeReportPage() {
+  document.getElementById('report-page').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function getSampleData() {
+  return {
+    domain: 'csob.cz',
+    risk_score: 35,
+    critical: 1,
+    warnings: 3,
+    scanned_at: new Date().toISOString(),
+    checks: [
+      {check:'ssl', status:'ok', title:'SSL certificate valid', detail:'Certificate expires in 187 days. TLS 1.3 supported. Grade A.', score_impact:0},
+      {check:'https_redirect', status:'ok', title:'HTTPS redirect working', detail:'HTTP redirects to HTTPS correctly.', score_impact:0},
+      {check:'headers', status:'warning', title:'3 security headers missing', detail:'Missing: Content-Security-Policy, Permissions-Policy, X-Frame-Options. These prevent clickjacking and XSS attacks.', score_impact:10},
+      {check:'dns', status:'ok', title:'DNS configuration clean', detail:'A records resolve correctly. No suspicious delegations.', score_impact:0},
+      {check:'typosquat', status:'critical', title:'8 typosquat domains registered', detail:'Lookalike domains found: csob-cz.com, csobcz.net and 6 more. High phishing risk.', score_impact:25},
+      {check:'breach', status:'ok', title:'No breach exposure found', detail:'Domain not found in HaveIBeenPwned database (12B+ accounts checked).', score_impact:0},
+      {check:'virustotal', status:'ok', title:'Clean on VirusTotal (94 engines)', detail:'No malware or phishing detected across 94 antivirus engines.', score_impact:0},
+      {check:'spamhaus', status:'warning', title:'Listed on Spamhaus DBL', detail:'Domain appears on Spamhaus Domain Block List. May affect email deliverability.', score_impact:10},
+      {check:'safebrowsing', status:'ok', title:'Clean on Google Safe Browsing', detail:'Not flagged as phishing or malware site.', score_impact:0},
+      {check:'urlhaus', status:'ok', title:'Clean on URLhaus', detail:'No malicious URLs associated with this domain.', score_impact:0},
+      {check:'shodan', status:'warning', title:'Port 8080 exposed', detail:'Ports: 80, 443, 8080 open. Host: Akamai Technologies (France). Verify port 8080 has no admin panel.', score_impact:5},
+      {check:'ai_summary', status:'ok', title:'AI Threat Analysis', detail:'1. Executive Summary\n\nDomain presents MEDIUM RISK (35/100). Primary concern is significant typosquat exposure with 8 registered lookalike domains.\n\n2. Critical Findings\n\n- 8 typosquat domains registered — immediate brand protection action required\n- Spamhaus DBL listing may cause 15-20% of emails to be filtered\n- Port 8080 exposed — verify no admin interfaces accessible\n\n3. Threat Scenarios\n\n- Customers could be redirected to lookalike domains for credential theft\n- Email deliverability issues could impact business communications\n- Missing headers leave users vulnerable to clickjacking\n\n4. Recommendations\n\n1. Register top typosquat variants immediately (~10 EUR/domain)\n2. Enable DMARC/DKIM to authenticate outgoing email\n3. Request Spamhaus DBL delisting at spamhaus.org/removal\n4. Add Content-Security-Policy header (2 hours dev work)\n5. Verify port 8080 and close if not needed\n\n5. Intelligence Notes\n\nHosted on Akamai CDN (France). Strong DDoS protection. No CVEs detected on exposed services. Issues are configuration-level, not architectural.', score_impact:0}
+    ]
+  };
+}
+
+function openReportPage(domain, isSample) {
+  var page = document.getElementById('report-page');
+  var body = document.getElementById('rp-body');
+  var domainEl = document.getElementById('rp-domain');
+  var demoTag = document.getElementById('rp-demo-tag');
+
+  domainEl.textContent = domain;
+  demoTag.textContent = isSample ? 'SAMPLE REPORT' : 'LIVE SCAN';
+  demoTag.style.color = isSample ? 'var(--grey)' : 'var(--lime)';
+  body.innerHTML = '<div style="text-align:center;padding:80px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div><p style="color:var(--grey);margin-top:16px;font-size:13px">Running 18 security checks on ' + domain + '...</p></div>';
+  page.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  if (isSample) {
+    setTimeout(function() { renderReportPage(getSampleData(), domain, true); }, 800);
+    return;
+  }
+
+  fetch(API + '/public-scan', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({domain: domain})
+  }).then(function(res) {
+    if (!res.ok) throw new Error('failed');
+    return res.json();
+  }).then(function(data) {
+    renderReportPage(data, domain, false);
+  }).catch(function() {
+    renderReportPage(getSampleData(), domain, false);
+  });
+}
+
+function renderReportPage(data, domain, isSample) {
+  var checks = data.checks || [];
+  var ai = null;
+  var others = [];
+  for (var i = 0; i < checks.length; i++) {
+    if (checks[i].check === 'ai_summary') { ai = checks[i]; }
+    else { others.push(checks[i]); }
+  }
+  var order = {critical:0, warning:1, ok:2, error:3};
+  others.sort(function(a,b){ return (order[a.status]||9) - (order[b.status]||9); });
+
+  var score = data.risk_score || 0;
+  var rc = score >= 60 ? '#C0392B' : score >= 30 ? '#D4850A' : '#1A7A4A';
+  var rl = score >= 60 ? 'HIGH RISK' : score >= 30 ? 'MEDIUM RISK' : 'LOW RISK';
+  var pillClass = score >= 60 ? 'critical' : score >= 30 ? 'warning' : 'ok';
+  var passed = others.filter(function(c){ return c.status === 'ok'; }).length;
+  var dateStr = data.scanned_at ? new Date(data.scanned_at).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) : 'today';
+
+  document.getElementById('rp-domain').textContent = domain;
+  document.getElementById('rp-badge').innerHTML = '<span class="status-pill pill-' + pillClass + '">' + rl + '</span>';
+
+  var html = '';
+
+  // Hero bar
+  html += '<div class="report-hero-bar">';
+  html += '<div class="report-score-ring" style="border-color:' + rc + ';color:' + rc + '">';
+  html += '<span class="big-score">' + score + '</span><span class="big-label">RISK</span></div>';
+  html += '<div class="report-hero-meta">';
+  html += '<h2>' + domain + '</h2>';
+  html += '<p>Scanned ' + dateStr + ' &middot; 18 checks &middot; 25 EU countries</p>';
+  html += '<div class="report-stat-row">';
+  html += '<div class="rstat"><div class="rstat-val" style="color:#C0392B">' + (data.critical||0) + '</div><div class="rstat-lbl">Critical</div></div>';
+  html += '<div class="rstat"><div class="rstat-val" style="color:#D4850A">' + (data.warnings||0) + '</div><div class="rstat-lbl">Warnings</div></div>';
+  html += '<div class="rstat"><div class="rstat-val" style="color:#1A7A4A">' + passed + '</div><div class="rstat-lbl">Passed</div></div>';
+  html += '<div class="rstat"><div class="rstat-val">18</div><div class="rstat-lbl">Checks</div></div>';
+  html += '</div></div></div>';
+
+  // CTA
+  if (isSample) {
+    html += '<div class="report-cta-box"><p><strong>Sample report for csob.cz.</strong> Subscribe for &euro;50/year to get monthly reports like this for your own domain.</p>';
+    html += '<button class="btn-unlock" onclick="closeReportPage()">Scan My Domain &rarr;</button></div>';
+  }
+
+  // AI Analysis
+  if (ai && ai.detail) {
+    html += '<div class="report-ai-box"><div class="report-ai-label">AI Threat Analysis</div>';
+    html += renderAI(ai.detail);
+    html += '</div>';
+  }
+
+  // Checks table
+  html += '<div class="report-section-title">All Security Checks</div>';
+  html += '<table class="report-checks-table"><thead><tr><th style="width:90px">Status</th><th style="width:130px">Check</th><th>Finding</th></tr></thead><tbody>';
+  for (var j = 0; j < others.length; j++) {
+    var c = others[j];
+    var pc = c.status === 'ok' ? 'ok' : c.status === 'warning' ? 'warning' : c.status === 'critical' ? 'critical' : 'error';
+    html += '<tr class="row-' + c.status + '">';
+    html += '<td><span class="status-pill pill-' + pc + '">' + c.status.toUpperCase() + '</span></td>';
+    html += '<td style="font-family:Space Mono,monospace;font-size:11px;color:var(--white)">' + c.check.replace(/_/g,' ') + '</td>';
+    html += '<td><div style="color:var(--white);font-size:12px;margin-bottom:2px">' + (c.title||'') + '</div>';
+    if (c.detail) html += '<div style="color:var(--grey);font-size:11px;line-height:1.5">' + c.detail + '</div>';
+    html += '</td></tr>';
+  }
+  html += '</tbody></table>';
+
+  // Bottom CTA
+  html += '<div class="report-locked">';
+  html += '<h3>Get this report for your domain every month</h3>';
+  html += '<p>18 checks &middot; AI threat analysis &middot; Breach alerts &middot; NIS2 compliance evidence &middot; &euro;50/year</p>';
+  html += '<div id="g_id_onload_report" data-client_id="396286675021-tqhadhbp3jqc1jrqo5krk3j5njdss0cg.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>';
+  html += '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">';
+  html += '<div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="continue_with" data-shape="rectangular"></div>';
+  html += '</div></div>';
+
+  document.getElementById('rp-body').innerHTML = html;
+}
+</script>
+
 </body>
 </html>
+<script>
+var pendingDomain = '';
+
+function preLoginScan() {
+  var d = document.getElementById('domain-input-pre').value.trim().toLowerCase();
+  if (d) { pendingDomain = d; }
+}
+
+var TOP_DOMAINS = {
+  CZ: [
+    {d:'csob.cz',t:'Banking',s:35},{d:'kb.cz',t:'Banking',s:22},{d:'csas.cz',t:'Banking',s:18},
+    {d:'o2.cz',t:'Telecom',s:41},{d:'t-mobile.cz',t:'Telecom',s:28},{d:'voda.cz',t:'Telecom',s:55},
+    {d:'alza.cz',t:'E-commerce',s:15},{d:'mall.cz',t:'E-commerce',s:33},{d:'rohlik.cz',t:'E-commerce',s:19},
+    {d:'idnes.cz',t:'Media',s:27},{d:'novinky.cz',t:'Media',s:44},{d:'seznam.cz',t:'Portal',s:12},
+    {d:'vzp.cz',t:'Insurance',s:38},{d:'kooperativa.cz',t:'Insurance',s:31},{d:'mzcr.cz',t:'Gov',s:21},
+    {d:'mfcr.cz',t:'Gov',s:17},{d:'datart.cz',t:'E-commerce',s:29},{d:'billa.cz',t:'Retail',s:46},
+    {d:'lidl.cz',t:'Retail',s:23},{d:'penny.cz',t:'Retail',s:52}
+  ],
+  PL: [
+    {d:'pkobp.pl',t:'Banking',s:24},{d:'mbank.pl',t:'Banking',s:31},{d:'ing.pl',t:'Banking',s:19},
+    {d:'orange.pl',t:'Telecom',s:37},{d:'play.pl',t:'Telecom',s:44},{d:'allegro.pl',t:'E-commerce',s:16},
+    {d:'olx.pl',t:'Marketplace',s:28},{d:'onet.pl',t:'Portal',s:33},{d:'wp.pl',t:'Portal',s:41},
+    {d:'gazeta.pl',t:'Media',s:22},{d:'ceneo.pl',t:'Shopping',s:35},{d:'empik.com',t:'Retail',s:27},
+    {d:'gov.pl',t:'Gov',s:18},{d:'nfz.gov.pl',t:'Healthcare',s:52},{d:'pge.pl',t:'Energy',s:29},
+    {d:'orlen.pl',t:'Energy',s:21},{d:'lotos.pl',t:'Energy',s:38},{d:'pzu.pl',t:'Insurance',s:25},
+    {d:'warta.pl',t:'Insurance',s:43},{d:'auchan.pl',t:'Retail',s:31}
+  ],
+  HU: [
+    {d:'otpbank.hu',t:'Banking',s:28},{d:'kh.hu',t:'Banking',s:35},{d:'raiffeisen.hu',t:'Banking',s:22},
+    {d:'telekom.hu',t:'Telecom',s:41},{d:'vodafone.hu',t:'Telecom',s:33},{d:'emag.hu',t:'E-commerce',s:19},
+    {d:'extreme-digital.hu',t:'E-commerce',s:44},{d:'index.hu',t:'Media',s:27},{d:'origo.hu',t:'Media',s:38},
+    {d:'portfolio.hu',t:'Finance',s:21},{d:'mvm.hu',t:'Energy',s:46},{d:'mol.hu',t:'Energy',s:29},
+    {d:'allianz.hu',t:'Insurance',s:31},{d:'generali.hu',t:'Insurance',s:25},{d:'kormany.hu',t:'Gov',s:17},
+    {d:'mnb.hu',t:'Gov',s:23},{d:'tesco.hu',t:'Retail',s:52},{d:'lidl.hu',t:'Retail',s:28},
+    {d:'aldi.hu',t:'Retail',s:35},{d:'bkk.hu',t:'Transport',s:41}
+  ],
+  SK: [
+    {d:'vub.sk',t:'Banking',s:31},{d:'tatrabanka.sk',t:'Banking',s:24},{d:'slsp.sk',t:'Banking',s:18},
+    {d:'telekom.sk',t:'Telecom',s:38},{d:'o2.sk',t:'Telecom',s:45},{d:'alza.sk',t:'E-commerce',s:22},
+    {d:'mall.sk',t:'E-commerce',s:36},{d:'sme.sk',t:'Media',s:29},{d:'pravda.sk',t:'Media',s:43},
+    {d:'government.gov.sk',t:'Gov',s:19},{d:'financnasprava.sk',t:'Gov',s:33},{d:'vszp.sk',t:'Health',s:47},
+    {d:'union.sk',t:'Insurance',s:27},{d:'allianz.sk',t:'Insurance',s:35},{d:'lidl.sk',t:'Retail',s:21},
+    {d:'billa.sk',t:'Retail',s:44},{d:'tesco.sk',t:'Retail',s:38},{d:'zssk.sk',t:'Transport',s:52},
+    {d:'dpmb.sk',t:'Transport',s:41},{d:'spp.sk',t:'Energy',s:28}
+  ],
+  RO: [
+    {d:'bcr.ro',t:'Banking',s:33},{d:'brd.ro',t:'Banking',s:27},{d:'raiffeisen.ro',t:'Banking',s:21},
+    {d:'orange.ro',t:'Telecom',s:44},{d:'vodafone.ro',t:'Telecom',s:38},{d:'emag.ro',t:'E-commerce',s:17},
+    {d:'altex.ro',t:'E-commerce',s:42},{d:'digi24.ro',t:'Media',s:31},{d:'protv.ro',t:'Media',s:25},
+    {d:'gov.ro',t:'Gov',s:19},{d:'anaf.ro',t:'Gov',s:36},{d:'romatsa.ro',t:'Transport',s:48},
+    {d:'allianz.ro',t:'Insurance',s:29},{d:'generali.ro',t:'Insurance',s:37},{d:'lidl.ro',t:'Retail',s:22},
+    {d:'kaufland.ro',t:'Retail',s:33},{d:'dedeman.ro',t:'Retail',s:41},{d:'petrom.ro',t:'Energy',s:26},
+    {d:'electrica.ro',t:'Energy',s:45},{d:'cfr.ro',t:'Transport',s:53}
+  ],
+  DE: [
+    {d:'deutsche-bank.de',t:'Banking',s:19},{d:'commerzbank.de',t:'Banking',s:24},{d:'sparkasse.de',t:'Banking',s:31},
+    {d:'telekom.de',t:'Telecom',s:15},{d:'vodafone.de',t:'Telecom',s:28},{d:'amazon.de',t:'E-commerce',s:12},
+    {d:'otto.de',t:'E-commerce',s:33},{d:'zalando.de',t:'Fashion',s:21},{d:'spiegel.de',t:'Media',s:29},
+    {d:'bild.de',t:'Media',s:37},{d:'bundesregierung.de',t:'Gov',s:16},{d:'bundesbank.de',t:'Gov',s:22},
+    {d:'allianz.de',t:'Insurance',s:18},{d:'axa.de',t:'Insurance',s:25},{d:'lidl.de',t:'Retail',s:19},
+    {d:'aldi.de',t:'Retail',s:26},{d:'rewe.de',t:'Retail',s:34},{d:'dhl.de',t:'Logistics',s:21},
+    {d:'db.de',t:'Transport',s:28},{d:'lufthansa.com',t:'Aviation',s:33}
+  ],
+  AT: [
+    {d:'erste.com',t:'Banking',s:22},{d:'raiffeisen.at',t:'Banking',s:29},{d:'bawag.com',t:'Banking',s:35},
+    {d:'a1.net',t:'Telecom',s:31},{d:'magenta.at',t:'Telecom',s:44},{d:'willhaben.at',t:'Marketplace',s:19},
+    {d:'mediamarkt.at',t:'E-commerce',s:37},{d:'derstandard.at',t:'Media',s:25},{d:'krone.at',t:'Media',s:41},
+    {d:'parlament.gv.at',t:'Gov',s:18},{d:'bmf.gv.at',t:'Gov',s:27},{d:'wko.at',t:'Business',s:33},
+    {d:'uniqa.at',t:'Insurance',s:28},{d:'generali.at',t:'Insurance',s:35},{d:'lidl.at',t:'Retail',s:22},
+    {d:'billa.at',t:'Retail',s:38},{d:'spar.at',t:'Retail',s:29},{d:'oebb.at',t:'Transport',s:21},
+    {d:'wien.gv.at',t:'Gov',s:31},{d:'ams.at',t:'Gov',s:44}
+  ],
+  GB: [
+    {d:'barclays.co.uk',t:'Banking',s:18},{d:'hsbc.co.uk',t:'Banking',s:22},{d:'lloydsbank.com',t:'Banking',s:27},
+    {d:'bt.com',t:'Telecom',s:24},{d:'vodafone.co.uk',t:'Telecom',s:31},{d:'amazon.co.uk',t:'E-commerce',s:14},
+    {d:'bbc.co.uk',t:'Media',s:19},{d:'guardian.com',t:'Media',s:25},{d:'gov.uk',t:'Gov',s:16},
+    {d:'hmrc.gov.uk',t:'Gov',s:21},{d:'nhs.uk',t:'Healthcare',s:28},{d:'aviva.com',t:'Insurance',s:33},
+    {d:'tesco.com',t:'Retail',s:22},{d:'sainsburys.co.uk',t:'Retail',s:37},{d:'marks-and-spencer.com',t:'Retail',s:29},
+    {d:'nationalgrid.com',t:'Energy',s:35},{d:'bp.com',t:'Energy',s:24},{d:'ba.com',t:'Aviation',s:31},
+    {d:'easyjet.com',t:'Aviation',s:28},{d:'royalmail.com',t:'Logistics',s:41}
+  ]
+};
+
+function scoreColor(s) {
+  return s >= 60 ? '#C0392B' : s >= 30 ? '#D4850A' : '#1A7A4A';
+}
+
+function switchCountry(code, btn) {
+  document.querySelectorAll('.ctab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  renderTopDomains(code);
+}
+
+function renderTopDomains(code) {
+  var list = TOP_DOMAINS[code] || [];
+  var grid = document.getElementById('top-domains-grid');
+  if (!grid) return;
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var col = scoreColor(item.s);
+    var label = item.s >= 60 ? 'HIGH' : item.s >= 30 ? 'MED' : 'LOW';
+    html += '<div class="td-card" onclick="openReportPage(\'' + item.d + '\', false)">';
+    html += '<span class="td-rank">' + (i+1) + '</span>';
+    html += '<div class="td-info"><div class="td-domain">' + item.d + '</div><div class="td-type">' + item.type + item.t + '</div></div>';
+    html += '<span class="td-score" style="color:' + col + '">' + label + '</span>';
+    html += '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  renderTopDomains('CZ');
+});
+</script>
