@@ -1,0 +1,8 @@
+fastmcp>=3.1.0
+requests
+anthropic
+resend
+supabase
+stripe
+python-jose[cryptography]
+httpx
