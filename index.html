@@ -1006,7 +1006,10 @@ function logout() { clearInterval(pollTimer); localStorage.removeItem('sw_token'
 
 async function api(path,opts={}) {
   const res=await fetch(`${API}${path}`,{...opts,headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`,...(opts.headers||{})}});
-  if (!res.ok){const e=await res.json().catch(()=>({detail:res.statusText})); throw new Error(e.detail||res.statusText);}
+  if (!res.ok){
+    const e=await res.json().catch(()=>({detail:res.statusText}));
+    throw new Error('HTTP '+res.status+': '+(e.detail||e.message||res.statusText));
+  }
   return res.json();
 }
 
@@ -1893,8 +1896,11 @@ async function dbAddDomain() {
       if (d || polls > 24) { clearInterval(poll); if(d) toast('✓ '+domain+' scan complete'); }
     }, 5000);
   } catch(e) {
-    toast('Add domain failed: ' + e.message, true);
+    toast('Error: ' + e.message, true);
     console.error('dbAddDomain error:', e);
+    // Show detailed error in intel content area for debugging
+    document.getElementById('intel-content') && (document.getElementById('intel-content').innerHTML =
+      '<p style="color:#C0392B;padding:16px">Add domain error: ' + e.message + '</p>');
   }
   finally { btn.disabled = false; btn.textContent = 'Scan Domain'; }
 }
