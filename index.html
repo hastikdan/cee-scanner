@@ -288,9 +288,42 @@ h1 span{color:var(--lime)}
 
 
 /* CHECKS FULL GRID */
-.checks-full-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:16px}
 .check-row{display:flex;align-items:center;gap:8px}
 .check-desc{font-size:11px;color:var(--grey)}
+/* TWO-COL CHECKS */
+.checks-two-col{display:flex;gap:24px;margin-top:16px}
+.checks-col{flex:1;display:flex;flex-direction:column;gap:6px}
+
+/* DATA SOURCES */
+.ds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
+.ds-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;display:flex;gap:14px;transition:border-color .2s}
+.ds-card:hover{border-color:rgba(203,255,0,.2)}
+.ds-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+.ds-content h4{font-family:'Space Mono',monospace;font-size:12px;color:var(--white);margin-bottom:6px;font-weight:700}
+.ds-content p{font-size:12px;color:var(--grey);line-height:1.6;margin-bottom:10px}
+.ds-tags{display:flex;flex-wrap:wrap;gap:4px}
+.ds-tag{background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px}
+.ds-footer{display:flex;gap:0;background:var(--card);border:1px solid rgba(203,255,0,.1);border-radius:10px;overflow:hidden}
+.ds-stat{flex:1;text-align:center;padding:20px 12px;border-right:1px solid rgba(203,255,0,.08)}
+.ds-stat:last-child{border-right:none}
+.ds-stat-val{display:block;font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--lime)}
+.ds-stat-lbl{display:block;font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* BLURRED REPORT */
+.report-blur-wrap{position:relative;overflow:hidden;border-radius:8px}
+.report-blur-content{filter:blur(4px);pointer-events:none;user-select:none}
+.report-blur-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(14,13,18,.7);backdrop-filter:blur(2px);border-radius:8px;padding:24px;text-align:center}
+.report-blur-overlay h3{font-family:'Space Mono',monospace;font-size:16px;color:var(--lime);margin-bottom:8px}
+.report-blur-overlay p{font-size:13px;color:var(--grey);margin-bottom:20px;line-height:1.6}
+
+@media(max-width:900px){.ds-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){
+  .ds-grid{grid-template-columns:1fr}
+  .checks-two-col{flex-direction:column}
+  .ds-footer{flex-wrap:wrap}
+  .ds-stat{min-width:33%}
+}
+
 
 /* PRE-LOGIN BAR */
 .pre-login-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
@@ -334,6 +367,7 @@ h1 span{color:var(--lime)}
   <div class="nav-links" id="nav-links">
     <button class="nav-link active" onclick="showNavPage('scanner', this)">Scanner</button>
     <button class="nav-link" onclick="showNavPage('mcp', this)">MCP API</button>
+    <button class="nav-link" onclick="showNavPage('datasources', this)">Data Sources</button>
   </div>
   <div class="nav-search">
     <input class="nav-search-input" id="nav-search-input" type="text" placeholder="Search any domain…" onkeydown="if(event.key==='Enter')navSearch()">
@@ -474,25 +508,29 @@ python3 swarmhawk_mcp.py --http</pre></div>
             <span class="pill">NIS2 compliance</span>
             <span class="pill">No setup needed</span>
           </div>
-          <div class="checks-full-grid">
-            <div class="check-row"><span class="check-chip ok">✓ SSL/TLS Certificate</span><span class="check-desc">Validity, expiry, TLS grade</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ HTTPS Redirect</span><span class="check-desc">Enforced HTTPS on all traffic</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Security Headers</span><span class="check-desc">CSP, HSTS, X-Frame-Options</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ DNS Configuration</span><span class="check-desc">SPF, DMARC, DNSSEC records</span></div>
-            <div class="check-row"><span class="check-chip warn">⚠ Typosquat Monitor</span><span class="check-desc">Lookalike domain detection</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Breach Exposure</span><span class="check-desc">HaveIBeenPwned 12B+ accounts</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Shodan Port Scan</span><span class="check-desc">Open ports &amp; CVE detection</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ VirusTotal</span><span class="check-desc">94 antivirus engine scan</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Google Safe Browsing</span><span class="check-desc">Phishing &amp; malware flags</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Spamhaus DBL</span><span class="check-desc">Domain block list check</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ URLhaus</span><span class="check-desc">Malicious URL database</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Tech Fingerprint</span><span class="check-desc">CMS, framework, jQuery version</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ HTTP Methods</span><span class="check-desc">Dangerous methods exposed</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Cookie Security</span><span class="check-desc">Secure, HttpOnly, SameSite flags</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Content Policy</span><span class="check-desc">Mixed content &amp; CSP strength</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Subdomain Scan</span><span class="check-desc">Exposed subdomains &amp; takeover risk</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ Email Security</span><span class="check-desc">SPF, DKIM, DMARC policy</span></div>
-            <div class="check-row"><span class="check-chip ok">✓ AI Threat Analysis</span><span class="check-desc">Plain-language findings + fix steps</span></div>
+          <div class="checks-two-col">
+            <div class="checks-col">
+              <div class="check-row"><span class="check-chip ok">✓ SSL/TLS Certificate</span><span class="check-desc">Validity, expiry, TLS grade</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ HTTPS Redirect</span><span class="check-desc">Enforced HTTPS on all traffic</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Security Headers</span><span class="check-desc">CSP, HSTS, X-Frame-Options</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ DNS Configuration</span><span class="check-desc">SPF, DMARC, DNSSEC</span></div>
+              <div class="check-row"><span class="check-chip warn">⚠ Typosquat Monitor</span><span class="check-desc">Lookalike domain detection</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Breach Exposure</span><span class="check-desc">HaveIBeenPwned 12B+ accounts</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Shodan Port Scan</span><span class="check-desc">Open ports &amp; CVEs</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ VirusTotal</span><span class="check-desc">94 antivirus engines</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Google Safe Browsing</span><span class="check-desc">Phishing &amp; malware flags</span></div>
+            </div>
+            <div class="checks-col">
+              <div class="check-row"><span class="check-chip ok">✓ Spamhaus DBL</span><span class="check-desc">Domain block list</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ URLhaus</span><span class="check-desc">Malicious URL database</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Tech Fingerprint</span><span class="check-desc">CMS, framework, jQuery version</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ HTTP Methods</span><span class="check-desc">Dangerous methods exposed</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Cookie Security</span><span class="check-desc">Secure, HttpOnly, SameSite</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Content Policy</span><span class="check-desc">Mixed content &amp; CSP</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Subdomain Scan</span><span class="check-desc">Exposed subdomains &amp; takeover</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ Email Security</span><span class="check-desc">SPF, DKIM, DMARC policy</span></div>
+              <div class="check-row"><span class="check-chip ok">✓ AI Threat Analysis</span><span class="check-desc">Plain-language findings + fixes</span></div>
+            </div>
           </div>
         </div>
         <div class="split-scanner">
@@ -502,15 +540,7 @@ python3 swarmhawk_mcp.py --http</pre></div>
             <div id="scanner-login-box">
               <div class="pre-login-bar">
                 <input class="domain-input" id="domain-input-pre" type="text" placeholder="yourdomain.com" onkeydown="if(event.key==='Enter')preLoginScan()">
-                <select class="country-select" id="country-select-pre">
-                  <option value="CZ">🇨🇿 CZ</option><option value="PL">🇵🇱 PL</option>
-                  <option value="HU">🇭🇺 HU</option><option value="SK">🇸🇰 SK</option>
-                  <option value="RO">🇷🇴 RO</option><option value="DE">🇩🇪 DE</option>
-                  <option value="AT">🇦🇹 AT</option><option value="CH">🇨🇭 CH</option>
-                  <option value="GB">🇬🇧 GB</option><option value="FR">🇫🇷 FR</option>
-                  <option value="NL">🇳🇱 NL</option><option value="EU">🌍 EU</option>
-                </select>
-                <button class="btn-add" onclick="preLoginScan()">+ ADD</button>
+                <button class="btn-add" onclick="preLoginScan()">+ ADD DOMAIN</button>
               </div>
               <div class="pre-login-divider"><span>then sign in to scan</span></div>
               <div style="display:flex;justify-content:center">
@@ -522,22 +552,7 @@ python3 swarmhawk_mcp.py --http</pre></div>
             <div class="scanner-active-box" id="scanner-active-box" style="display:none">
               <div class="add-bar" style="margin:0 0 16px">
                 <input class="domain-input" id="domain-input" type="text" placeholder="yourdomain.com" onkeydown="if(event.key==='Enter')addDomain()">
-                <select class="country-select" id="country-select">
-                  <option value="CZ">🇨🇿 CZ</option><option value="PL">🇵🇱 PL</option>
-                  <option value="HU">🇭🇺 HU</option><option value="SK">🇸🇰 SK</option>
-                  <option value="RO">🇷🇴 RO</option><option value="DE">🇩🇪 DE</option>
-                  <option value="AT">🇦🇹 AT</option><option value="CH">🇨🇭 CH</option>
-                  <option value="GB">🇬🇧 GB</option><option value="FR">🇫🇷 FR</option>
-                  <option value="ES">🇪🇸 ES</option><option value="IT">🇮🇹 IT</option>
-                  <option value="NL">🇳🇱 NL</option><option value="SE">🇸🇪 SE</option>
-                  <option value="DK">🇩🇰 DK</option><option value="NO">🇳🇴 NO</option>
-                  <option value="FI">🇫🇮 FI</option><option value="EE">🇪🇪 EE</option>
-                  <option value="LV">🇱🇻 LV</option><option value="LT">🇱🇹 LT</option>
-                  <option value="HR">🇭🇷 HR</option><option value="SI">🇸🇮 SI</option>
-                  <option value="RS">🇷🇸 RS</option><option value="BA">🇧🇦 BA</option>
-                  <option value="MK">🇲🇰 MK</option><option value="EU">🌍 EU</option>
-                </select>
-                <button class="btn-add" id="add-btn" onclick="addDomain()">+ SCAN</button>
+                <button class="btn-add" id="add-btn" onclick="addDomain()">+ SCAN DOMAIN</button>
               </div>
               <div class="sec-head" style="padding:0;margin-bottom:12px">
                 <span class="sec-title">Your Domains</span>
@@ -554,7 +569,10 @@ python3 swarmhawk_mcp.py --http</pre></div>
       <!-- TOP DOMAINS TEASER -->
       <div class="top-domains-section">
         <div class="top-domains-header">
-          <div class="report-section-title" style="margin:0">Top Domains by Country</div>
+          <div>
+            <div class="report-section-title" style="margin:0 0 4px">Top Domains by Country</div>
+            <div style="font-size:11px;color:var(--grey)">Ranked by web traffic · Source: SimilarWeb / Tranco Top 1M · Updated monthly</div>
+          </div>
           <div class="country-tabs" id="country-tabs">
             <button class="ctab active" onclick="switchCountry('CZ',this)">🇨🇿 CZ</button>
             <button class="ctab" onclick="switchCountry('PL',this)">🇵🇱 PL</button>
@@ -611,6 +629,130 @@ python3 swarmhawk_mcp.py --http</pre></div>
           <h4>Legal &amp; Professional Services</h4>
           <p>Law firms and accountancies protect client trust by ensuring their domain is clean, verified, and not impersonated.</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIVIDER -->
+  <div class="section-divider" style="margin-top:0">
+    <div class="divider-line"></div>
+    <span class="divider-label">technical specifications</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- DATA SOURCES SECTION -->
+  <div class="landing-section" id="section-datasources">
+    <div class="section-inner">
+      <div class="section-label-tag">📡 Data Sources &amp; Technical Specs</div>
+      <h2 style="font-family:Space Mono,monospace;font-size:28px;color:var(--white);margin-bottom:8px">What powers <span style="color:var(--lime)">SwarmHawk</span></h2>
+      <p style="color:var(--grey);font-size:15px;margin-bottom:40px;max-width:700px">18 checks drawing from 12 independent threat intelligence sources, updated in real-time. Every scan queries live APIs — no cached or stale data.</p>
+
+      <div class="ds-grid">
+        <div class="ds-card">
+          <div class="ds-icon">🔒</div>
+          <div class="ds-content">
+            <h4>SSL/TLS &amp; Infrastructure</h4>
+            <p>Certificate validity, expiry, TLS version, cipher strength graded A–F. Checks HTTPS enforcement and redirect chain. Source: direct TLS handshake + Python ssl library.</p>
+            <div class="ds-tags"><span class="ds-tag">ssl</span><span class="ds-tag">TLS 1.2/1.3</span><span class="ds-tag">HSTS</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🌐</div>
+          <div class="ds-content">
+            <h4>DNS &amp; Email Security</h4>
+            <p>SPF, DKIM, DMARC record validation. DNSSEC status. MX record health. Checks for dangling DNS records that enable subdomain takeover. Source: dnspython + direct DNS resolution.</p>
+            <div class="ds-tags"><span class="ds-tag">SPF</span><span class="ds-tag">DMARC</span><span class="ds-tag">DNSSEC</span><span class="ds-tag">MX</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🛡️</div>
+          <div class="ds-content">
+            <h4>Security Headers</h4>
+            <p>OWASP-recommended HTTP headers: Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, Strict-Transport-Security. Source: direct HTTP inspection.</p>
+            <div class="ds-tags"><span class="ds-tag">OWASP</span><span class="ds-tag">CSP</span><span class="ds-tag">HSTS</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🔍</div>
+          <div class="ds-content">
+            <h4>VirusTotal</h4>
+            <p>Aggregates results from 94 antivirus engines and URL scanners. Detects malware, phishing, and suspicious activity. Used by Google, Cisco, and major security teams globally. Source: VirusTotal API v3.</p>
+            <div class="ds-tags"><span class="ds-tag">94 engines</span><span class="ds-tag">malware</span><span class="ds-tag">phishing</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🚨</div>
+          <div class="ds-content">
+            <h4>Spamhaus DBL</h4>
+            <p>Spamhaus Domain Block List — the world's most widely used DNS-based blocklist. Used by over 3 billion mailboxes. A listing here means significant email deliverability impact. Source: Spamhaus DBL DNS query.</p>
+            <div class="ds-tags"><span class="ds-tag">blocklist</span><span class="ds-tag">3B+ mailboxes</span><span class="ds-tag">DNS</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">💀</div>
+          <div class="ds-content">
+            <h4>HaveIBeenPwned</h4>
+            <p>Checks 12+ billion breached accounts from 700+ data breaches. Created by Troy Hunt, trusted by FBI and NCA. Identifies if your domain's email accounts appear in known breach dumps. Source: HIBP API v3.</p>
+            <div class="ds-tags"><span class="ds-tag">12B+ accounts</span><span class="ds-tag">700+ breaches</span><span class="ds-tag">FBI trusted</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">📡</div>
+          <div class="ds-content">
+            <h4>Shodan</h4>
+            <p>Internet-wide port scanner and CVE database. Crawls the entire internet continuously and maps every exposed service, software version, and known vulnerability. Source: Shodan REST API.</p>
+            <div class="ds-tags"><span class="ds-tag">port scan</span><span class="ds-tag">CVE mapping</span><span class="ds-tag">IoT</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🌍</div>
+          <div class="ds-content">
+            <h4>Google Safe Browsing</h4>
+            <p>Google's threat intelligence database used to protect Chrome, Firefox, and Safari users. Flags domains used for phishing, malware distribution, and unwanted software. Source: Safe Browsing API v4.</p>
+            <div class="ds-tags"><span class="ds-tag">Chrome</span><span class="ds-tag">Firefox</span><span class="ds-tag">phishing</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🦟</div>
+          <div class="ds-content">
+            <h4>URLhaus (abuse.ch)</h4>
+            <p>Community-driven malware URL database maintained by abuse.ch. Tracks active malware distribution sites, botnet C&amp;C servers, and phishing campaigns in real-time. Source: URLhaus API.</p>
+            <div class="ds-tags"><span class="ds-tag">malware URLs</span><span class="ds-tag">C&amp;C servers</span><span class="ds-tag">real-time</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🎭</div>
+          <div class="ds-content">
+            <h4>Typosquat Detection</h4>
+            <p>Generates 200+ domain permutations per scan (character swap, omission, addition, homoglyph attacks) and checks DNS registration for each. Detects active phishing infrastructure. Source: dnstwist + DNS.</p>
+            <div class="ds-tags"><span class="ds-tag">200+ variants</span><span class="ds-tag">homoglyphs</span><span class="ds-tag">IDN</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🤖</div>
+          <div class="ds-content">
+            <h4>AI Threat Analysis</h4>
+            <p>Claude (Anthropic) synthesises all 18 check results into a plain-language executive summary with prioritised remediation steps. Trained on security reports, CVE databases, and OWASP guidelines. Source: Anthropic Claude API.</p>
+            <div class="ds-tags"><span class="ds-tag">Claude</span><span class="ds-tag">OWASP</span><span class="ds-tag">CVE</span></div>
+          </div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-icon">🏷️</div>
+          <div class="ds-content">
+            <h4>Tech Fingerprinting</h4>
+            <p>Identifies CMS (WordPress, Drupal, Joomla), frameworks (React, Vue, Angular), server software, CDN, and jQuery versions. Maps detected versions to CVE database for vulnerability scoring. Source: HTTP headers + HTML parsing.</p>
+            <div class="ds-tags"><span class="ds-tag">CMS</span><span class="ds-tag">CVE</span><span class="ds-tag">jQuery</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-footer">
+        <div class="ds-stat"><span class="ds-stat-val">12</span><span class="ds-stat-lbl">Intelligence Sources</span></div>
+        <div class="ds-stat"><span class="ds-stat-val">18</span><span class="ds-stat-lbl">Security Checks</span></div>
+        <div class="ds-stat"><span class="ds-stat-val">94</span><span class="ds-stat-lbl">AV Engines</span></div>
+        <div class="ds-stat"><span class="ds-stat-val">12B+</span><span class="ds-stat-lbl">Breached Accounts</span></div>
+        <div class="ds-stat"><span class="ds-stat-val">25</span><span class="ds-stat-lbl">EU Countries</span></div>
+        <div class="ds-stat"><span class="ds-stat-val">Real-time</span><span class="ds-stat-lbl">All Data Sources</span></div>
       </div>
     </div>
   </div>
@@ -681,13 +823,9 @@ function switchCodeTab(tab, btn) {
 function showNavPage(page, btn) {
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  const mcpSection = document.getElementById('section-mcp');
-  const scanSection = document.getElementById('section-scanner');
-  if (page === 'mcp') {
-    mcpSection.scrollIntoView({behavior:'smooth'});
-  } else {
-    scanSection.scrollIntoView({behavior:'smooth'});
-  }
+  var ids = {mcp:'section-mcp', scanner:'section-scanner', datasources:'section-datasources'};
+  var el = document.getElementById(ids[page] || 'section-scanner');
+  if (el) el.scrollIntoView({behavior:'smooth'});
 }
 function showPage(page) { showNavPage(page, null); }
 
@@ -719,12 +857,122 @@ async function loadDomains() {
 }
 
 async function addDomain() {
-  const input=document.getElementById('domain-input'); const country=document.getElementById('country-select').value;
+  const input=document.getElementById('domain-input');
   const domain=input.value.trim().toLowerCase(); if(!domain)return;
   const btn=document.getElementById('add-btn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span> SCANNING…';
-  try { await api('/domains',{method:'POST',body:JSON.stringify({domain,country})}); input.value=''; toast(`Scanning ${domain}… results in ~60s`); await loadDomains(); if(!pollTimer)pollTimer=setInterval(loadDomains,15000); }
+  try {
+    await api('/domains',{method:'POST',body:JSON.stringify({domain,country:'EU'})});
+    input.value='';
+    toast('Scanning ' + domain + '… opening report in ~60s');
+    await loadDomains();
+    if(!pollTimer) pollTimer=setInterval(async ()=>{
+      await loadDomains();
+      var d = domains.find(function(x){ return x.domain===domain && x.status!=='scanning'; });
+      if (d) { clearInterval(pollTimer); pollTimer=null; showBlurredReport(d); }
+    }, 5000);
+  }
   catch(e){toast(e.message,true);}
   finally{btn.disabled=false;btn.innerHTML='+ SCAN DOMAIN';}
+}
+
+function showBlurredReport(domainObj) {
+  if (!domainObj.paid) {
+    openBlurredReportPage(domainObj);
+  } else {
+    openReport(domainObj.id, domainObj.domain, true);
+  }
+}
+
+async function openBlurredReportPage(domainObj) {
+  var page = document.getElementById('report-page');
+  var body = document.getElementById('rp-body');
+  document.getElementById('rp-domain').textContent = domainObj.domain;
+  document.getElementById('rp-demo-tag').textContent = 'FREE PREVIEW';
+  document.getElementById('rp-demo-tag').style.color = 'var(--amber)';
+  body.innerHTML = '<div style="text-align:center;padding:60px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div><p style="color:var(--grey);margin-top:16px;font-size:13px">Loading your report…</p></div>';
+  page.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  try {
+    var data = await api('/domains/' + domainObj.id + '/report');
+    renderBlurredReport(data, domainObj);
+  } catch(e) {
+    body.innerHTML = '<div style="padding:24px;color:var(--red)">Error: ' + e.message + '</div>';
+  }
+}
+
+function renderBlurredReport(data, domainObj) {
+  var checks = data.checks || [];
+  var ai = null; var others = [];
+  for (var i=0;i<checks.length;i++){
+    if(checks[i].check==='ai_summary') ai=checks[i]; else others.push(checks[i]);
+  }
+  var order={critical:0,warning:1,ok:2,error:3};
+  others.sort(function(a,b){return (order[a.status]||9)-(order[b.status]||9);});
+  var score=data.risk_score||0;
+  var rc=score>=60?'#C0392B':score>=30?'#D4850A':'#1A7A4A';
+  var rl=score>=60?'HIGH RISK':score>=30?'MEDIUM RISK':'LOW RISK';
+  var passed=others.filter(function(c){return c.status==='ok';}).length;
+
+  var html='';
+  // Hero always visible
+  html+='<div class="report-hero-bar">';
+  html+='<div class="report-score-ring" style="border-color:'+rc+';color:'+rc+'">';
+  html+='<span class="big-score">'+score+'</span><span class="big-label">RISK</span></div>';
+  html+='<div class="report-hero-meta"><h2>'+domainObj.domain+'</h2>';
+  html+='<p>Scan complete &middot; '+others.length+' checks &middot; '+new Date(data.scanned_at||Date.now()).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</p>';
+  html+='<div class="report-stat-row">';
+  html+='<div class="rstat"><div class="rstat-val" style="color:#C0392B">'+(data.critical||0)+'</div><div class="rstat-lbl">Critical</div></div>';
+  html+='<div class="rstat"><div class="rstat-val" style="color:#D4850A">'+(data.warnings||0)+'</div><div class="rstat-lbl">Warnings</div></div>';
+  html+='<div class="rstat"><div class="rstat-val" style="color:#1A7A4A">'+passed+'</div><div class="rstat-lbl">Passed</div></div>';
+  html+='</div></div></div>';
+
+  // First 3 checks visible, rest blurred
+  var visibleChecks = others.slice(0,3);
+  var blurredChecks = others.slice(3);
+
+  html+='<div class="report-section-title">Security Checks</div>';
+  html+='<table class="report-checks-table"><thead><tr><th style="width:90px">Status</th><th style="width:130px">Check</th><th>Finding</th></tr></thead><tbody>';
+  visibleChecks.forEach(function(c){
+    var pc=c.status==='ok'?'ok':c.status==='warning'?'warning':c.status==='critical'?'critical':'error';
+    html+='<tr class="row-'+c.status+'">';
+    html+='<td><span class="status-pill pill-'+pc+'">'+c.status.toUpperCase()+'</span></td>';
+    html+='<td style="font-family:Space Mono,monospace;font-size:11px;color:var(--white)">'+c.check.replace(/_/g,' ')+'</td>';
+    html+='<td><div style="color:var(--white);font-size:12px;margin-bottom:2px">'+(c.title||'')+'</div>';
+    if(c.detail) html+='<div style="color:var(--grey);font-size:11px;line-height:1.5">'+c.detail+'</div>';
+    html+='</td></tr>';
+  });
+  html+='</tbody></table>';
+
+  // Blurred section with buy overlay
+  if (blurredChecks.length > 0 || ai) {
+    html+='<div class="report-blur-wrap">';
+    html+='<div class="report-blur-content">';
+    // Blurred checks preview
+    html+='<table class="report-checks-table"><tbody>';
+    blurredChecks.slice(0,5).forEach(function(c){
+      html+='<tr><td><span class="status-pill pill-'+c.status+'">'+c.status.toUpperCase()+'</span></td>';
+      html+='<td style="font-family:Space Mono,monospace;font-size:11px;color:var(--white)">'+c.check.replace(/_/g,' ')+'</td>';
+      html+='<td><div style="color:var(--white);font-size:12px">'+(c.title||'')+'</div></td></tr>';
+    });
+    html+='</tbody></table>';
+    // Blurred AI section
+    if (ai) {
+      html+='<div class="report-ai-box" style="margin-top:16px"><div class="report-ai-label">AI Threat Analysis</div>';
+      html+='<div style="color:#bbb;font-size:12px;line-height:1.8">'+(ai.detail||'').substring(0,200)+'...</div></div>';
+    }
+    html+='</div>'; // end blur-content
+    // Overlay
+    html+='<div class="report-blur-overlay">';
+    html+='<h3>🔒 Full Report Locked</h3>';
+    html+='<p>'+(blurredChecks.length)+' more checks + AI threat analysis + monthly monitoring<br>Unlock for <strong style="color:var(--lime)">$50/year</strong></p>';
+    html+='<button class="btn-unlock" onclick="closeReportPage();checkout(this)">Unlock Full Report — $50/year →</button>';
+    html+='<p style="font-size:11px;color:var(--grey);margin-top:10px">Monthly PDF reports · NIS2 compliance · Cancel anytime</p>';
+    html+='</div>';
+    html+='</div>'; // end blur-wrap
+  }
+
+  document.getElementById('rp-body').innerHTML = html;
+  document.getElementById('rp-badge').innerHTML = '<span class="status-pill pill-'+(score>=60?'critical':score>=30?'warning':'ok')+'">'+rl+'</span>';
 }
 
 function riskClass(s){return s===null?'risk-scan':s>=60?'risk-high':s>=30?'risk-medium':'risk-low';}
