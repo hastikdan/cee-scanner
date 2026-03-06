@@ -643,60 +643,48 @@ python3 swarmhawk_mcp.py --http</pre></div>
   <div class="landing-section" id="section-scanner">
     <div class="section-inner">
       <div class="section-label-tag">🛡️ For Business Users</div>
-      <div class="split-layout reverse">
-        <div class="split-text">
-          <h2>Protect your domain.<br><span>Know before attackers do.</span></h2>
-          <p>18 automated security checks, AI threat analysis, and monthly PDF reports delivered to your inbox — across 25 European countries. No technical knowledge required.</p>
-          <div class="feature-pills">
+      <!-- Hidden stubs for JS compatibility -->
+      <div id="scanner-login-box" style="display:none"><input id="domain-input-pre" type="text"></div>
+      <div id="scanner-active-box" style="display:none">
+        <input id="domain-input" type="text"><button id="add-btn"></button>
+        <span id="domain-count"></span><div id="domains-grid"></div>
+      </div>
+      <div id="hero-cta-open" style="display:none;margin-bottom:24px">
+        <button class="btn-primary" style="padding:14px 32px;font-size:14px" onclick="openDashboard()">Open Dashboard →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start">
+        <div>
+          <h2>SWARMHAWK DASHBOARD</h2>
+          <p style="color:var(--grey);font-size:14px;line-height:1.7;margin:16px 0 24px">18 automated security checks, AI threat analysis, and monthly PDF reports delivered to your inbox — across 25 European countries. No technical knowledge required.</p>
+          <div class="feature-pills" style="margin-bottom:0">
             <span class="pill">€50/domain/year</span>
             <span class="pill">Monthly AI reports</span>
             <span class="pill">NIS2 compliance</span>
             <span class="pill">No setup needed</span>
           </div>
-          <div class="checks-two-col">
-            <div class="checks-col">
-              <div class="check-row"><span class="check-chip ok">✓ SSL/TLS Certificate</span><span class="check-desc">Validity, expiry, TLS grade</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ HTTPS Redirect</span><span class="check-desc">Enforced HTTPS on all traffic</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Security Headers</span><span class="check-desc">CSP, HSTS, X-Frame-Options</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ DNS Configuration</span><span class="check-desc">SPF, DMARC, DNSSEC</span></div>
-              <div class="check-row"><span class="check-chip warn">⚠ Typosquat Monitor</span><span class="check-desc">Lookalike domain detection</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Breach Exposure</span><span class="check-desc">HaveIBeenPwned 12B+ accounts</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Shodan Port Scan</span><span class="check-desc">Open ports &amp; CVEs</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ VirusTotal</span><span class="check-desc">94 antivirus engines</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Google Safe Browsing</span><span class="check-desc">Phishing &amp; malware flags</span></div>
-            </div>
-            <div class="checks-col">
-              <div class="check-row"><span class="check-chip ok">✓ Spamhaus DBL</span><span class="check-desc">Domain block list</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ URLhaus</span><span class="check-desc">Malicious URL database</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Tech Fingerprint</span><span class="check-desc">CMS, framework, jQuery version</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ HTTP Methods</span><span class="check-desc">Dangerous methods exposed</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Cookie Security</span><span class="check-desc">Secure, HttpOnly, SameSite</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Content Policy</span><span class="check-desc">Mixed content &amp; CSP</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Subdomain Scan</span><span class="check-desc">Exposed subdomains &amp; takeover</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ Email Security</span><span class="check-desc">SPF, DKIM, DMARC policy</span></div>
-              <div class="check-row"><span class="check-chip ok">✓ AI Threat Analysis</span><span class="check-desc">Plain-language findings + fixes</span></div>
-            </div>
-          </div>
         </div>
-        <div class="split-scanner">
-          <!-- Hidden stubs kept for JS compatibility -->
-          <div id="scanner-login-box" style="display:none"><input id="domain-input-pre" type="text"></div>
-          <div id="scanner-active-box" style="display:none">
-            <input id="domain-input" type="text"><button id="add-btn"></button>
-            <span id="domain-count"></span><div id="domains-grid"></div>
+        <div class="checks-two-col">
+          <div class="checks-col">
+            <div class="check-row"><span class="check-chip ok">✓ SSL/TLS Certificate</span><span class="check-desc">Validity, expiry, TLS grade</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ HTTPS Redirect</span><span class="check-desc">Enforced HTTPS on all traffic</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Security Headers</span><span class="check-desc">CSP, HSTS, X-Frame-Options</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ DNS Configuration</span><span class="check-desc">SPF, DMARC, DNSSEC</span></div>
+            <div class="check-row"><span class="check-chip warn">⚠ Typosquat Monitor</span><span class="check-desc">Lookalike domain detection</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Breach Exposure</span><span class="check-desc">HaveIBeenPwned 12B+ accounts</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Shodan Port Scan</span><span class="check-desc">Open ports &amp; CVEs</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ VirusTotal</span><span class="check-desc">94 antivirus engines</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Google Safe Browsing</span><span class="check-desc">Phishing &amp; malware flags</span></div>
           </div>
-          <div id="hero-cta-box">
-            <div style="background:var(--card);border:1px solid rgba(203,255,0,.15);border-radius:12px;padding:32px;text-align:center">
-              <div style="font-size:40px;margin-bottom:16px">🛡️</div>
-              <div style="font-family:'Space Mono',monospace;font-size:13px;color:var(--lime);letter-spacing:2px;margin-bottom:8px">SWARMHAWK DASHBOARD</div>
-              <p style="color:var(--grey);font-size:13px;line-height:1.6;margin-bottom:24px">Monitor all your domains, get real-time CVE alerts, and AI-generated threat briefings — in one place.</p>
-              <div id="hero-cta-signin">
-                <p style="font-size:12px;color:var(--grey);font-family:'Space Mono',monospace">Use the <strong style="color:var(--lime)">Sign in with Google</strong> button in the top navigation bar to get started.</p>
-              </div>
-              <div id="hero-cta-open" style="display:none">
-                <button class="btn-primary" style="width:100%;padding:14px;font-size:14px" onclick="openDashboard()">Open Dashboard →</button>
-              </div>
-            </div>
+          <div class="checks-col">
+            <div class="check-row"><span class="check-chip ok">✓ Spamhaus DBL</span><span class="check-desc">Domain block list</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ URLhaus</span><span class="check-desc">Malicious URL database</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Tech Fingerprint</span><span class="check-desc">CMS, framework, jQuery version</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ HTTP Methods</span><span class="check-desc">Dangerous methods exposed</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Cookie Security</span><span class="check-desc">Secure, HttpOnly, SameSite</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Content Policy</span><span class="check-desc">Mixed content &amp; CSP</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Subdomain Scan</span><span class="check-desc">Exposed subdomains &amp; takeover</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ Email Security</span><span class="check-desc">SPF, DKIM, DMARC policy</span></div>
+            <div class="check-row"><span class="check-chip ok">✓ AI Threat Analysis</span><span class="check-desc">Plain-language findings + fixes</span></div>
           </div>
         </div>
       </div>
@@ -930,10 +918,8 @@ function activateScanner() {
   document.getElementById('nav-user').style.display='flex';
   document.getElementById('nav-name').textContent=currentUser?.name||currentUser?.email||'';
   if (currentUser?.avatar) document.getElementById('nav-avatar').src=currentUser.avatar;
-  // Flip hero CTA: hide sign-in, show "Open Dashboard" button
-  var signin = document.getElementById('hero-cta-signin');
+  // Show "Open Dashboard" button in business section
   var openBtn = document.getElementById('hero-cta-open');
-  if (signin) signin.style.display='none';
   if (openBtn) openBtn.style.display='block';
   loadDomains();
   if (!pollTimer) pollTimer=setInterval(loadDomains,15000);
