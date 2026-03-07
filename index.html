@@ -3509,11 +3509,12 @@ async function submitSignIn() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ email: email, password: password })
     });
-    var data = await res.json();
-    if (!res.ok) { authError('signin-error', data.detail || 'Sign in failed'); return; }
+    var data;
+    try { data = await res.json(); } catch(_) { data = {}; }
+    if (!res.ok) { authError('signin-error', data.detail || ('Server error ' + res.status)); return; }
     onAuthSuccess(data);
   } catch(e) {
-    authError('signin-error', 'Connection error — try again');
+    authError('signin-error', 'Could not reach server (' + e.message + '). Is the backend running?');
   } finally {
     btn.disabled = false; btn.textContent = 'Sign In →';
   }
@@ -3540,13 +3541,14 @@ async function submitSignUp() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ username: name, email: email, password: password, domain: domain })
     });
-    var data = await res.json();
-    if (!res.ok) { authError('signup-error', data.detail || 'Registration failed'); return; }
+    var data;
+    try { data = await res.json(); } catch(_) { data = {}; }
+    if (!res.ok) { authError('signup-error', data.detail || ('Server error ' + res.status)); return; }
     onAuthSuccess(data);
     if (domain && data.first_domain) toast('✓ Account created — scanning ' + domain);
     else toast('✓ Account created — welcome to SwarmHawk');
   } catch(e) {
-    authError('signup-error', 'Connection error — try again');
+    authError('signup-error', 'Could not reach server (' + e.message + '). Try again in a moment.');
   } finally {
     btn.disabled = false; btn.textContent = 'Create Account & Scan →';
   }
