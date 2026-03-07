@@ -2550,7 +2550,9 @@ function prospectGetVisible() {
   }
   // Sort: CVE hits first, then by max CVSS desc
   return all.slice().sort(function(a,b){
-    if (b.cve_hits.length !== a.cve_hits.length) return b.cve_hits.length - a.cve_hits.length;
+    var bCves = (b.cve_hits && b.cve_hits.length) || 0;
+    var aCves = (a.cve_hits && a.cve_hits.length) || 0;
+    if (bCves !== aCves) return bCves - aCves;
     return (b.max_cvss||0) - (a.max_cvss||0);
   }).slice(0, 100);
 }
@@ -2573,62 +2575,75 @@ function prospectRender() {
   if (el('pstat-wp'))    el('pstat-wp').textContent    = withWP.length;
 
   if (!items.length) {
-    list.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center">No results for this filter.</div>';
+    list.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center">No results — click Run Live Scan.</div>';
     return;
   }
 
   list.innerHTML = items.map(function(p, idx) {
-    var pr = p.priority || 'low';
-    var prLower = pr.toLowerCase();
-    var cvssScore = p.max_cvss || 0;
+    var cveHits   = p.cve_hits  || [];
+    var software  = p.software  || [];
+    var cvssScore = p.max_cvss  || 0;
     var cvssClass = cvssScore >= 9 ? 'cvss-critical' : cvssScore >= 7 ? 'cvss-high' : 'cvss-medium';
     var priorityClass = cvssScore >= 9 ? 'priority-critical' : cvssScore >= 7 ? 'priority-high' : cvssScore >= 4 ? 'priority-medium' : 'priority-low';
-    var rank = idx + 1;
+    var countryFlag = {CZ:'🇨🇿',PL:'🇵🇱',SK:'🇸🇰',HU:'🇭🇺',RO:'🇷🇴',AT:'🇦🇹',DE:'🇩🇪'}[p.country] || '';
 
-    var swBadges = (p.software || []).slice(0,3).map(function(s){
+    var statusBadge = '';
+    if (!p.live) {
+      statusBadge = '<span class="prospect-badge pbadge-sw">unreachable</span>';
+    } else if (!cveHits.length && !software.length) {
+      statusBadge = '<span class="prospect-badge pbadge-sw">no exposure</span>';
+    } else if (!cveHits.length && software.length) {
+      statusBadge = '<span class="prospect-badge" style="background:rgba(203,255,0,.08);color:var(--lime);border:1px solid rgba(203,255,0,.2)">version exposed</span>';
+    }
+
+    var swBadges = software.slice(0,3).map(function(s){
       return '<span class="prospect-badge pbadge-sw">'+s.product+' '+s.version+'</span>';
     }).join('');
 
-    var cveBadge = p.cve_hits && p.cve_hits.length ?
-      '<span class="prospect-badge '+(cvssScore>=9?'pbadge-critical':cvssScore>=7?'pbadge-high':'pbadge-medium')+'">'+p.cve_hits.length+' CVE'+(p.cve_hits.length>1?'s':'')+'</span>' : '';
+    var cveBadge = cveHits.length
+      ? '<span class="prospect-badge '+(cvssScore>=9?'pbadge-critical':cvssScore>=7?'pbadge-high':'pbadge-medium')+'">'+cveHits.length+' CVE'+(cveHits.length>1?'s':'')+'</span>'
+      : '';
 
-    var countryFlag = {CZ:'🇨🇿',PL:'🇵🇱',SK:'🇸🇰',HU:'🇭🇺',RO:'🇷🇴',AT:'🇦🇹',DE:'🇩🇪'}[p.country] || '';
-
-    var cveRows = (p.cve_hits || []).map(function(h){
-      var sc = h.top_cvss >= 9 ? '#E74C3C' : h.top_cvss >= 7 ? '#E67E22' : '#3498DB';
-      return '<tr>'+
-        '<td style="color:'+sc+';font-weight:700">'+h.top_cve+'</td>'+
-        '<td><span class="prospect-cvss-pill '+(h.top_cvss>=9?'cvss-critical':h.top_cvss>=7?'cvss-high':'cvss-medium')+'">'+h.top_cvss+'</span></td>'+
-        '<td style="color:var(--white)">'+h.product+' '+h.version+'</td>'+
-        '<td><a href="https://nvd.nist.gov/vuln/detail/'+h.top_cve+'" target="_blank" style="color:var(--lime);font-size:10px">NVD →</a></td>'+
-      '</tr>';
+    var cveRows = cveHits.map(function(h){
+      var cveId    = h.top_cve  || h.id    || '';
+      var cveScore = h.top_cvss || h.cvss  || 0;
+      var prod     = h.product  || '';
+      var ver      = h.version  || '';
+      var sc = cveScore >= 9 ? '#E74C3C' : cveScore >= 7 ? '#E67E22' : '#3498DB';
+      return '<tr>'
+        +'<td style="color:'+sc+';font-weight:700">'+cveId+'</td>'
+        +'<td><span class="prospect-cvss-pill '+(cveScore>=9?'cvss-critical':cveScore>=7?'cvss-high':'cvss-medium')+'">'+cveScore+'</span></td>'
+        +'<td style="color:var(--white)">'+prod+' '+ver+'</td>'
+        +'<td><a href="https://nvd.nist.gov/vuln/detail/'+cveId+'" target="_blank" style="color:var(--lime);font-size:10px">NVD ↗</a></td>'
+        +'</tr>';
     }).join('');
 
-    var emailHtml = '<div class="prospect-email-generating"><div class="spinner" style="width:14px;height:14px;border-width:2px"></div>Generating email hook…</div>';
+    var emailSection = cveHits.length
+      ? '<div class="prospect-email-box" id="pemail-'+idx+'">'
+          +'<div class="prospect-email-label">✉ Cold Email Hook</div>'
+          +'<div id="pemail-text-'+idx+'" class="prospect-email-text">'
+            +'<div class="prospect-email-generating"><div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Generating…</div>'
+          +'</div>'
+          +'<div class="prospect-email-actions" id="pemail-actions-'+idx+'" style="display:none">'
+            +'<button class="btn-copy-email" onclick="prospectCopyEmail('+idx+')">Copy Email</button>'
+            +'<button class="btn-add-domain-prospect" onclick="prospectAddDomain(\'' + p.domain + '\')">+ Add to Dashboard</button>'
+          +'</div>'
+        +'</div>'
+      : '<div style="padding:8px 0"><button class="btn-add-domain-prospect" onclick="prospectAddDomain(\'' + p.domain + '\')">+ Add to Dashboard</button></div>';
 
-    return '<div class="prospect-card '+priorityClass+'" id="pcard-'+idx+'">' +
-      '<div class="prospect-card-head" onclick="prospectToggle('+idx+')">' +
-        '<span style="font-size:13px;color:var(--grey);font-family:\'Space Mono\',monospace;min-width:28px">#'+rank+'</span>' +
-        '<span class="prospect-domain">'+p.domain+'</span>' +
-        '<div class="prospect-badges">'+
-          (countryFlag ? '<span class="prospect-badge pbadge-country">'+countryFlag+' '+p.country+'</span>' : '') +
-          cveBadge + swBadges +
-        '</div>' +
-        (cvssScore > 0 ? '<span class="prospect-cvss-pill '+cvssClass+'">CVSS '+cvssScore+'</span>' : '') +
-        '<span class="prospect-chevron" id="pchev-'+idx+'">▼</span>' +
-      '</div>' +
-      '<div class="prospect-card-body" id="pbody-'+idx+'">' +
-        (cveRows ? '<table class="cve-table"><thead><tr><th>CVE ID</th><th>CVSS</th><th>Software</th><th></th></tr></thead><tbody>'+cveRows+'</tbody></table>' : '') +
-        '<div class="prospect-email-box" id="pemail-'+idx+'">' +
-          '<div class="prospect-email-label">✉ Cold Email Hook</div>' +
-          '<div id="pemail-text-'+idx+'" class="prospect-email-text">' + emailHtml + '</div>' +
-          '<div class="prospect-email-actions" id="pemail-actions-'+idx+'" style="display:none">' +
-            '<button class="btn-copy-email" onclick="prospectCopyEmail('+idx+')">Copy Email</button>' +
-            '<button class="btn-add-domain-prospect" onclick="prospectAddDomain(\''+p.domain+'\')">+ Add to Dashboard</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+    return '<div class="prospect-card '+priorityClass+'" id="pcard-'+idx+'">'
+      +'<div class="prospect-card-head" onclick="prospectToggle('+idx+')">'
+        +'<span style="font-size:12px;color:var(--grey);font-family:Space Mono,monospace;min-width:28px">#'+(idx+1)+'</span>'
+        +'<span class="prospect-domain">'+p.domain+'</span>'
+        +'<div class="prospect-badges">'+(countryFlag?'<span class="prospect-badge pbadge-country">'+countryFlag+' '+p.country+'</span>':'')+cveBadge+statusBadge+swBadges+'</div>'
+        +(cvssScore>0?'<span class="prospect-cvss-pill '+cvssClass+'">CVSS '+cvssScore+'</span>':'')
+        +'<span class="prospect-chevron" id="pchev-'+idx+'">▼</span>'
+      +'</div>'
+      +'<div class="prospect-card-body" id="pbody-'+idx+'">'
+        +(cveRows?'<table class="cve-table"><thead><tr><th>CVE ID</th><th>CVSS</th><th>Software</th><th></th></tr></thead><tbody>'+cveRows+'</tbody></table>':'')
+        +emailSection
+      +'</div>'
+    +'</div>';
   }).join('');
 }
 
@@ -2803,32 +2818,33 @@ async function prospectRunScan() {
 }
 
 async function prospectScanDomain(domain, country) {
-  // Call backend scan endpoint (passive, fast) — falls back to header-only check
+  // Always return a record — even if scan finds nothing, domain appears in list
+  var base = { domain: domain, country: country, software: [], cve_hits: [], max_cvss: 0, priority: 'PENDING', live: false };
+
   try {
     var resp = await fetch(API + '/scan/passive?domain=' + encodeURIComponent(domain), {
       method: 'GET',
-      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('sw_token')||'') },
-      signal: AbortSignal.timeout(12000)
+      headers: { 'Authorization': 'Bearer ' + sessionToken },
+      signal: AbortSignal.timeout(15000)
     });
-
     if (resp.ok) {
       var data = await resp.json();
-      if (data && (data.software || data.cve_hits)) {
-        return Object.assign({ domain: domain, country: country }, data);
-      }
+      return {
+        domain:    domain,
+        country:   country,
+        software:  data.software  || [],
+        cve_hits:  data.cve_hits  || [],
+        max_cvss:  data.max_cvss  || 0,
+        priority:  data.priority  || 'LOW',
+        live:      true,
+      };
     }
-  } catch(e) {}
-
-  // Fallback: direct header probe via fetch (CORS-limited but catches some)
-  try {
-    var r2 = await fetch('https://' + domain, {
-      method: 'HEAD', mode: 'no-cors', signal: AbortSignal.timeout(6000)
-    });
-    // no-cors means we can't read headers — return minimal record to show domain is live
-    return { domain: domain, country: country, software: [], cve_hits: [], max_cvss: 0, priority: 'LOW', live: true };
   } catch(e) {
-    return null; // domain unreachable
+    console.warn('Passive scan failed for ' + domain + ':', e.message);
   }
+
+  // Mark as scanned but unreachable/no result
+  return Object.assign(base, { live: false });
 }
 
 
