@@ -599,6 +599,52 @@ h1 span{color:var(--lime)}
 .outreach-saving.show{opacity:1}
 
 @keyframes scanPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── AUTH MODALS ── */
+.auth-modal-overlay{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.auth-modal{background:#13121A;border:1px solid rgba(203,255,0,.2);border-radius:14px;padding:36px;width:420px;max-width:92vw;position:relative}
+.auth-modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--grey);font-size:20px;cursor:pointer;line-height:1}
+.auth-modal-close:hover{color:var(--white)}
+.auth-modal-title{font-family:'Space Mono',monospace;font-size:15px;color:var(--lime);letter-spacing:2px;margin-bottom:4px}
+.auth-modal-sub{font-size:13px;color:var(--grey);margin-bottom:24px}
+.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.auth-field label{font-size:11px;font-family:'Space Mono',monospace;color:var(--grey);text-transform:uppercase;letter-spacing:1px}
+.auth-field input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:14px;padding:10px 14px;width:100%;box-sizing:border-box;font-family:inherit}
+.auth-field input:focus{outline:none;border-color:rgba(203,255,0,.4);background:rgba(203,255,0,.03)}
+.auth-field input::placeholder{color:#555}
+.auth-btn-primary{width:100%;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-weight:700;font-size:13px;padding:12px;border:none;border-radius:8px;cursor:pointer;margin-top:6px;transition:background .15s}
+.auth-btn-primary:hover{background:#b8e600}
+.auth-btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--grey);font-size:11px;font-family:'Space Mono',monospace}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.auth-google-row{display:flex;justify-content:center;margin-bottom:4px}
+.auth-switch{text-align:center;font-size:12px;color:var(--grey);margin-top:14px}
+.auth-switch button{background:none;border:none;color:var(--lime);cursor:pointer;font-size:12px;text-decoration:underline}
+.auth-error{background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);border-radius:6px;padding:10px 14px;font-size:12px;color:#E74C3C;margin-bottom:12px;display:none}
+.auth-error.show{display:block}
+
+/* ── ADMIN PANEL ── */
+.admin-section{margin-bottom:28px}
+.admin-section-title{font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(203,255,0,.1)}
+.admin-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.admin-stat{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;text-align:center}
+.admin-stat-val{display:block;font-size:26px;font-weight:700;font-family:'Space Mono',monospace;color:var(--white)}
+.admin-stat-lbl{font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px}
+.admin-stat-sub{font-size:11px;color:var(--lime);font-family:'Space Mono',monospace;margin-top:2px}
+.admin-table-wrap{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:10px;overflow:hidden}
+.admin-table{width:100%;border-collapse:collapse;font-size:12px}
+.admin-table th{text-align:left;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);text-transform:uppercase;letter-spacing:1px;background:rgba(203,255,0,.04);border-bottom:1px solid rgba(203,255,0,.08);white-space:nowrap}
+.admin-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--grey);vertical-align:middle}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-table tr:hover td{background:rgba(255,255,255,.02)}
+.admin-badge-google{background:rgba(66,133,244,.15);color:#4285F4;border-radius:4px;padding:2px 7px;font-size:10px;font-family:'Space Mono',monospace}
+.admin-badge-email{background:rgba(203,255,0,.1);color:var(--lime);border-radius:4px;padding:2px 7px;font-size:10px;font-family:'Space Mono',monospace}
+.admin-badge-paid{background:rgba(26,122,74,.15);color:#2ECC71;border-radius:4px;padding:2px 7px;font-size:10px;font-family:'Space Mono',monospace}
+.admin-actions{display:flex;gap:6px}
+.admin-btn-danger{font-size:10px;padding:4px 10px;background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.2);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
+.admin-btn-sm{font-size:10px;padding:4px 10px;background:rgba(255,255,255,.06);color:var(--grey);border:1px solid rgba(255,255,255,.1);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
+.admin-page-nav{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:var(--grey);font-family:'Space Mono',monospace}
+
 </style>
 </head>
 <body>
@@ -616,9 +662,10 @@ h1 span{color:var(--lime)}
   </div>
   <button class="nav-sample-btn" onclick="showSampleReport()">Sample Report →</button>
   <div class="nav-right" id="nav-right">
-    <div id="nav-signin">
+    <div id="nav-signin" style="display:flex;align-items:center;gap:8px">
       <div id="g_id_onload" data-client_id="396286675021-tqhadhbp3jqc1jrqo5krk3j5njdss0cg.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-      <div class="g_id_signin" data-type="standard" data-size="medium" data-theme="filled_black" data-text="sign_in_with" data-shape="rectangular"></div>
+      <button class="nav-sample-btn" onclick="showSignIn()" style="margin-left:0">Sign In</button>
+      <button class="nav-search-btn" onclick="showSignUp()" style="border-radius:6px">New User →</button>
     </div>
     <div id="nav-user" style="display:none" class="user-info">
       <img id="nav-avatar" class="user-avatar" src="" alt="">
@@ -1120,6 +1167,69 @@ python3 swarmhawk_mcp.py --http</pre></div>
               vulnerable domains — AI drafts the email, you review and approve.
             </div>
             <button class="btn-send-all" onclick="outreachRunScan()">⟳ Run Scan Now</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ── TAB: ADMIN ───────────────────────────────────────── -->
+    <div class="db-page" id="db-admin">
+      <div class="db-inner">
+        <div class="db-header">
+          <div>
+            <h2 class="db-title">⚙️ Admin Panel</h2>
+            <p style="color:var(--grey);font-size:13px;margin-top:4px">Platform overview — users, domains, revenue</p>
+          </div>
+          <button class="btn-scan-all" onclick="adminLoad()">↻ Refresh</button>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="admin-stat-grid" id="admin-stat-grid">
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-users">—</span><span class="admin-stat-lbl">Total Users</span><span class="admin-stat-sub" id="astat-users-7d"></span></div>
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-domains">—</span><span class="admin-stat-lbl">Total Domains</span><span class="admin-stat-sub" id="astat-domains-7d"></span></div>
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-revenue" style="color:#2ECC71">—</span><span class="admin-stat-lbl">Revenue (EUR)</span><span class="admin-stat-sub" id="astat-sales"></span></div>
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-scans">—</span><span class="admin-stat-lbl">Total Scans</span><span class="admin-stat-sub" id="astat-scans-7d"></span></div>
+        </div>
+
+        <!-- Auth breakdown -->
+        <div style="display:flex;gap:12px;margin-bottom:24px">
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-google" style="color:#4285F4">—</span><span class="admin-stat-lbl">Google Users</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-email" style="color:var(--lime)">—</span><span class="admin-stat-lbl">Email Users</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-paid">—</span><span class="admin-stat-lbl">Paid Domains</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-new30" style="color:var(--lime)">—</span><span class="admin-stat-lbl">New (30d)</span></div>
+        </div>
+
+        <!-- Users table -->
+        <div class="admin-section">
+          <div class="admin-section-title">Users</div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Auth</th><th>Domains</th><th>Paid</th><th>Joined</th><th>Last Login</th><th>Actions</th></tr></thead>
+              <tbody id="admin-users-body"><tr><td colspan="9" style="text-align:center;padding:24px;color:var(--grey)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="admin-page-nav">
+            <button class="admin-btn-sm" onclick="adminUsersPage(-1)">← Prev</button>
+            <span id="admin-users-page-info">Page 1</span>
+            <button class="admin-btn-sm" onclick="adminUsersPage(1)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Domains table -->
+        <div class="admin-section">
+          <div class="admin-section-title">All Domains</div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Domain</th><th>User</th><th>Country</th><th>Risk</th><th>Paid</th><th>Added</th><th>Last Scan</th></tr></thead>
+              <tbody id="admin-domains-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--grey)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="admin-page-nav">
+            <button class="admin-btn-sm" onclick="adminDomainsPage(-1)">← Prev</button>
+            <span id="admin-domains-page-info">Page 1</span>
+            <button class="admin-btn-sm" onclick="adminDomainsPage(1)">Next →</button>
           </div>
         </div>
 
@@ -1729,6 +1839,7 @@ function renderReportPage(data, domain, isSample) {
       <button class="db-tab" onclick="dbShowTab('intel',this)">🧠 Intelligence</button>
       <button class="db-tab" onclick="dbShowTab('prospects',this)">🎯 Prospects</button>
       <button class="db-tab" onclick="dbShowTab('outreach',this)">📨 Outreach</button>
+      <button class="db-tab" id="admin-tab-btn" onclick="dbShowTab('admin',this)" style="display:none">⚙️ Admin</button>
     </div>
     <div class="db-nav-right">
       <span id="db-user-name" style="font-size:13px;color:var(--grey)"></span>
@@ -3265,3 +3376,388 @@ window.addEventListener('DOMContentLoaded', function() {
   renderTopDomains('CZ');
 });
 </script>
+
+<!-- ── SIGN IN MODAL ───────────────────────────────────── -->
+<div id="signin-modal" class="auth-modal-overlay" style="display:none" onclick="if(event.target===this)closeAuthModals()">
+  <div class="auth-modal">
+    <button class="auth-modal-close" onclick="closeAuthModals()">✕</button>
+    <div class="auth-modal-title">SIGN IN</div>
+    <div class="auth-modal-sub">Access your SwarmHawk dashboard</div>
+    <div class="auth-error" id="signin-error"></div>
+    <div class="auth-google-row">
+      <div id="g_id_onload_signin" data-client_id="396286675021-tqhadhbp3jqc1jrqo5krk3j5njdss0cg.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
+      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="sign_in_with" data-shape="rectangular"></div>
+    </div>
+    <div class="auth-divider">or</div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="signin-email" placeholder="you@company.com" onkeydown="if(event.key==='Enter')submitSignIn()">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="signin-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitSignIn()">
+    </div>
+    <button class="auth-btn-primary" id="signin-btn" onclick="submitSignIn()">Sign In →</button>
+    <div class="auth-switch">No account? <button onclick="showSignUp()">Create one free</button></div>
+  </div>
+</div>
+
+<!-- ── SIGN UP MODAL ───────────────────────────────────── -->
+<div id="signup-modal" class="auth-modal-overlay" style="display:none" onclick="if(event.target===this)closeAuthModals()">
+  <div class="auth-modal">
+    <button class="auth-modal-close" onclick="closeAuthModals()">✕</button>
+    <div class="auth-modal-title">CREATE ACCOUNT</div>
+    <div class="auth-modal-sub">Free account — start monitoring your domain today</div>
+    <div class="auth-error" id="signup-error"></div>
+    <div class="auth-google-row">
+      <div id="g_id_onload_signup" data-client_id="396286675021-tqhadhbp3jqc1jrqo5krk3j5njdss0cg.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
+      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="continue_with" data-shape="rectangular"></div>
+    </div>
+    <div class="auth-divider">or create with email</div>
+    <div class="auth-field">
+      <label>Your Name</label>
+      <input type="text" id="signup-name" placeholder="Jan Novák">
+    </div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="signup-email" placeholder="you@company.com">
+    </div>
+    <div class="auth-field">
+      <label>Password <span style="color:#555;font-weight:normal">(min 6 chars)</span></label>
+      <input type="password" id="signup-password" placeholder="••••••••">
+    </div>
+    <div class="auth-field">
+      <label>Your Domain <span style="color:#555;font-weight:normal">(optional — we'll scan it instantly)</span></label>
+      <input type="text" id="signup-domain" placeholder="yourcompany.cz">
+    </div>
+    <button class="auth-btn-primary" id="signup-btn" onclick="submitSignUp()">Create Account & Scan →</button>
+    <div class="auth-switch">Already have an account? <button onclick="showSignIn()">Sign in</button></div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// AUTH MODALS — Sign In / Sign Up
+// ═══════════════════════════════════════════════════════════════════════
+
+function showSignIn() {
+  closeAuthModals();
+  document.getElementById('signin-modal').style.display = 'flex';
+  setTimeout(function(){ var e=document.getElementById('signin-email'); if(e) e.focus(); }, 80);
+}
+
+function showSignUp() {
+  closeAuthModals();
+  document.getElementById('signup-modal').style.display = 'flex';
+  setTimeout(function(){ var e=document.getElementById('signup-name'); if(e) e.focus(); }, 80);
+}
+
+function closeAuthModals() {
+  var ids = ['signin-modal','signup-modal'];
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Clear errors
+  ['signin-error','signup-error'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.textContent=''; el.classList.remove('show'); }
+  });
+}
+
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') closeAuthModals();
+});
+
+function authError(elId, msg) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function authClearError(elId) {
+  var el = document.getElementById(elId);
+  if (el) { el.textContent=''; el.classList.remove('show'); }
+}
+
+function onAuthSuccess(data) {
+  sessionToken = data.session_token;
+  currentUser  = data.user || {};
+  localStorage.setItem('sw_token', sessionToken);
+  localStorage.setItem('sw_user', JSON.stringify(currentUser));
+  closeAuthModals();
+  activateScanner();
+  // Show admin tab if admin
+  if (currentUser.is_admin) {
+    var btn = document.getElementById('admin-tab-btn');
+    if (btn) btn.style.display = '';
+  }
+}
+
+async function submitSignIn() {
+  authClearError('signin-error');
+  var email    = (document.getElementById('signin-email').value || '').trim();
+  var password = (document.getElementById('signin-password').value || '');
+  if (!email || !password) { authError('signin-error', 'Email and password required'); return; }
+
+  var btn = document.getElementById('signin-btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  try {
+    var res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: email, password: password })
+    });
+    var data = await res.json();
+    if (!res.ok) { authError('signin-error', data.detail || 'Sign in failed'); return; }
+    onAuthSuccess(data);
+  } catch(e) {
+    authError('signin-error', 'Connection error — try again');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In →';
+  }
+}
+
+async function submitSignUp() {
+  authClearError('signup-error');
+  var name     = (document.getElementById('signup-name').value || '').trim();
+  var email    = (document.getElementById('signup-email').value || '').trim();
+  var password = (document.getElementById('signup-password').value || '');
+  var domain   = (document.getElementById('signup-domain').value || '').trim()
+                   .replace(/^https?:\/\//,'').split('/')[0];
+
+  if (!name)     { authError('signup-error', 'Name required'); return; }
+  if (!email)    { authError('signup-error', 'Email required'); return; }
+  if (password.length < 6) { authError('signup-error', 'Password must be at least 6 characters'); return; }
+
+  var btn = document.getElementById('signup-btn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  try {
+    var res = await fetch(API + '/auth/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ username: name, email: email, password: password, domain: domain })
+    });
+    var data = await res.json();
+    if (!res.ok) { authError('signup-error', data.detail || 'Registration failed'); return; }
+    onAuthSuccess(data);
+    if (domain && data.first_domain) toast('✓ Account created — scanning ' + domain);
+    else toast('✓ Account created — welcome to SwarmHawk');
+  } catch(e) {
+    authError('signup-error', 'Connection error — try again');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Account & Scan →';
+  }
+}
+
+// Patch activateScanner to check admin status after login
+var _origActivateScanner = activateScanner;
+activateScanner = function() {
+  _origActivateScanner();
+  // Check if current user is admin and show tab
+  var user = {};
+  try { user = JSON.parse(localStorage.getItem('sw_user') || '{}'); } catch(e) {}
+  if (user.is_admin) {
+    var btn = document.getElementById('admin-tab-btn');
+    if (btn) btn.style.display = '';
+  }
+  // Also fetch /me to get fresh is_admin flag
+  if (sessionToken) {
+    fetch(API + '/me', { headers: {'Authorization': 'Bearer ' + sessionToken} })
+      .then(function(r){ return r.json(); })
+      .then(function(u){
+        if (u.is_admin) {
+          var btn = document.getElementById('admin-tab-btn');
+          if (btn) btn.style.display = '';
+          currentUser = Object.assign(currentUser || {}, { is_admin: true });
+        }
+      }).catch(function(){});
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN PANEL
+// ═══════════════════════════════════════════════════════════════════════
+
+var adminUsersCurrentPage  = 1;
+var adminDomainsCurrentPage = 1;
+var adminUsersTotal  = 0;
+var adminDomainsTotal = 0;
+var ADMIN_PER_PAGE = 50;
+
+function dbShowTabAdmin(tab, btn) {
+  dbShowTab(tab, btn);
+  if (tab === 'admin') adminLoad();
+}
+
+async function adminLoad() {
+  adminLoadStats();
+  adminLoadUsers(1);
+  adminLoadDomains(1);
+}
+
+async function adminLoadStats() {
+  try {
+    var data = await api('/admin/stats');
+    var el = function(id){ return document.getElementById(id); };
+    var set = function(id, v){ var e = el(id); if (e) e.textContent = v; };
+
+    set('astat-users',    data.users.total);
+    set('astat-users-7d', '+' + data.users.new_7d + ' this week');
+    set('astat-domains',  data.domains.total);
+    set('astat-domains-7d', '+' + data.domains.new_7d + ' this week');
+    set('astat-revenue',  '€' + data.revenue.total_eur);
+    set('astat-sales',    data.revenue.total_sales + ' sales');
+    set('astat-scans',    data.scans.total);
+    set('astat-scans-7d', data.scans.last_7d + ' last 7d');
+    set('astat-google',   data.users.google);
+    set('astat-email',    data.users.email);
+    set('astat-paid',     data.revenue.total_sales);
+    set('astat-new30',    data.users.new_30d);
+  } catch(e) {
+    console.error('Admin stats error:', e);
+    toast('Admin: ' + e.message, true);
+  }
+}
+
+async function adminLoadUsers(page) {
+  adminUsersCurrentPage = page;
+  var tbody = document.getElementById('admin-users-body');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--grey)"><div class="spinner" style="width:16px;height:16px;border-width:2px;margin:0 auto"></div></td></tr>';
+
+  try {
+    var data = await api('/admin/users?page=' + page + '&per_page=' + ADMIN_PER_PAGE);
+    adminUsersTotal = data.total || 0;
+    var rows = data.users || [];
+
+    var pi = document.getElementById('admin-users-page-info');
+    if (pi) pi.textContent = 'Page ' + page + ' of ' + Math.ceil(adminUsersTotal / ADMIN_PER_PAGE) + ' (' + adminUsersTotal + ' total)';
+
+    if (!tbody) return;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--grey)">No users yet</td></tr>';
+      return;
+    }
+
+    var offset = (page - 1) * ADMIN_PER_PAGE;
+    tbody.innerHTML = rows.map(function(u, i) {
+      var authBadge = u.auth_type === 'email'
+        ? '<span class="admin-badge-email">✉ email</span>'
+        : '<span class="admin-badge-google">G google</span>';
+      var paidBadge = u.paid_domains > 0
+        ? '<span class="admin-badge-paid">€' + u.paid_domains + '</span>'
+        : '<span style="color:#444">—</span>';
+      var joined   = u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'2-digit'}) : '—';
+      var lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'2-digit'}) : '—';
+
+      return '<tr>'
+        + '<td style="color:var(--grey)">' + (offset + i + 1) + '</td>'
+        + '<td style="color:var(--white);font-weight:600">' + (u.name || '—') + '</td>'
+        + '<td style="color:var(--grey)">' + u.email + '</td>'
+        + '<td>' + authBadge + '</td>'
+        + '<td style="color:var(--white);text-align:center">' + (u.domain_count || 0) + '</td>'
+        + '<td>' + paidBadge + '</td>'
+        + '<td style="color:var(--grey);font-size:11px">' + joined + '</td>'
+        + '<td style="color:var(--grey);font-size:11px">' + lastLogin + '</td>'
+        + '<td><div class="admin-actions">'
+          + '<button class="admin-btn-sm" onclick="adminRescanUser(\'' + u.id + '\',\'' + (u.email||'') + '\')">↻ Scan</button>'
+          + '<button class="admin-btn-danger" onclick="adminDeleteUser(\'' + u.id + '\',\'' + (u.email||'') + '\')">✕</button>'
+        + '</div></td>'
+        + '</tr>';
+    }).join('');
+  } catch(e) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="color:#E74C3C;padding:16px">' + e.message + '</td></tr>';
+  }
+}
+
+async function adminLoadDomains(page) {
+  adminDomainsCurrentPage = page;
+  var tbody = document.getElementById('admin-domains-body');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--grey)"><div class="spinner" style="width:16px;height:16px;border-width:2px;margin:0 auto"></div></td></tr>';
+
+  try {
+    var data = await api('/admin/domains?page=' + page + '&per_page=' + ADMIN_PER_PAGE);
+    adminDomainsTotal = data.total || 0;
+    var rows = data.domains || [];
+
+    var pi = document.getElementById('admin-domains-page-info');
+    if (pi) pi.textContent = 'Page ' + page + ' of ' + Math.ceil(adminDomainsTotal / ADMIN_PER_PAGE) + ' (' + adminDomainsTotal + ' total)';
+
+    if (!tbody) return;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--grey)">No domains yet</td></tr>';
+      return;
+    }
+
+    var offset = (page - 1) * ADMIN_PER_PAGE;
+    tbody.innerHTML = rows.map(function(d, i) {
+      var risk = d.risk_score !== null && d.risk_score !== undefined
+        ? '<span style="color:' + (d.risk_score>=70?'#E74C3C':d.risk_score>=40?'#E67E22':'#2ECC71') + ';font-weight:700;font-family:Space Mono,monospace">' + d.risk_score + '</span>'
+        : '<span style="color:#444">—</span>';
+      var paid   = d.paid ? '<span class="admin-badge-paid">paid</span>' : '<span style="color:#444">free</span>';
+      var added  = d.created_at ? new Date(d.created_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'2-digit'}) : '—';
+      var scanned = d.scanned_at ? new Date(d.scanned_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'2-digit'}) : 'never';
+
+      return '<tr>'
+        + '<td style="color:var(--grey)">' + (offset + i + 1) + '</td>'
+        + '<td style="color:var(--white);font-family:Space Mono,monospace;font-size:12px">' + d.domain + '</td>'
+        + '<td style="color:var(--grey);font-size:11px">' + (d.user_name || d.user_email || '—') + '</td>'
+        + '<td style="color:var(--grey)">' + (d.country || '—') + '</td>'
+        + '<td style="text-align:center">' + risk + '</td>'
+        + '<td>' + paid + '</td>'
+        + '<td style="color:var(--grey);font-size:11px">' + added + '</td>'
+        + '<td style="color:var(--grey);font-size:11px">' + scanned + '</td>'
+        + '</tr>';
+    }).join('');
+  } catch(e) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="color:#E74C3C;padding:16px">' + e.message + '</td></tr>';
+  }
+}
+
+function adminUsersPage(dir) {
+  var next = adminUsersCurrentPage + dir;
+  var maxPage = Math.ceil(adminUsersTotal / ADMIN_PER_PAGE) || 1;
+  if (next < 1 || next > maxPage) return;
+  adminLoadUsers(next);
+}
+
+function adminDomainsPage(dir) {
+  var next = adminDomainsCurrentPage + dir;
+  var maxPage = Math.ceil(adminDomainsTotal / ADMIN_PER_PAGE) || 1;
+  if (next < 1 || next > maxPage) return;
+  adminLoadDomains(next);
+}
+
+async function adminDeleteUser(userId, email) {
+  if (!confirm('Delete user ' + email + ' and all their data? This cannot be undone.')) return;
+  try {
+    await api('/admin/users/' + userId, { method: 'DELETE' });
+    toast('✓ Deleted ' + email);
+    adminLoadUsers(adminUsersCurrentPage);
+    adminLoadStats();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, true);
+  }
+}
+
+async function adminRescanUser(userId, email) {
+  try {
+    var data = await api('/admin/users/' + userId + '/rescan-all', { method: 'POST' });
+    toast('✓ Queued ' + (data.queued || 0) + ' scans for ' + email);
+  } catch(e) {
+    toast('Rescan failed: ' + e.message, true);
+  }
+}
+
+// Wire admin tab into dbShowTab
+var _origDbShowTab = dbShowTab;
+dbShowTab = function(tab, btn) {
+  _origDbShowTab(tab, btn);
+  if (tab === 'admin') adminLoad();
+};
+</script>
+
+</body>
+</html>
