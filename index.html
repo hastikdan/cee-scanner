@@ -1894,13 +1894,15 @@ async function dbAddDomain() {
   var btn = document.getElementById('db-add-btn');
   var domain = input.value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*/,'');
   if (!domain) { toast('Enter a domain name', true); return; }
+
+  // Show progress immediately on button click — before API call
+  input.value = '';
+  document.getElementById('db-add-bar').style.display = 'none';
   btn.disabled = true; btn.textContent = 'Scanning…';
+  showScanProgress(domain);
+
   try {
     await api('/domains', {method:'POST', body:JSON.stringify({domain:domain, country:'EU'})});
-    input.value = '';
-    document.getElementById('db-add-bar').style.display = 'none';
-    showScanProgress(domain);
-    toast('✓ '+domain+' added — scanning now');
     await dbLoadAll();
     var polls = 0;
     var poll = setInterval(async function() {
@@ -1911,14 +1913,13 @@ async function dbAddDomain() {
         clearInterval(poll);
         hideScanProgress();
         if (d) { toast('✓ '+domain+' scan complete'); dbShowTab('domains'); }
+        else { toast('Scan taking longer than expected — check Domains tab', false); }
       }
     }, 5000);
   } catch(e) {
+    hideScanProgress();
     toast('Error: ' + e.message, true);
     console.error('dbAddDomain error:', e);
-    // Show detailed error in intel content area for debugging
-    document.getElementById('intel-content') && (document.getElementById('intel-content').innerHTML =
-      '<p style="color:#C0392B;padding:16px">Add domain error: ' + e.message + '</p>');
   }
   finally { btn.disabled = false; btn.textContent = 'Scan Domain'; }
 }
