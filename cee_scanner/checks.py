@@ -27,7 +27,7 @@ import requests
 
 logger = logging.getLogger("cee_scanner.checks")
 
-TIMEOUT = 8
+TIMEOUT = 5
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; SecurityResearch/1.0)"}
 
 
@@ -71,13 +71,19 @@ class CheckResult:
         return self
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "check": self.check,
             "status": self.status,
             "title": self.title,
             "detail": self.detail,
             "score_impact": self.score_impact,
         }
+        # CVE skill attaches extra structured data
+        if hasattr(self, "cves"):
+            d["cves"] = self.cves
+        if hasattr(self, "software"):
+            d["software"] = [{"product": p, "version": v} for p, v in self.software]
+        return d
 
 
 # ── Individual checks ─────────────────────────────────────────────────────────
@@ -316,17 +322,26 @@ def check_typosquat(domain: str) -> CheckResult:
 
     # Missing/double character
     for i in range(len(name)):
-        candidates.add(f"{name[:i]+name[i+1:]}.{tld}")          # missing char
-        candidates.add(f"{name[:i]+name[i]+name[i:]}.{tld}")    # doubled char
+        candidates.add(f"{name[:i]+name[i+1:]}.{tld}")             # missing char
+        candidates.add(f"{name[:i]+name[i]+name[i]+name[i+1:]}.{tld}")  # doubled char
 
     # Common TLD variations
-    for alt_tld in ["com", "net", "org", "io"]:
+    for alt_tld in ["com", "net", "org", "io", "eu", "co"]:
         if alt_tld != tld:
             candidates.add(f"{name}.{alt_tld}")
 
+    # Hyphen insertion (csob → c-sob, cs-ob …)
+    for i in range(1, len(name)):
+        candidates.add(f"{name[:i]}-{name[i:]}.{tld}")
+
+    # Common prefix/suffix squats
+    for affix in [f"{name}-{tld.split('.')[0]}", f"{tld.split('.')[0]}-{name}",
+                  f"{name}online", f"{name}secure", f"my{name}"]:
+        candidates.add(f"{affix}.com")
+
     # Check which ones resolve (registered)
     registered = []
-    for candidate in list(candidates)[:15]:   # Cap at 15 to keep it fast
+    for candidate in list(candidates)[:25]:   # cap at 25
         try:
             socket.gethostbyname(candidate)
             registered.append(candidate)
@@ -397,7 +412,6 @@ def check_response_time(domain: str) -> CheckResult:
 # ── THREAT INTELLIGENCE CHECKS ───────────────────────────────────────────────
 
 def check_urlhaus(domain: str) -> CheckResult:
-    import os
     """
     URLhaus (abuse.ch) — real-time malware URL database.
     Checks if domain is currently hosting or distributing malware.
@@ -408,10 +422,7 @@ def check_urlhaus(domain: str) -> CheckResult:
         r = requests.post(
             "https://urlhaus-api.abuse.ch/v1/host/",
             data={"host": domain},
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Auth-Key": os.getenv("URLHAUS_API_KEY", ""),
-            },
+            headers=HEADERS,
             timeout=TIMEOUT,
         )
         if r.status_code == 200:
@@ -624,101 +635,53 @@ def check_spamhaus(domain: str) -> CheckResult:
 
 # ── Run all checks for a domain ───────────────────────────────────────────────
 
-def check_shodan(domain: str, api_key: str = "") -> CheckResult:
-    """Shodan — open ports, CVEs, exposed services. Set SHODAN_API_KEY env var."""
-    import os, socket
-    result = CheckResult("shodan", domain)
-    key = api_key or os.getenv("SHODAN_API_KEY", "")
-    if not key:
-        return result.ok("Shodan: no API key (set SHODAN_API_KEY — shodan.io $49/mo)")
-    try:
-        try: ip = socket.gethostbyname(domain)
-        except: return result.error("Shodan: could not resolve domain")
-        r = requests.get(f"https://api.shodan.io/shodan/host/{ip}", params={"key": key}, timeout=TIMEOUT)
-        if r.status_code == 404: return result.ok("Shodan: IP not yet crawled")
-        if r.status_code == 401: return result.error("Shodan: invalid API key")
-        if r.status_code == 402: return result.error("Shodan: requires paid membership ($49/mo at shodan.io)")
-        if r.status_code != 200: return result.error(f"Shodan API: HTTP {r.status_code}")
-        data = r.json()
-        ports = data.get("ports", [])
-        vulns = data.get("vulns", {})
-        org = data.get("org", "unknown")
-        country = data.get("country_name", "unknown")
-        dangerous = {21:"FTP",23:"Telnet",3389:"RDP",5900:"VNC",27017:"MongoDB",6379:"Redis",9200:"Elasticsearch",3306:"MySQL",2375:"Docker API",8080:"HTTP-alt"}
-        exposed = {p: dangerous[p] for p in ports if p in dangerous}
-        cves = list(vulns.keys())
-        critical_cves = [c for c in cves if vulns[c].get("cvss", 0) >= 9.0]
-        high_cves = [c for c in cves if 7.0 <= vulns[c].get("cvss", 0) < 9.0]
-        parts = []
-        if ports: parts.append(f"Ports: {', '.join(str(p) for p in sorted(ports)[:12])}")
-        if org: parts.append(f"Host: {org} ({country})")
-        if exposed: parts.append("Exposed: " + ", ".join(f"{p}/{n}" for p,n in list(exposed.items())[:4]))
-        if critical_cves: parts.append(f"CRITICAL CVEs: {', '.join(critical_cves[:4])}")
-        if high_cves: parts.append(f"High CVEs: {', '.join(high_cves[:4])}")
-        detail = " | ".join(parts)
-        if critical_cves or "Docker API" in str(exposed.values()):
-            return result.critical(f"Shodan: {len(critical_cves)} critical CVE(s), {len(exposed)} dangerous port(s)", detail, impact=30)
-        elif high_cves or len(exposed) >= 2:
-            return result.warn(f"Shodan: {len(high_cves)} high CVE(s), {len(ports)} ports open", detail, impact=15)
-        elif exposed:
-            return result.warn(f"Shodan: {len(exposed)} sensitive port(s) exposed", detail, impact=10)
-        elif vulns:
-            return result.warn(f"Shodan: {len(cves)} CVE(s) found", detail, impact=5)
-        else:
-            return result.ok(f"Shodan: {len(ports)} port(s) open, no critical CVEs", detail)
-    except Exception as e:
-        return result.error("Shodan check failed", str(e)[:80])
+def check_cve(domain: str) -> CheckResult:
+    """CVE Enrichment Skill — detects software versions and looks up real CVEs."""
+    from cee_scanner.skills.cve import check_cve as _check_cve
+    return _check_cve(domain)
 
-ALL_CHECKS = [    check_ssl,
+
+ALL_CHECKS = [
+    check_ssl,
     check_headers,
     check_dns,
     check_http_redirect,
     check_breach,
     check_typosquat,
     check_response_time,
-    check_urlhaus,
-    check_google_safebrowsing,
-    check_virustotal,
-    check_spamhaus,
-    check_shodan,
+    # ── Real-time threat intelligence ──
+    check_urlhaus,              # free, no key
+    check_spamhaus,             # free, no key (DNS-based)
+    check_google_safebrowsing,  # free key: console.cloud.google.com
+    check_virustotal,           # free key: virustotal.com
+    # ── CVE Enrichment Skill ──
+    check_cve,                  # free (NVD API); set NVD_API_KEY for higher rate limits
 ]
 
-import logging
-logger = logging.getLogger(__name__)
 
-def run_checks(domain: str) -> dict:
-    from datetime import datetime, timezone
+def scan_domain(domain: str) -> dict:
+    """Run all passive checks against a single domain."""
     results = []
     for check_fn in ALL_CHECKS:
         try:
-            result = check_fn(domain)
-            if isinstance(result, CheckResult):
-                results.append(result.to_dict())
-            else:
-                results.append(result)
+            r = check_fn(domain)
+            results.append(r.to_dict())
         except Exception as e:
             logger.error(f"Check {check_fn.__name__} failed for {domain}: {e}")
             results.append(CheckResult(check_fn.__name__, domain).error(
                 "Check crashed", str(e)[:80]
             ).to_dict())
 
-    # AI summary
-    try:
-        from cee_scanner.check_ai_summary_portkey import check_ai_summary
-        import anthropic, os
-        client = anthropic.Anthropic()
-        ai_result = check_ai_summary(domain, results)
-        results.append(ai_result)
-    except Exception as e:
-        pass
-
-    penalty = sum(r.get("score_impact", 0) for r in results)
+    # Calculate risk score (0=best, 100=worst)
+    penalty = sum(r["score_impact"] for r in results)
     risk_score = min(100, penalty)
-    critical_count = sum(1 for r in results if r.get("status") == "critical")
-    warning_count  = sum(1 for r in results if r.get("status") == "warning")
+
+    critical_count = sum(1 for r in results if r["status"] == "critical")
+    warning_count = sum(1 for r in results if r["status"] == "warning")
+
     return {
         "domain": domain,
-        "scanned_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+        "scanned_at": datetime.now(timezone.utc).isoformat(),
         "risk_score": risk_score,
         "critical": critical_count,
         "warnings": warning_count,
@@ -726,3 +689,5 @@ def run_checks(domain: str) -> dict:
     }
 
 
+# Alias used by main.py backend
+run_checks = scan_domain

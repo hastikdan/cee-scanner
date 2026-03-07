@@ -1733,12 +1733,18 @@ function openReportPage(domain, isSample) {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({domain: domain})
   }).then(function(res) {
-    if (!res.ok) throw new Error('failed');
+    if (!res.ok) throw new Error('Scan returned HTTP ' + res.status);
     return res.json();
   }).then(function(data) {
     renderReportPage(data, domain, false);
-  }).catch(function() {
-    renderReportPage(getSampleData(), domain, false);
+  }).catch(function(err) {
+    // Show real error — never silently substitute csob sample data
+    body.innerHTML = '<div style="text-align:center;padding:60px">'
+      + '<div style="font-size:32px;margin-bottom:12px">⚠</div>'
+      + '<p style="color:var(--white);font-weight:600;margin-bottom:8px">Scan failed</p>'
+      + '<p style="color:var(--grey);font-size:13px;margin-bottom:20px">' + err.message + '</p>'
+      + '<button class="btn-scan-all" onclick="openReportPage(\'' + domain + '\', false)">↻ Try Again</button>'
+      + '</div>';
   });
 }
 
