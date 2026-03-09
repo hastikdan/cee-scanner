@@ -2122,13 +2122,14 @@ function renderReportPage(data, domain, isSample) {
           </div>
           <div style="display:flex;gap:10px;align-items:center">
             <input class="db-search" id="domain-search" type="text" placeholder="Filter domains…" oninput="dbFilterDomains(this.value)">
-            <button class="btn-scan-all" onclick="dbAddDomainPrompt()">+ Add Domain</button>
+            <button class="btn-scan-all" id="db-add-domain-btn" onclick="dbAddDomainPrompt()">+ Add Domain</button>
           </div>
         </div>
         <div id="db-add-bar" style="display:none;margin-bottom:20px">
-          <div style="display:flex;gap:10px">
+          <div style="display:flex;gap:10px;align-items:center">
             <input class="domain-input" id="db-domain-input" type="text" placeholder="yourdomain.com" style="max-width:320px" onkeydown="if(event.key==='Enter')dbAddDomain()">
             <button class="btn-scan-all" id="db-add-btn" onclick="dbAddDomain()">Add →</button>
+            <button class="btn-sm" onclick="dbAddDomainCancel()">Cancel</button>
           </div>
         </div>
         <div id="db-domains-table" class="db-domains-table">
@@ -2412,9 +2413,15 @@ function dbFilterDomains(val) {
 }
 
 function dbAddDomainPrompt() {
-  var bar = document.getElementById('db-add-bar');
-  bar.style.display = bar.style.display === 'none' ? 'block' : 'none';
-  if (bar.style.display === 'block') document.getElementById('db-domain-input').focus();
+  document.getElementById('db-add-bar').style.display = 'block';
+  document.getElementById('db-add-domain-btn').style.display = 'none';
+  document.getElementById('db-domain-input').focus();
+}
+
+function dbAddDomainCancel() {
+  document.getElementById('db-add-bar').style.display = 'none';
+  document.getElementById('db-add-domain-btn').style.display = '';
+  document.getElementById('db-domain-input').value = '';
 }
 
 async function dbAddDomain() {
@@ -2426,6 +2433,7 @@ async function dbAddDomain() {
   // Show progress immediately on button click — before API call
   input.value = '';
   document.getElementById('db-add-bar').style.display = 'none';
+  document.getElementById('db-add-domain-btn').style.display = '';
   btn.disabled = true; btn.textContent = 'Scanning…';
   showScanProgress(domain);
 
