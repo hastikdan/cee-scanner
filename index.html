@@ -1382,6 +1382,38 @@ const CHECK_RECOMMENDATIONS = {
   ip_intel:'Investigate the flagged IP addresses — check AbuseIPDB, request delisting from blocklists, and consider migrating to a reputable hosting provider.',
 };
 
+async function loadNis2(domainId) {
+  var btn = document.querySelector('#nis2-badge-wrap button');
+  var el  = document.getElementById('nis2-result');
+  if (!el) return;
+  if (btn) { btn.disabled=true; btn.textContent='Loading NIS2…'; }
+  try {
+    var d = await api('/domains/'+domainId+'/nis2');
+    var pct = d.compliance_pct;
+    var ratingColor = pct>=80?'#2ECC71':pct>=50?'#D4850A':'#C0392B';
+    var rows = (d.findings||[]).map(function(f){
+      return '<tr style="border-bottom:1px solid rgba(255,255,255,.04)">'
+        +'<td style="padding:7px 10px;font-size:11px;color:'+( f.passed?'#2ECC71':'#C0392B' )+'">' + (f.passed?'✓':'✗') + '</td>'
+        +'<td style="padding:7px 10px;font-family:Space Mono,monospace;font-size:10px;color:#888">'+f.article+'</td>'
+        +'<td style="padding:7px 10px;font-size:12px;color:var(--white)">'+f.requirement+'</td>'
+        +'</tr>';
+    }).join('');
+    el.innerHTML = '<div style="background:rgba(66,133,244,.06);border:1px solid rgba(66,133,244,.2);border-radius:10px;padding:20px;margin-bottom:16px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+      +'<div><div style="font-family:Space Mono,monospace;font-size:10px;color:#4285F4;letter-spacing:2px;text-transform:uppercase">NIS2 Article 21 Compliance</div>'
+      +'<div style="font-size:22px;font-weight:700;color:'+ratingColor+';margin-top:4px">'+pct+'% — '+d.rating+'</div></div>'
+      +'<div style="width:60px;height:60px;border-radius:50%;background:conic-gradient('+ratingColor+' '+pct+'%,rgba(255,255,255,.08) 0);display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:44px;height:44px;border-radius:50%;background:#0e0d12;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:'+ratingColor+'">'+pct+'</div></div></div>'
+      +'<table style="width:100%;border-collapse:collapse">'+rows+'</table>'
+      +'<p style="font-size:10px;color:#555;margin-top:12px;margin-bottom:0">'+d.note+'</p>'
+      +'</div>';
+    el.style.display = 'block';
+    if (btn) { btn.textContent='↑ Hide NIS2'; btn.disabled=false; btn.onclick=function(){ el.style.display=el.style.display==='none'?'block':'none'; }; }
+  } catch(e) {
+    if (btn) { btn.textContent='NIS2 report unavailable'; btn.disabled=false; }
+  }
+}
+
 function buildRecommendations(checks) {
   const failing = checks.filter(c=>c.status==='critical'||c.status==='warning');
   if (!failing.length) return '';
@@ -1423,6 +1455,7 @@ function renderReport(data,domainId,domainName) {
     <div class="summary-card"><div class="summary-val" style="color:var(--amber)">${warningCount}</div><div class="summary-lbl">Warnings</div></div>
     <div class="summary-card"><div class="summary-val" style="color:var(--green)">${passed}</div><div class="summary-lbl">Passed</div></div>
   </div>`;
+  if(data.paid){html+=`<div id="nis2-badge-wrap" style="margin-bottom:16px"><button onclick="loadNis2('${domainId}')" style="background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.25);color:#4285F4;font-family:'Space Mono',monospace;font-size:10px;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:1px">📋 VIEW NIS2 COMPLIANCE SCORE →</button></div><div id="nis2-result" style="display:none"></div>`;};
   if(dateStr!=='—'){html+=`<div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);margin-bottom:16px">Scanned ${dateStr} &middot; ${others.length} checks run</div>`;}
   // 1. Security Checks table
   if(others.length){
@@ -1520,19 +1553,21 @@ function closePricingModal() {
 }
 
 async function startCheckout(plan) {
-  if (!_pricingDomainId) return;
-  var btnId = plan === 'annual' ? 'btn-checkout-annual' : 'btn-checkout-onetime';
-  var btn   = document.getElementById(btnId);
+  if (plan !== 'msp' && !_pricingDomainId) return;
+  var btnMap = {annual:'btn-checkout-annual', one_time:'btn-checkout-onetime', msp:'btn-checkout-msp'};
+  var btn = document.getElementById(btnMap[plan] || 'btn-checkout-onetime');
   if (btn) { btn.disabled=true; btn.textContent='Redirecting to Stripe…'; }
   try {
-    var data = await api('/checkout', {
-      method: 'POST',
-      body: JSON.stringify({domain_id: _pricingDomainId, domain: _pricingDomainName, plan})
-    });
-    window.location.href = data.checkout_url;
+    var endpoint = plan === 'msp' ? '/checkout/msp' : '/checkout';
+    var payload  = plan === 'msp'
+      ? { domain_ids: _pricingDomainId ? [_pricingDomainId] : [] }
+      : { domain_id: _pricingDomainId, domain: _pricingDomainName, plan };
+    var data = await api(endpoint, { method:'POST', body: JSON.stringify(payload) });
+    window.location.href = data.url || data.checkout_url;
   } catch(e) {
     toast('Checkout error: ' + e.message, true);
-    if (btn) { btn.disabled=false; btn.textContent = plan==='annual' ? 'Subscribe — $50/year →' : 'Buy Report — $10 →'; }
+    var labels = {annual:'Subscribe — $50/yr →', one_time:'Buy Report — $10 →', msp:'Get MSP Plan — $200/yr →'};
+    if (btn) { btn.disabled=false; btn.textContent = labels[plan] || 'Try again'; }
   }
 }
 
@@ -1787,6 +1822,7 @@ function renderReportPage(data, domain, isSample) {
       <button class="db-tab" onclick="dbShowTab('reports',this)">📋 Reports</button>
       <button class="db-tab" onclick="dbShowTab('threats',this)">⚠️ Threats</button>
       <button class="db-tab" onclick="dbShowTab('intel',this)">🧠 Intelligence</button>
+      <button class="db-tab" onclick="dbShowTab('supply-chain',this);scLoadResults()">🔗 Supply Chain</button>
       <button class="db-tab" onclick="dbShowTab('account',this);dbLoadAccount()">👤 Account</button>
       <button class="db-tab" id="prospects-tab-btn" onclick="dbShowTab('prospects',this)" style="display:none">🎯 Prospects</button>
       <button class="db-tab" id="outreach-tab-btn" onclick="dbShowTab('outreach',this)" style="display:none">📨 Outreach</button>
@@ -2268,6 +2304,30 @@ function renderReportPage(data, domain, isSample) {
     </div>
 
     <!-- ── TAB: ACCOUNT ─────────────────────────────────────── -->
+    <!-- ── SUPPLY CHAIN MONITOR ─────────────────────────────── -->
+    <div class="db-page" id="db-supply-chain" style="display:none">
+      <div style="max-width:860px;margin:0 auto;padding:32px 24px">
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Supply Chain Monitor</div>
+        <div style="font-size:22px;font-weight:700;color:var(--white);margin-bottom:6px">Vendor Risk Intelligence</div>
+        <p style="font-size:13px;color:var(--grey);margin-bottom:28px">Paste up to 50 vendor/partner domains. SwarmHawk scans each for vulnerabilities and emails you a risk digest if any are high-risk.</p>
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px">
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">New Batch Scan</div>
+          <input id="sc-label" type="text" placeholder="Label (e.g. Q1 2025 Vendor Review)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:13px;padding:9px 12px;box-sizing:border-box;margin-bottom:12px;font-family:inherit">
+          <textarea id="sc-domains" placeholder="One domain per line&#10;example.com&#10;vendor.eu&#10;partner.io" rows="6" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:13px;padding:9px 12px;box-sizing:border-box;font-family:'Space Mono',monospace;resize:vertical"></textarea>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+            <button onclick="scStartScan()" id="sc-scan-btn" style="background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:10px 20px;border:none;border-radius:6px;cursor:pointer">▶ Scan Vendors →</button>
+            <span style="font-size:11px;color:#555">Requires active plan · Results emailed if high-risk found</span>
+          </div>
+        </div>
+
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Previous Batches</div>
+        <div id="sc-batches">
+          <div class="db-empty" style="padding:40px;text-align:center">No scans yet — enter vendor domains above to start</div>
+        </div>
+      </div>
+    </div>
+
     <div class="db-page" id="db-account">
       <div class="db-inner">
         <div class="db-header">
@@ -2334,6 +2394,15 @@ function renderReportPage(data, domain, isSample) {
 
           <!-- Danger zone card -->
           <div style="background:var(--card);border:1px solid rgba(192,57,43,.3);border-radius:10px;padding:24px">
+            <!-- Developer API Keys -->
+            <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Developer API</div>
+            <p style="font-size:12px;color:var(--grey);margin-bottom:12px;line-height:1.6">Use your API key to integrate SwarmHawk into your own tools. Free tier: 10 scans/month. Unlimited with any paid plan.</p>
+            <div id="api-keys-list" style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:12px">Loading…</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onclick="acctGenerateApiKey()" id="btn-gen-api-key" style="background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(203,255,0,.25);border-radius:6px;cursor:pointer">+ Generate API Key</button>
+              <a href="https://github.com/hastikdan/swarmhawk-backend#api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
+            </div>
+            <div style="margin-top:24px"></div>
             <div style="font-family:'Space Mono',monospace;font-size:10px;color:#C0392B;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Danger Zone</div>
             <p style="font-size:12px;color:var(--grey);margin-bottom:16px;line-height:1.6">Deleting your account removes all domains, scan history, and reports permanently. This cannot be undone.</p>
             <button onclick="acctDeleteAccount()" style="background:rgba(192,57,43,.15);color:#E74C3C;font-family:'Space Mono',monospace;font-size:11px;padding:9px 16px;border:1px solid rgba(192,57,43,.4);border-radius:6px;cursor:pointer">Delete My Account</button>
@@ -3664,6 +3733,7 @@ function hideScanProgress() {
 // ── ACCOUNT SETTINGS ─────────────────────────────────────────────────────────
 
 async function dbLoadAccount() {
+  acctLoadApiKeys();
   try {
     var u = await api('/me');
     var nameEl  = document.getElementById('acct-name');
@@ -3787,6 +3857,115 @@ async function acctDeleteAccount() {
 </script>
 <script>
 var pendingDomain = '';
+
+// ═══════════════════════════════════════════════════════════════════════
+// SUPPLY CHAIN MONITOR
+// ═══════════════════════════════════════════════════════════════════════
+
+async function scStartScan() {
+  var raw    = (document.getElementById('sc-domains').value || '').trim();
+  var label  = (document.getElementById('sc-label').value || '').trim();
+  var domains = raw.split('\n').map(d => d.trim().toLowerCase()
+    .replace(/^https?:\/\//,'').split('/')[0]).filter(d => d && d.includes('.'));
+  if (!domains.length) { toast('Enter at least one domain', true); return; }
+  if (domains.length > 50) { toast('Maximum 50 domains per batch', true); return; }
+  var btn = document.getElementById('sc-scan-btn');
+  btn.disabled = true; btn.textContent = 'Starting scan…';
+  try {
+    var data = await api('/supply-chain/scan', {
+      method: 'POST',
+      body: JSON.stringify({ domains, label })
+    });
+    toast('✓ Scan started for ' + data.domains + ' domains. Results appear below when ready.');
+    document.getElementById('sc-domains').value = '';
+    document.getElementById('sc-label').value = '';
+    setTimeout(scLoadResults, 3000);
+  } catch(e) {
+    toast('Error: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = '▶ Scan Vendors →';
+  }
+}
+
+async function scLoadResults() {
+  try {
+    var data = await api('/supply-chain/results');
+    var el = document.getElementById('sc-batches');
+    if (!el) return;
+    if (!data.batches || !data.batches.length) {
+      el.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center">No scans yet — enter vendor domains above to start</div>';
+      return;
+    }
+    el.innerHTML = data.batches.map(function(b) {
+      var results = b.results || [];
+      var statusColor = b.status === 'complete' ? '#2ECC71' : b.status === 'error' ? '#C0392B' : '#D4850A';
+      var rows = results.slice(0,10).map(function(r) {
+        var s = r.risk_score;
+        var c = s === null ? '#555' : s >= 70 ? '#C0392B' : s >= 40 ? '#D4850A' : '#2ECC71';
+        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
+          +'<span style="font-family:Space Mono,monospace;color:var(--white)">' + r.domain + '</span>'
+          +'<span style="font-family:Space Mono,monospace;font-weight:700;color:'+c+'">' + (s === null ? 'error' : s) + '</span>'
+          +'</div>';
+      }).join('');
+      return '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+        +'<div><div style="font-weight:600;color:var(--white);margin-bottom:2px">' + (b.label||'Batch') + '</div>'
+        +'<div style="font-size:11px;color:var(--grey)">' + new Date(b.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) + ' · ' + results.length + ' domains</div></div>'
+        +'<div style="display:flex;gap:10px;align-items:center">'
+        +(b.high_risk ? '<span style="font-family:Space Mono,monospace;font-size:11px;color:#C0392B;background:rgba(192,57,43,.15);padding:3px 10px;border-radius:4px">⚠ '+b.high_risk+' high-risk</span>' : '')
+        +'<span style="font-family:Space Mono,monospace;font-size:10px;color:'+statusColor+';text-transform:uppercase">'+b.status+'</span>'
+        +'</div></div>'
+        + rows
+        + (results.length > 10 ? '<div style="font-size:11px;color:var(--grey);margin-top:8px">+'+(results.length-10)+' more domains…</div>' : '')
+        +'</div>';
+    }).join('');
+  } catch(e) { console.warn('scLoadResults:', e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// API KEY MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════
+
+async function acctLoadApiKeys() {
+  var el = document.getElementById('api-keys-list');
+  if (!el) return;
+  try {
+    var data = await api('/api/v1/keys');
+    if (!data.keys || !data.keys.length) {
+      el.innerHTML = '<span style="color:#555">No keys yet — generate one below</span>';
+      return;
+    }
+    el.innerHTML = data.keys.map(function(k) {
+      var pct = Math.round((k.calls_this_month||0) / (k.limit_per_month||10) * 100);
+      var bar = '<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:4px;width:100%"><div style="height:100%;border-radius:2px;background:'+(pct>=80?'#C0392B':'var(--lime)')+';width:'+Math.min(pct,100)+'%"></div></div>';
+      return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:12px;margin-bottom:8px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+        +'<span style="color:var(--lime);font-size:12px;word-break:break-all">' + k.key + '</span>'
+        +'<button onclick="acctCopyKey(\''+k.key+'\')" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:11px;padding:0 0 0 8px;white-space:nowrap">Copy</button>'
+        +'</div>'
+        +'<div style="font-size:10px;color:#666">' + (k.calls_this_month||0) + ' / ' + (k.limit_per_month||10) + ' calls this month ' + bar + '</div>'
+        +'</div>';
+    }).join('');
+  } catch(e) { if (el) el.innerHTML = '<span style="color:#555">Could not load keys</span>'; }
+}
+
+async function acctGenerateApiKey() {
+  var btn = document.getElementById('btn-gen-api-key');
+  if (btn) { btn.disabled=true; btn.textContent='Generating…'; }
+  try {
+    var data = await api('/api/v1/keys', { method: 'POST' });
+    toast('✓ API key ready');
+    acctLoadApiKeys();
+  } catch(e) {
+    toast('Error: ' + e.message, true);
+  } finally {
+    if (btn) { btn.disabled=false; btn.textContent='+ Generate API Key'; }
+  }
+}
+
+function acctCopyKey(key) {
+  navigator.clipboard.writeText(key).then(function(){ toast('✓ Key copied to clipboard'); });
+}
 
 function preLoginScan() {
   var d = document.getElementById('domain-input-pre').value.trim().toLowerCase();
@@ -3922,41 +4101,49 @@ window.addEventListener('DOMContentLoaded', function() {
     <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Unlock Full Report</div>
     <div id="pricing-domain-label" style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:24px">—</div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
 
       <!-- One-time -->
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:12px">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase">One-time Report</div>
-        <div>
-          <span style="font-size:32px;font-weight:700;color:var(--white)">$10</span>
-          <span style="font-size:13px;color:#888;margin-left:4px">one-time</span>
-        </div>
-        <ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#aaa;line-height:2">
-          <li>✓ Full 19-check security report</li>
-          <li>✓ AI threat intelligence analysis</li>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase">One-time Report</div>
+        <div><span style="font-size:28px;font-weight:700;color:var(--white)">$10</span><span style="font-size:12px;color:#888;margin-left:4px">one-time</span></div>
+        <ul style="list-style:none;padding:0;margin:0;font-size:11px;color:#aaa;line-height:2">
+          <li>✓ Full 19-check report</li>
+          <li>✓ AI threat analysis</li>
           <li>✓ PDF emailed to you</li>
-          <li>✓ Permanent access to this report</li>
-          <li style="color:#555">✗ No recurring monitoring</li>
+          <li>✓ Permanent access</li>
+          <li style="color:#555">✗ No monitoring</li>
         </ul>
-        <button id="btn-checkout-onetime" onclick="startCheckout('one_time')" style="margin-top:auto;background:rgba(255,255,255,.08);color:var(--white);font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:6px;cursor:pointer">Buy Report — $10 →</button>
+        <button id="btn-checkout-onetime" onclick="startCheckout('one_time')" style="margin-top:auto;background:rgba(255,255,255,.08);color:var(--white);font-family:'Space Mono',monospace;font-weight:700;font-size:11px;padding:10px;border:1px solid rgba(255,255,255,.2);border-radius:6px;cursor:pointer">Buy Report — $10 →</button>
       </div>
 
       <!-- Annual -->
-      <div style="background:rgba(203,255,0,.05);border:2px solid rgba(203,255,0,.35);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:12px;position:relative">
-        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap;letter-spacing:1px">BEST VALUE</div>
-        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase">Annual Monitoring</div>
-        <div>
-          <span style="font-size:32px;font-weight:700;color:var(--white)">$50</span>
-          <span style="font-size:13px;color:#888;margin-left:4px">/year</span>
-        </div>
-        <ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#aaa;line-height:2">
+      <div style="background:rgba(203,255,0,.05);border:2px solid rgba(203,255,0,.35);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px;position:relative">
+        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;letter-spacing:1px">BEST VALUE</div>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--lime);letter-spacing:2px;text-transform:uppercase">Annual Monitoring</div>
+        <div><span style="font-size:28px;font-weight:700;color:var(--white)">$50</span><span style="font-size:12px;color:#888;margin-left:4px">/year</span></div>
+        <ul style="list-style:none;padding:0;margin:0;font-size:11px;color:#aaa;line-height:2">
           <li>✓ Everything in one-time</li>
-          <li>✓ Monthly automated scans</li>
-          <li>✓ Monthly PDF reports by email</li>
+          <li>✓ Monthly auto-scans</li>
+          <li>✓ Monthly PDF reports</li>
           <li>✓ Breach &amp; malware alerts</li>
-          <li>✓ NIS2 compliance evidence</li>
+          <li>✓ NIS2 compliance score</li>
         </ul>
-        <button id="btn-checkout-annual" onclick="startCheckout('annual')" style="margin-top:auto;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:12px;border:none;border-radius:6px;cursor:pointer">Subscribe — $50/year →</button>
+        <button id="btn-checkout-annual" onclick="startCheckout('annual')" style="margin-top:auto;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-weight:700;font-size:11px;padding:10px;border:none;border-radius:6px;cursor:pointer">Subscribe — $50/yr →</button>
+      </div>
+
+      <!-- MSP -->
+      <div style="background:rgba(66,133,244,.05);border:1px solid rgba(66,133,244,.3);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:#4285F4;letter-spacing:2px;text-transform:uppercase">MSP / Agency</div>
+        <div><span style="font-size:28px;font-weight:700;color:var(--white)">$200</span><span style="font-size:12px;color:#888;margin-left:4px">/year</span></div>
+        <ul style="list-style:none;padding:0;margin:0;font-size:11px;color:#aaa;line-height:2">
+          <li>✓ Up to 10 domains</li>
+          <li>✓ All Annual features ×10</li>
+          <li>✓ Supply chain monitor</li>
+          <li>✓ Developer API access</li>
+          <li>✓ Priority support</li>
+        </ul>
+        <button id="btn-checkout-msp" onclick="startCheckout('msp')" style="margin-top:auto;background:rgba(66,133,244,.2);color:#4285F4;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;padding:10px;border:1px solid rgba(66,133,244,.4);border-radius:6px;cursor:pointer">Get MSP Plan — $200/yr →</button>
       </div>
 
     </div>
