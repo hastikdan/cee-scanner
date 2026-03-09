@@ -1414,6 +1414,41 @@ async function loadNis2(domainId) {
   }
 }
 
+async function loadDeathPredictor(domainId) {
+  var btn = document.getElementById('death-pred-btn');
+  var el  = document.getElementById('death-pred-result');
+  if (!el) return;
+  if (btn) { btn.disabled=true; btn.textContent='Calculating…'; }
+  try {
+    var d = await api('/domains/'+domainId+'/death-predictor');
+    var prob = d.probability||0;
+    var color = d.color||'#D4850A';
+    var bar = Math.round(prob);
+    var factorRows = (d.factors||[]).map(function(f){
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px">'
+        +'<span style="color:#aaa">'+f.name+'</span>'
+        +'<span style="color:'+( f.impact>0?'#C0392B':'#2ECC71' )+';font-weight:700">'+(f.impact>0?'+':'')+f.impact+'%</span>'
+        +'</div>';
+    }).join('');
+    el.innerHTML = '<div style="background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.25);border-radius:10px;padding:20px;margin-bottom:16px">'
+      +'<div style="font-family:Space Mono,monospace;font-size:10px;color:#C0392B;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">☠ Domain Death Predictor · 90-Day Horizon</div>'
+      +'<div style="display:flex;align-items:center;gap:20px;margin-bottom:14px">'
+      +'<div style="font-size:36px;font-weight:800;color:'+color+'">'+prob+'%</div>'
+      +'<div><div style="font-size:15px;font-weight:700;color:'+color+'">'+d.verdict+'</div>'
+      +'<div style="font-size:11px;color:#888;margin-top:3px">'+d.action+'</div></div></div>'
+      +'<div style="background:rgba(255,255,255,.05);border-radius:4px;height:6px;margin-bottom:14px">'
+      +'<div style="background:'+color+';height:6px;border-radius:4px;width:'+bar+'%"></div></div>'
+      +factorRows
+      +'<p style="font-size:10px;color:#444;margin-top:10px;margin-bottom:0">'+d.model_note+'</p>'
+      +'</div>';
+    el.style.display = 'block';
+    if (btn) { btn.textContent='↑ Hide Predictor'; btn.disabled=false; btn.onclick=function(){ el.style.display=el.style.display==='none'?'block':'none'; }; }
+  } catch(e) {
+    console.warn('Death predictor error:', e);
+    if (btn) { btn.textContent='Predictor unavailable'; btn.disabled=false; }
+  }
+}
+
 function buildRecommendations(checks) {
   const failing = checks.filter(c=>c.status==='critical'||c.status==='warning');
   if (!failing.length) return '';
@@ -1455,7 +1490,7 @@ function renderReport(data,domainId,domainName) {
     <div class="summary-card"><div class="summary-val" style="color:var(--amber)">${warningCount}</div><div class="summary-lbl">Warnings</div></div>
     <div class="summary-card"><div class="summary-val" style="color:var(--green)">${passed}</div><div class="summary-lbl">Passed</div></div>
   </div>`;
-  if(data.paid){html+=`<div id="nis2-badge-wrap" style="margin-bottom:16px"><button onclick="loadNis2('${domainId}')" style="background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.25);color:#4285F4;font-family:'Space Mono',monospace;font-size:10px;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:1px">📋 VIEW NIS2 COMPLIANCE SCORE →</button></div><div id="nis2-result" style="display:none"></div>`;};
+  if(data.paid){html+=`<div id="nis2-badge-wrap" style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap"><button onclick="loadNis2('${domainId}')" style="background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.25);color:#4285F4;font-family:'Space Mono',monospace;font-size:10px;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:1px">📋 VIEW NIS2 COMPLIANCE SCORE →</button><button onclick="loadDeathPredictor('${domainId}')" id="death-pred-btn" style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);color:#C0392B;font-family:'Space Mono',monospace;font-size:10px;padding:6px 14px;border-radius:20px;cursor:pointer;letter-spacing:1px">☠ DOMAIN DEATH PREDICTOR →</button></div><div id="nis2-result" style="display:none"></div><div id="death-pred-result" style="display:none;margin-bottom:16px"></div>`;};
   if(dateStr!=='—'){html+=`<div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);margin-bottom:16px">Scanned ${dateStr} &middot; ${others.length} checks run</div>`;}
   // 1. Security Checks table
   if(others.length){

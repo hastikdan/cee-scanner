@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwarmHawk · Live Attack Map</title>
+<meta name="description" content="Real-time global domain threat intelligence map powered by SwarmHawk security scans.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0d12;
+    --card: #16151e;
+    --border: rgba(255,255,255,.08);
+    --white: #f0eef8;
+    --grey: #6b6880;
+    --red: #C0392B;
+    --amber: #D4850A;
+    --green: #2ECC71;
+    --blue: #4285F4;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(14,13,18,.95);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .logo span { color: var(--red); }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .4; transform: scale(1.3); }
+  }
+
+  .hero {
+    text-align: center;
+    padding: 48px 24px 32px;
+  }
+
+  .hero h1 {
+    font-size: clamp(24px, 5vw, 42px);
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .hero h1 span { color: var(--red); }
+
+  .hero p {
+    color: var(--grey);
+    font-size: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--white);
+  }
+
+  .stat-lbl {
+    font-size: 11px;
+    color: var(--grey);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+
+  .map-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .map-placeholder {
+    width: 100%;
+    height: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* SVG world map background */
+  #world-svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  .map-overlay-text {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+
+  .map-loading {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--grey);
+    letter-spacing: 2px;
+    animation: blink 1.5s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .country-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .country-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    transition: border-color .2s, transform .2s;
+    cursor: default;
+  }
+
+  .country-card:hover {
+    border-color: rgba(192,57,43,.4);
+    transform: translateY(-2px);
+  }
+
+  .cc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .cc-name {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cc-flag {
+    font-size: 20px;
+  }
+
+  .risk-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+
+  .risk-high   { background: rgba(192,57,43,.15); color: var(--red); border: 1px solid rgba(192,57,43,.3); }
+  .risk-medium { background: rgba(212,133,10,.15); color: var(--amber); border: 1px solid rgba(212,133,10,.3); }
+  .risk-low    { background: rgba(46,204,113,.12); color: var(--green); border: 1px solid rgba(46,204,113,.25); }
+
+  .cc-score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .cc-score {
+    font-size: 32px;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    line-height: 1;
+  }
+
+  .cc-bar-wrap {
+    flex: 1;
+    background: rgba(255,255,255,.06);
+    border-radius: 4px;
+    height: 6px;
+  }
+
+  .cc-bar { height: 6px; border-radius: 4px; }
+
+  .cc-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--grey);
+  }
+
+  .cc-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--grey);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color .2s, border-color .2s;
+  }
+
+  .refresh-btn:hover { color: var(--white); border-color: rgba(255,255,255,.2); }
+
+  .cta-banner {
+    background: linear-gradient(135deg, rgba(192,57,43,.15) 0%, rgba(66,133,244,.08) 100%);
+    border: 1px solid rgba(192,57,43,.25);
+    border-radius: 16px;
+    padding: 36px;
+    text-align: center;
+    margin-top: 32px;
+  }
+
+  .cta-banner h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+  .cta-banner p  { color: var(--grey); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--grey);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  footer {
+    text-align: center;
+    padding: 30px;
+    border-top: 1px solid var(--border);
+    color: var(--grey);
+    font-size: 12px;
+  }
+
+  footer a { color: var(--grey); text-decoration: none; }
+  footer a:hover { color: var(--white); }
+
+  @media (max-width: 600px) {
+    .stats-bar { gap: 20px; }
+    header { padding: 14px 16px; }
+    .hero { padding: 32px 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">SWARM<span>HAWK</span></a>
+  <div class="header-actions">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE DATA
+    </div>
+    <a href="/" class="btn-primary">SCAN YOUR DOMAIN →</a>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Global <span>Threat</span> Intelligence Map</h1>
+  <p>Real-time aggregation of security vulnerabilities detected across domains worldwide. Updated continuously from SwarmHawk scans.</p>
+</div>
+
+<div class="stats-bar" id="global-stats">
+  <div class="stat-item">
+    <div class="stat-val" id="stat-domains">—</div>
+    <div class="stat-lbl">Domains Tracked</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val" id="stat-scanned">—</div>
+    <div class="stat-lbl">Scans Completed</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val" id="stat-countries">—</div>
+    <div class="stat-lbl">Countries Monitored</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val" id="stat-critical" style="color:var(--red)">—</div>
+    <div class="stat-lbl">Critical Findings</div>
+  </div>
+</div>
+
+<main>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> HIGH RISK (70+)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div> MEDIUM RISK (30–69)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> LOW RISK (0–29)</div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-label">Countries · Sorted by Average Risk Score</div>
+    <button class="refresh-btn" onclick="loadMapData()">↺ REFRESH</button>
+  </div>
+
+  <div id="country-grid" class="country-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--grey)">
+      <div class="map-loading">LOADING THREAT DATA…</div>
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <h2>Is Your Domain on the Map?</h2>
+    <p>SwarmHawk scans thousands of domains daily for exposed vulnerabilities, CVEs, misconfigured DNS, open ports, and dark web breaches. Get your domain's threat report in 60 seconds.</p>
+    <a href="/" class="btn-primary">SCAN MY DOMAIN FREE →</a>
+  </div>
+</main>
+
+<footer>
+  <p style="margin-bottom:8px">
+    <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/#features">Features</a> &nbsp;·&nbsp;
+    <a href="/#pricing">Pricing</a> &nbsp;·&nbsp;
+    <span>map.swarmhawk.eu</span>
+  </p>
+  <p>Data aggregated from SwarmHawk passive scans. No personal data is collected or displayed.</p>
+</footer>
+
+<script>
+const API_BASE = 'https://swarmhawk-backend.onrender.com';
+
+const COUNTRY_NAMES = {
+  CZ:'Czech Republic', PL:'Poland', SK:'Slovakia', HU:'Hungary', RO:'Romania',
+  AT:'Austria', DE:'Germany', FR:'France', GB:'United Kingdom', IT:'Italy',
+  ES:'Spain', NL:'Netherlands', BE:'Belgium', SE:'Sweden', NO:'Norway',
+  DK:'Denmark', FI:'Finland', CH:'Switzerland', PT:'Portugal', GR:'Greece',
+  UA:'Ukraine', RU:'Russia', TR:'Turkey', US:'United States', CA:'Canada',
+  AU:'Australia', JP:'Japan', KR:'South Korea', CN:'China', IN:'India',
+  BR:'Brazil', MX:'Mexico', AR:'Argentina', ZA:'South Africa', IL:'Israel',
+  AE:'UAE', SG:'Singapore', ID:'Indonesia', TH:'Thailand', PH:'Philippines',
+  EG:'Egypt', NG:'Nigeria', KE:'Kenya', PK:'Pakistan', BD:'Bangladesh',
+};
+
+const COUNTRY_FLAGS = {
+  CZ:'🇨🇿', PL:'🇵🇱', SK:'🇸🇰', HU:'🇭🇺', RO:'🇷🇴', AT:'🇦🇹', DE:'🇩🇪',
+  FR:'🇫🇷', GB:'🇬🇧', IT:'🇮🇹', ES:'🇪🇸', NL:'🇳🇱', BE:'🇧🇪', SE:'🇸🇪',
+  NO:'🇳🇴', DK:'🇩🇰', FI:'🇫🇮', CH:'🇨🇭', PT:'🇵🇹', GR:'🇬🇷', UA:'🇺🇦',
+  RU:'🇷🇺', TR:'🇹🇷', US:'🇺🇸', CA:'🇨🇦', AU:'🇦🇺', JP:'🇯🇵', KR:'🇰🇷',
+  CN:'🇨🇳', IN:'🇮🇳', BR:'🇧🇷', MX:'🇲🇽', AR:'🇦🇷', ZA:'🇿🇦', IL:'🇮🇱',
+  AE:'🇦🇪', SG:'🇸🇬', ID:'🇮🇩', TH:'🇹🇭', PH:'🇵🇭', EG:'🇪🇬', NG:'🇳🇬',
+  KE:'🇰🇪', PK:'🇵🇰', BD:'🇧🇩',
+};
+
+async function loadMapData() {
+  try {
+    const res = await fetch(API_BASE + '/map/data');
+    const data = await res.json();
+
+    // Update global stats
+    document.getElementById('stat-domains').textContent   = (data.total_domains || 0).toLocaleString();
+    document.getElementById('stat-scanned').textContent   = (data.total_scanned || 0).toLocaleString();
+    document.getElementById('stat-countries').textContent = (data.countries || []).length;
+    const totalCritical = (data.countries || []).reduce(function(s, c){ return s + (c.critical_findings||0); }, 0);
+    document.getElementById('stat-critical').textContent  = totalCritical.toLocaleString();
+
+    const countries = data.countries || [];
+    if (!countries.length) {
+      document.getElementById('country-grid').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--grey)">No scan data yet. Data appears as SwarmHawk processes domains globally.</div>';
+      return;
+    }
+
+    var html = '';
+    countries.forEach(function(c) {
+      var score = Math.round(c.avg_risk || 0);
+      var color = score >= 70 ? 'var(--red)' : score >= 30 ? 'var(--amber)' : 'var(--green)';
+      var riskClass = score >= 70 ? 'risk-high' : score >= 30 ? 'risk-medium' : 'risk-low';
+      var riskLabel = score >= 70 ? 'HIGH RISK' : score >= 30 ? 'MEDIUM RISK' : 'LOW RISK';
+      var name = COUNTRY_NAMES[c.country] || c.country;
+      var flag = COUNTRY_FLAGS[c.country] || '🌐';
+      html += '<div class="country-card">'
+        + '<div class="cc-header">'
+        +   '<div class="cc-name"><span class="cc-flag">'+flag+'</span>'+name+'</div>'
+        +   '<div class="risk-badge '+riskClass+'">'+riskLabel+'</div>'
+        + '</div>'
+        + '<div class="cc-score-row">'
+        +   '<div class="cc-score" style="color:'+color+'">'+score+'</div>'
+        +   '<div class="cc-bar-wrap"><div class="cc-bar" style="width:'+score+'%;background:'+color+'"></div></div>'
+        + '</div>'
+        + '<div class="cc-meta">'
+        +   '<span>🌐 '+c.domains+' domains</span>'
+        +   '<span>🔴 '+(c.high_risk_domains||0)+' high risk</span>'
+        +   '<span>⚠ '+(c.critical_findings||0)+' criticals</span>'
+        + '</div>'
+        + '</div>';
+    });
+    document.getElementById('country-grid').innerHTML = html;
+
+  } catch(e) {
+    console.warn('Map data load failed:', e);
+    document.getElementById('country-grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--grey)">Failed to load threat data. <button onclick="loadMapData()" class="refresh-btn" style="margin-left:8px">Retry</button></div>';
+  }
+}
+
+// Auto-refresh every 5 minutes
+loadMapData();
+setInterval(loadMapData, 5 * 60 * 1000);
+</script>
+</body>
+</html>
