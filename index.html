@@ -1822,6 +1822,7 @@ function renderReportPage(data, domain, isSample) {
       <button class="db-tab" onclick="dbShowTab('reports',this)">📋 Reports</button>
       <button class="db-tab" onclick="dbShowTab('threats',this)">⚠️ Threats</button>
       <button class="db-tab" onclick="dbShowTab('intel',this)">🧠 Intelligence</button>
+      <button class="db-tab" onclick="dbShowTab('competitors',this);compLoad()">🎯 Competitors</button>
       <button class="db-tab" onclick="dbShowTab('supply-chain',this);scLoadResults()">🔗 Supply Chain</button>
       <button class="db-tab" onclick="dbShowTab('account',this);dbLoadAccount()">👤 Account</button>
       <button class="db-tab" id="prospects-tab-btn" onclick="dbShowTab('prospects',this)" style="display:none">🎯 Prospects</button>
@@ -2304,6 +2305,31 @@ function renderReportPage(data, domain, isSample) {
     </div>
 
     <!-- ── TAB: ACCOUNT ─────────────────────────────────────── -->
+    <!-- ── COMPETITOR INTELLIGENCE ──────────────────────────── -->
+    <div class="db-page" id="db-competitors" style="display:none">
+      <div style="max-width:860px;margin:0 auto;padding:32px 24px">
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Competitor Intelligence</div>
+        <div style="font-size:22px;font-weight:700;color:var(--white);margin-bottom:6px">Track Competitor Security Posture</div>
+        <p style="font-size:13px;color:var(--grey);margin-bottom:28px">Monitor competitor domains weekly. Get alerted when their risk score spikes, new CVEs appear, or new ports open. Free: 5 competitors · Paid: 20.</p>
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;display:flex;gap:12px;align-items:flex-end">
+          <div style="flex:1">
+            <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;display:block;margin-bottom:6px">COMPETITOR DOMAIN</label>
+            <input id="comp-domain" type="text" placeholder="competitor.com" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:13px;padding:9px 12px;box-sizing:border-box;font-family:inherit">
+          </div>
+          <div style="flex:1">
+            <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;display:block;margin-bottom:6px">LABEL (OPTIONAL)</label>
+            <input id="comp-label" type="text" placeholder="Main competitor" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:13px;padding:9px 12px;box-sizing:border-box;font-family:inherit">
+          </div>
+          <button onclick="compAdd()" id="comp-add-btn" style="background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;white-space:nowrap">+ Track →</button>
+        </div>
+
+        <div id="comp-list">
+          <div class="db-empty" style="padding:40px;text-align:center">No competitors tracked yet — add one above</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── SUPPLY CHAIN MONITOR ─────────────────────────────── -->
     <div class="db-page" id="db-supply-chain" style="display:none">
       <div style="max-width:860px;margin:0 auto;padding:32px 24px">
@@ -3857,6 +3883,104 @@ async function acctDeleteAccount() {
 </script>
 <script>
 var pendingDomain = '';
+
+// ═══════════════════════════════════════════════════════════════════════
+// COMPETITOR INTELLIGENCE
+// ═══════════════════════════════════════════════════════════════════════
+
+async function compAdd() {
+  var domain = (document.getElementById('comp-domain').value||'').trim().toLowerCase()
+    .replace(/^https?:\/\//,'').split('/')[0];
+  var label  = (document.getElementById('comp-label').value||'').trim();
+  if (!domain || !domain.includes('.')) { toast('Enter a valid domain', true); return; }
+  var btn = document.getElementById('comp-add-btn');
+  btn.disabled=true; btn.textContent='Adding…';
+  try {
+    await api('/competitors', { method:'POST', body: JSON.stringify({domain, label}) });
+    toast('✓ Tracking ' + domain + ' — scanning now');
+    document.getElementById('comp-domain').value = '';
+    document.getElementById('comp-label').value  = '';
+    setTimeout(compLoad, 2000);
+  } catch(e) { toast('Error: ' + e.message, true); }
+  finally { btn.disabled=false; btn.textContent='+ Track →'; }
+}
+
+async function compLoad() {
+  var el = document.getElementById('comp-list');
+  if (!el) return;
+  try {
+    var data = await api('/competitors');
+    var comps = data.competitors || [];
+    if (!comps.length) {
+      el.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center">No competitors tracked yet — add one above</div>';
+      return;
+    }
+    el.innerHTML = comps.map(function(c) {
+      var s = c.risk_score;
+      var sc = s === null ? '#555' : s >= 70 ? '#C0392B' : s >= 40 ? '#D4850A' : '#2ECC71';
+      var delta = c.score_delta;
+      var deltaHtml = delta === null ? '' :
+        delta > 0 ? '<span style="color:#C0392B;font-size:11px;margin-left:8px">▲+'+delta+' vs last week</span>' :
+        delta < 0 ? '<span style="color:#2ECC71;font-size:11px;margin-left:8px">▼'+delta+' vs last week</span>' :
+        '<span style="color:#555;font-size:11px;margin-left:8px">±0 vs last week</span>';
+      var ts = c.scanned_at ? new Date(c.scanned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'Scanning…';
+      return '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">'
+        +'<div><div style="font-family:Space Mono,monospace;font-weight:700;color:var(--white);font-size:14px">'+c.domain+'</div>'
+        +'<div style="font-size:11px;color:var(--grey);margin-top:2px">'+(c.label&&c.label!==c.domain?c.label+' · ':'')+ts+'</div></div>'
+        +'<div style="display:flex;align-items:center;gap:16px">'
+        +'<div style="text-align:center"><div style="font-size:26px;font-weight:700;color:'+sc+'">'+(s===null?'—':s)+'</div>'
+        +'<div style="font-size:10px;color:var(--grey)">risk score</div>'+deltaHtml+'</div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<button onclick="compHistory(\''+c.id+'\',\''+c.domain+'\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:Space Mono,monospace">History</button>'
+        +'<button onclick="compDelete(\''+c.id+'\',\''+c.domain+'\')" style="background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2);color:#E74C3C;font-size:10px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:Space Mono,monospace">Remove</button>'
+        +'</div></div></div>';
+    }).join('');
+  } catch(e) { console.warn('compLoad:', e.message); }
+}
+
+async function compDelete(id, domain) {
+  if (!confirm('Stop tracking ' + domain + '?')) return;
+  try {
+    await api('/competitors/'+id, { method:'DELETE' });
+    toast('✓ Removed ' + domain);
+    compLoad();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function compHistory(id, domain) {
+  try {
+    var data = await api('/competitors/'+id+'/history');
+    var hist = data.history || [];
+    if (!hist.length) { toast('No history yet — check back after the first scan completes'); return; }
+    var rows = hist.map(function(s,i){
+      var prev = hist[i+1];
+      var score = s.risk_score||0;
+      var sc = score>=70?'#C0392B':score>=40?'#D4850A':'#2ECC71';
+      var delta = prev ? (score-(prev.risk_score||0)) : null;
+      var ts = new Date(s.scanned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+      return '<tr><td style="padding:8px 12px;font-size:12px;color:#aaa">'+ts+'</td>'
+        +'<td style="padding:8px 12px;font-weight:700;color:'+sc+';font-family:Space Mono,monospace">'+score+'</td>'
+        +'<td style="padding:8px 12px;font-size:11px;color:#aaa">'+s.critical+' critical · '+s.warnings+' warnings</td>'
+        +'<td style="padding:8px 12px;font-size:11px">'+(delta===null?'':'<span style="color:'+(delta>0?'#C0392B':delta<0?'#2ECC71':'#555')+'">'+(delta>0?'▲+':delta<0?'▼':'')+delta+'</span>')+'</td>'
+        +'</tr>';
+    }).join('');
+    // Show in a simple toast-style overlay
+    var overlay = document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:24px';
+    overlay.onclick=function(e){if(e.target===overlay)document.body.removeChild(overlay);};
+    overlay.innerHTML='<div style="background:#13121A;border:1px solid rgba(203,255,0,.2);border-radius:12px;padding:28px;width:100%;max-width:560px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+      +'<div style="font-family:Space Mono,monospace;font-weight:700;color:var(--lime)">'+domain+' — Score History</div>'
+      +'<button onclick="this.closest(\'div[style]\').parentElement.parentElement && document.body.removeChild(this.closest(\'div[style]\').parentElement)" style="background:none;border:none;color:#666;font-size:18px;cursor:pointer">✕</button></div>'
+      +'<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.08)">'
+      +'<th style="padding:6px 12px;text-align:left;font-size:10px;color:#aaa">DATE</th>'
+      +'<th style="padding:6px 12px;text-align:left;font-size:10px;color:#aaa">SCORE</th>'
+      +'<th style="padding:6px 12px;text-align:left;font-size:10px;color:#aaa">FINDINGS</th>'
+      +'<th style="padding:6px 12px;text-align:left;font-size:10px;color:#aaa">CHANGE</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    document.body.appendChild(overlay);
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // SUPPLY CHAIN MONITOR
