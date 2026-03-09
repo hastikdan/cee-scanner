@@ -1278,7 +1278,7 @@ function renderBlurredReport(data, domainObj) {
     html+='<div class="report-blur-overlay">';
     html+='<h3>🔒 Full Report Locked</h3>';
     html+='<p>'+(blurredChecks.length)+' more checks + AI threat analysis + monthly monitoring<br>Unlock for <strong style="color:var(--lime)">$50/year</strong></p>';
-    html+='<button class="btn-unlock" onclick="closeReportPage();checkout(this)">Unlock Full Report — $50/year →</button>';
+    html+='<button class="btn-unlock" onclick="closeReportPage()">Scan My Domain →</button>';
     html+='<p style="font-size:11px;color:var(--grey);margin-top:10px">Monthly PDF reports · NIS2 compliance · Cancel anytime</p>';
     html+='</div>';
     html+='</div>'; // end blur-wrap
@@ -1434,7 +1434,7 @@ function renderReport(data,domainId,domainName) {
   html+=buildRecommendations(others);
   // 3. AI Intelligence Report
   if(ai&&ai.detail){html+=`<div class="ai-section"><div class="ai-label">🧠 Intelligence Report</div><div>${renderAI(ai.detail)}</div></div>`;}
-  if(data.locked_count>0){html+=`<div class="locked-banner"><h3>🔒 ${data.locked_count} checks locked</h3><p>Subscribe for €50/year to unlock all checks, AI threat analysis, and monthly reports.</p><button class="btn-unlock" onclick="closeModal();checkout('${domainId}','${domainName}')">Unlock Full Report — €50/year →</button></div>`;}
+  if(data.locked_count>0){html+=`<div class="locked-banner"><h3>🔒 ${data.locked_count} checks locked</h3><p>Unlock the full report for <strong>$10 one-time</strong> or get annual monitoring for <strong>$50/year</strong>.</p><button class="btn-unlock" onclick="closeModal();checkout('${domainId}','${domainName}')">View Plans & Unlock →</button></div>`;}
   const defaultEmail=currentUser?.email||'';
   html+=`<div class="email-report-bar" style="margin-top:20px"><span class="email-report-label">📧 EMAIL REPORT</span><input class="email-input" id="email-to" type="email" value="${defaultEmail}" placeholder="recipient@company.com"><button class="btn-send-email" id="btn-send-email" onclick="sendReportEmail('${domainId}')">SEND PDF REPORT</button></div>`;
   document.getElementById('modal-body').innerHTML=html;
@@ -1491,10 +1491,43 @@ async function sendReportEmail(domainId) {
 
 function closeModal(){document.getElementById('modal').style.display='none';}
 
-async function checkout(domainId,domainName) {
-  toast(`Preparing checkout for ${domainName}…`);
-  try { const data=await api('/checkout',{method:'POST',body:JSON.stringify({domain_id:domainId,domain:domainName})}); window.location.href=data.checkout_url; }
-  catch(e){toast('Checkout error: '+e.message,true);}
+// Pricing modal state
+var _pricingDomainId   = null;
+var _pricingDomainName = null;
+
+function checkout(domainId, domainName) {
+  // Open the pricing modal to let user choose plan
+  _pricingDomainId   = domainId;
+  _pricingDomainName = domainName;
+  var lbl = document.getElementById('pricing-domain-label');
+  if (lbl) lbl.textContent = domainName || '';
+  // Reset buttons
+  var b1 = document.getElementById('btn-checkout-onetime');
+  var b2 = document.getElementById('btn-checkout-annual');
+  if (b1) { b1.disabled=false; b1.textContent='Buy Report — $10 →'; }
+  if (b2) { b2.disabled=false; b2.textContent='Subscribe — $50/year →'; }
+  document.getElementById('pricing-modal').style.display = 'flex';
+}
+
+function closePricingModal() {
+  document.getElementById('pricing-modal').style.display = 'none';
+}
+
+async function startCheckout(plan) {
+  if (!_pricingDomainId) return;
+  var btnId = plan === 'annual' ? 'btn-checkout-annual' : 'btn-checkout-onetime';
+  var btn   = document.getElementById(btnId);
+  if (btn) { btn.disabled=true; btn.textContent='Redirecting to Stripe…'; }
+  try {
+    var data = await api('/checkout', {
+      method: 'POST',
+      body: JSON.stringify({domain_id: _pricingDomainId, domain: _pricingDomainName, plan})
+    });
+    window.location.href = data.checkout_url;
+  } catch(e) {
+    toast('Checkout error: ' + e.message, true);
+    if (btn) { btn.disabled=false; btn.textContent = plan==='annual' ? 'Subscribe — $50/year →' : 'Buy Report — $10 →'; }
+  }
 }
 
 function checkout_mcp() { toast('MCP Pro plans coming soon — email hello@swarmhawk.eu to get early access'); }
@@ -3819,6 +3852,55 @@ window.addEventListener('DOMContentLoaded', function() {
   renderTopDomains('CZ');
 });
 </script>
+
+<!-- ── PRICING / UPGRADE MODAL ─────────────────────────── -->
+<div id="pricing-modal" style="display:none;position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px" onclick="if(event.target===this)closePricingModal()">
+  <div style="background:#13121A;border:1px solid rgba(203,255,0,.2);border-radius:14px;padding:36px;width:100%;max-width:680px;position:relative">
+    <button onclick="closePricingModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#666;font-size:20px;cursor:pointer;line-height:1">✕</button>
+    <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Unlock Full Report</div>
+    <div id="pricing-domain-label" style="font-size:18px;font-weight:700;color:var(--white);margin-bottom:24px">—</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <!-- One-time -->
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:12px">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase">One-time Report</div>
+        <div>
+          <span style="font-size:32px;font-weight:700;color:var(--white)">$10</span>
+          <span style="font-size:13px;color:#888;margin-left:4px">one-time</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#aaa;line-height:2">
+          <li>✓ Full 19-check security report</li>
+          <li>✓ AI threat intelligence analysis</li>
+          <li>✓ PDF emailed to you</li>
+          <li>✓ Permanent access to this report</li>
+          <li style="color:#555">✗ No recurring monitoring</li>
+        </ul>
+        <button id="btn-checkout-onetime" onclick="startCheckout('one_time')" style="margin-top:auto;background:rgba(255,255,255,.08);color:var(--white);font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:6px;cursor:pointer">Buy Report — $10 →</button>
+      </div>
+
+      <!-- Annual -->
+      <div style="background:rgba(203,255,0,.05);border:2px solid rgba(203,255,0,.35);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:12px;position:relative">
+        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap;letter-spacing:1px">BEST VALUE</div>
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase">Annual Monitoring</div>
+        <div>
+          <span style="font-size:32px;font-weight:700;color:var(--white)">$50</span>
+          <span style="font-size:13px;color:#888;margin-left:4px">/year</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#aaa;line-height:2">
+          <li>✓ Everything in one-time</li>
+          <li>✓ Monthly automated scans</li>
+          <li>✓ Monthly PDF reports by email</li>
+          <li>✓ Breach &amp; malware alerts</li>
+          <li>✓ NIS2 compliance evidence</li>
+        </ul>
+        <button id="btn-checkout-annual" onclick="startCheckout('annual')" style="margin-top:auto;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:12px;border:none;border-radius:6px;cursor:pointer">Subscribe — $50/year →</button>
+      </div>
+
+    </div>
+    <p style="text-align:center;font-size:11px;color:#555;margin-top:16px">Secure payment via Stripe · Cancel anytime · 7-day money-back guarantee</p>
+  </div>
+</div>
 
 <!-- ── SIGN IN MODAL ───────────────────────────────────── -->
 <div id="signin-modal" class="auth-modal-overlay" style="display:none" onclick="if(event.target===this)closeAuthModals()">
