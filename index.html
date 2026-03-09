@@ -2261,11 +2261,7 @@ async function dbScanAll() {
 
 function dbOpenDomainReport(id, domain) {
   var domainObj = dbDomains.find(function(d){ return d.id == id; }) || {id:id, domain:domain};
-  if (domainObj.paid || domainObj.subscription_active) {
-    openReport(id, domain, true);
-  } else {
-    openBlurredReportPage(domainObj);
-  }
+  openReport(id, domain, domainObj.paid || domainObj.subscription_active || false);
 }
 
 // ── REPORTS HISTORY ─────────────────────────────────────
