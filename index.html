@@ -1072,296 +1072,6 @@ python3 swarmhawk_mcp.py --http</pre></div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
-
-    <!-- ── TAB: PROSPECTS ───────────────────────────────────── -->
-    <div class="db-page" id="db-prospects">
-      <div class="db-inner">
-
-        <div class="db-header">
-          <div>
-            <h2 class="db-title">🎯 Prospect Intelligence</h2>
-            <p style="color:var(--grey);font-size:13px;margin-top:4px">Most exposed domains by country — ready-to-send cold outreach targets</p>
-          </div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <select id="prospect-country" class="prospect-select" onchange="prospectFilterCountry(this.value)">
-              <option value="all">All Countries</option>
-              <option value="CZ">🇨🇿 Czech Republic</option>
-              <option value="PL">🇵🇱 Poland</option>
-              <option value="SK">🇸🇰 Slovakia</option>
-              <option value="HU">🇭🇺 Hungary</option>
-              <option value="RO">🇷🇴 Romania</option>
-              <option value="AT">🇦🇹 Austria</option>
-              <option value="DE">🇩🇪 Germany</option>
-            </select>
-            <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Live Scan</button>
-          </div>
-        </div>
-
-        <!-- Stats bar -->
-        <div class="prospect-stats-row" id="prospect-stats-row">
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-total">—</span>
-            <span class="prospect-stat-lbl">Domains Scanned</span>
-          </div>
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-cve" style="color:#C0392B">—</span>
-            <span class="prospect-stat-lbl">Have Live CVEs</span>
-          </div>
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-critical" style="color:#C0392B">—</span>
-            <span class="prospect-stat-lbl">Critical (CVSS ≥9)</span>
-          </div>
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-wp" style="color:#D4850A">—</span>
-            <span class="prospect-stat-lbl">WordPress Exposed</span>
-          </div>
-        </div>
-
-        <!-- Scan progress bar (prospects) -->
-        <div id="prospect-scan-progress" style="display:none;margin-bottom:20px">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey);font-family:'Space Mono',monospace;margin-bottom:6px">
-            <span id="prospect-scan-label">Scanning…</span>
-            <span id="prospect-scan-pct">0%</span>
-          </div>
-          <div style="background:rgba(255,255,255,.06);border-radius:4px;height:4px">
-            <div id="prospect-scan-bar" style="height:4px;background:var(--lime);border-radius:4px;width:0%;transition:width .3s ease"></div>
-          </div>
-        </div>
-
-        <!-- Prospect cards grid -->
-        <div id="prospect-list" class="prospect-list">
-          <div class="db-empty" style="padding:60px;text-align:center">
-            <div style="font-size:32px;margin-bottom:12px">🎯</div>
-            <div style="color:var(--white);font-size:15px;font-weight:600;margin-bottom:8px">Prospect Intelligence Ready</div>
-            <div style="color:var(--grey);font-size:13px;max-width:400px;margin:0 auto 20px">
-              Click <strong style="color:var(--lime)">Run Live Scan</strong> to detect the most exposed domains across CEE —
-              sorted by CVE severity with AI-generated cold email hooks.
-            </div>
-            <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Live Scan Now</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- ── TAB: OUTREACH ────────────────────────────────────── -->
-    <div class="db-page" id="db-outreach">
-      <div class="db-inner">
-
-        <div class="db-header">
-          <div>
-            <h2 class="db-title">📨 Outreach</h2>
-            <p style="color:var(--grey);font-size:13px;margin-top:4px">
-              Review AI-drafted cold emails, edit, approve, then send in one click
-            </p>
-          </div>
-          <div style="display:flex;gap:10px">
-            <button class="btn-run-scan" onclick="outreachRunScan()">⟳ Run Scan Now</button>
-            <button class="btn-send-all" onclick="outreachSendApproved()" id="outreach-send-btn">
-              ✉ Send Approved
-            </button>
-          </div>
-        </div>
-
-        <!-- Filters + stats -->
-        <div class="outreach-toolbar">
-          <button class="outreach-filter-btn active" onclick="outreachSetFilter('pending',this)">Pending</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('approved',this)">Approved</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('sent',this)">Sent</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('skipped',this)">Skipped</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('all',this)">All</button>
-          <div class="outreach-stats-mini" id="outreach-stats-mini">
-            <span class="outreach-stat-mini">Pending <span id="ostat-pending">—</span></span>
-            <span class="outreach-stat-mini">Approved <span id="ostat-approved">—</span></span>
-            <span class="outreach-stat-mini">Sent <span id="ostat-sent">—</span></span>
-          </div>
-        </div>
-
-        <!-- Scan progress -->
-        <div id="outreach-scan-progress" style="display:none;margin-bottom:16px">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey);font-family:'Space Mono',monospace;margin-bottom:5px">
-            <span id="outreach-scan-label">Running daily scan…</span>
-            <span id="outreach-scan-pct"></span>
-          </div>
-          <div style="background:rgba(255,255,255,.06);border-radius:3px;height:3px">
-            <div id="outreach-scan-bar" style="height:3px;background:var(--lime);border-radius:3px;width:5%;animation:scanPulse 1.2s ease-in-out infinite"></div>
-          </div>
-        </div>
-
-        <!-- Cards list -->
-        <div id="outreach-list" class="outreach-list">
-          <div class="outreach-empty">
-            <div style="font-size:28px;margin-bottom:10px">📨</div>
-            <div style="color:var(--white);font-weight:600;margin-bottom:6px">No outreach queue yet</div>
-            <div style="font-size:13px;max-width:360px;margin:0 auto 18px">
-              Click <strong style="color:var(--lime)">Run Scan Now</strong> to detect
-              vulnerable domains — AI drafts the email, you review and approve.
-            </div>
-            <button class="btn-send-all" onclick="outreachRunScan()">⟳ Run Scan Now</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- ── TAB: ADMIN ───────────────────────────────────────── -->
-    <div class="db-page" id="db-admin">
-      <div class="db-inner">
-        <div class="db-header">
-          <div>
-            <h2 class="db-title">⚙️ Admin Panel</h2>
-            <p style="color:var(--grey);font-size:13px;margin-top:4px">Platform overview — users, domains, scans, risk</p>
-          </div>
-          <button class="btn-scan-all" onclick="adminLoad()">↻ Refresh</button>
-        </div>
-
-        <!-- Row 1: Core KPIs -->
-        <div class="admin-stat-grid" style="grid-template-columns:repeat(4,1fr)">
-          <div class="admin-stat"><span class="admin-stat-val" id="astat-users">—</span><span class="admin-stat-lbl">Total Users</span><span class="admin-stat-sub" id="astat-users-7d"></span></div>
-          <div class="admin-stat"><span class="admin-stat-val" id="astat-domains">—</span><span class="admin-stat-lbl">Total Domains</span><span class="admin-stat-sub" id="astat-domains-7d"></span></div>
-          <div class="admin-stat"><span class="admin-stat-val" id="astat-scans">—</span><span class="admin-stat-lbl">Total Scans</span><span class="admin-stat-sub" id="astat-scans-7d"></span></div>
-          <div class="admin-stat"><span class="admin-stat-val" id="astat-revenue" style="color:#2ECC71">—</span><span class="admin-stat-lbl">Revenue (EUR)</span><span class="admin-stat-sub" id="astat-sales"></span></div>
-        </div>
-
-        <!-- Row 2: Risk KPIs -->
-        <div style="display:flex;gap:12px;margin-bottom:12px">
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-avg-risk" style="color:#D4850A">—</span><span class="admin-stat-lbl">Avg Risk Score</span><span class="admin-stat-sub">across all domains</span></div>
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-critical-d" style="color:#C0392B">—</span><span class="admin-stat-lbl">Critical Domains</span><span class="admin-stat-sub">score ≥ 70</span></div>
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-warning-d" style="color:#D4850A">—</span><span class="admin-stat-lbl">At-Risk Domains</span><span class="admin-stat-sub">score 30–69</span></div>
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-clean-d" style="color:#1A7A4A">—</span><span class="admin-stat-lbl">Clean Domains</span><span class="admin-stat-sub">score &lt; 30</span></div>
-        </div>
-
-        <!-- Row 3: User breakdown + scan activity -->
-        <div style="display:flex;gap:12px;margin-bottom:24px">
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-email" style="color:var(--lime)">—</span><span class="admin-stat-lbl">Email Users</span></div>
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-new30" style="color:var(--lime)">—</span><span class="admin-stat-lbl">New Users (30d)</span></div>
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-scans-24h">—</span><span class="admin-stat-lbl">Scans (24h)</span></div>
-          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-paid">—</span><span class="admin-stat-lbl">Paid Sales</span></div>
-        </div>
-
-        <!-- Top risky + Recent scans side by side -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
-          <!-- Top risky domains -->
-          <div class="admin-section" style="margin-bottom:0">
-            <div class="admin-section-title">Top Risky Domains</div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead><tr><th>Domain</th><th>Risk</th><th>Crit</th><th>Warn</th></tr></thead>
-                <tbody id="admin-risky-body"><tr><td colspan="4" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-          <!-- Recent scan activity -->
-          <div class="admin-section" style="margin-bottom:0">
-            <div class="admin-section-title">Recent Scans</div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead><tr><th>Domain</th><th>Risk</th><th>When</th></tr></thead>
-                <tbody id="admin-recent-body"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Check findings breakdown -->
-        <div class="admin-section">
-          <div class="admin-section-title">Check Findings Breakdown</div>
-          <div id="admin-checks-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;padding:4px 0"></div>
-        </div>
-
-        <!-- Users table -->
-        <div class="admin-section">
-          <div class="admin-section-title">All Users</div>
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Auth</th><th>Domains</th><th>Paid</th><th>Joined</th><th>Last Login</th><th>Actions</th></tr></thead>
-              <tbody id="admin-users-body"><tr><td colspan="9" style="text-align:center;padding:24px;color:var(--grey)">Loading…</td></tr></tbody>
-            </table>
-          </div>
-          <div class="admin-page-nav">
-            <button class="admin-btn-sm" onclick="adminUsersPage(-1)">← Prev</button>
-            <span id="admin-users-page-info">Page 1</span>
-            <button class="admin-btn-sm" onclick="adminUsersPage(1)">Next →</button>
-          </div>
-        </div>
-
-        <!-- Domains table -->
-        <div class="admin-section">
-          <div class="admin-section-title">All Domains</div>
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead><tr><th>#</th><th>Domain</th><th>User</th><th>Country</th><th>Risk</th><th>Paid</th><th>Added</th><th>Last Scan</th></tr></thead>
-              <tbody id="admin-domains-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--grey)">Loading…</td></tr></tbody>
-            </table>
-          </div>
-          <div class="admin-page-nav">
-            <button class="admin-btn-sm" onclick="adminDomainsPage(-1)">← Prev</button>
-            <span id="admin-domains-page-info">Page 1</span>
-            <button class="admin-btn-sm" onclick="adminDomainsPage(1)">Next →</button>
-          </div>
-        </div>
-
-        <!-- Prospect Intelligence section -->
-        <div class="admin-section">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div>
-              <div class="admin-section-title" style="margin-bottom:2px">🎯 Prospect Intelligence</div>
-              <div style="font-size:12px;color:var(--grey)">Scan CEE company domains for CVEs → auto-generate cold outreach emails</div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn-scan-all" onclick="dbShowTab('prospects',document.getElementById('prospects-tab-btn'))">Open Scanner →</button>
-              <button class="btn-scan-all" onclick="dbShowTab('outreach',document.getElementById('outreach-tab-btn'))">Open Outreach →</button>
-            </div>
-          </div>
-
-          <!-- Prospect KPIs (live from scan) -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-total">—</span><span class="admin-stat-lbl">Domains in List</span></div>
-            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-cve" style="color:#C0392B">—</span><span class="admin-stat-lbl">Have Live CVEs</span></div>
-            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-critical" style="color:#C0392B">—</span><span class="admin-stat-lbl">CVSS ≥ 9 Critical</span></div>
-            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-outreach">—</span><span class="admin-stat-lbl">Outreach Pending</span></div>
-          </div>
-
-          <!-- How it works -->
-          <div style="background:rgba(203,255,0,.03);border:1px solid rgba(203,255,0,.1);border-radius:8px;padding:16px 20px;margin-bottom:16px">
-            <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">How Prospect Intelligence Works</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
-              <div>
-                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">1. Passive CVE Scan</div>
-                <div style="font-size:12px;color:var(--grey);line-height:1.6">Connects to each domain, fingerprints server headers, detects software + version. Queries NVD for matching HIGH/CRITICAL CVEs.</div>
-              </div>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">2. Prospect Ranking</div>
-                <div style="font-size:12px;color:var(--grey);line-height:1.6">Domains ranked by max CVSS score. CVSS ≥ 9 = Critical, ≥ 7 = High priority. Country filter across CZ, PL, SK, HU, RO, AT, DE.</div>
-              </div>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">3. AI Email Draft</div>
-                <div style="font-size:12px;color:var(--grey);line-height:1.6">Claude AI generates a personalised cold email per prospect, referencing the exact CVE ID, CVSS score, and affected software version.</div>
-              </div>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">4. Outreach Workflow</div>
-                <div style="font-size:12px;color:var(--grey);line-height:1.6">Review → Approve → Send via Outreach tab. Tracks sent / pending / skipped status per prospect in the backend.</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Outreach pipeline stats -->
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Outreach Pipeline</div>
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead><tr><th>Status</th><th>Count</th><th>Action</th></tr></thead>
-              <tbody id="admin-prospect-pipeline">
-                <tr><td colspan="3" style="text-align:center;padding:16px;color:var(--grey)">Run a prospect scan first, then approve emails in the Outreach tab.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -2223,6 +1933,295 @@ function renderReportPage(data, domain, isSample) {
 
         <!-- Category cards -->
         <div class="intel-grid" id="intel-grid" style="margin-top:20px"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB: PROSPECTS ───────────────────────────────────── -->
+    <div class="db-page" id="db-prospects">
+      <div class="db-inner">
+
+        <div class="db-header">
+          <div>
+            <h2 class="db-title">🎯 Prospect Intelligence</h2>
+            <p style="color:var(--grey);font-size:13px;margin-top:4px">Most exposed domains by country — ready-to-send cold outreach targets</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <select id="prospect-country" class="prospect-select" onchange="prospectFilterCountry(this.value)">
+              <option value="all">All Countries</option>
+              <option value="CZ">🇨🇿 Czech Republic</option>
+              <option value="PL">🇵🇱 Poland</option>
+              <option value="SK">🇸🇰 Slovakia</option>
+              <option value="HU">🇭🇺 Hungary</option>
+              <option value="RO">🇷🇴 Romania</option>
+              <option value="AT">🇦🇹 Austria</option>
+              <option value="DE">🇩🇪 Germany</option>
+            </select>
+            <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Live Scan</button>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="prospect-stats-row" id="prospect-stats-row">
+          <div class="prospect-stat">
+            <span class="prospect-stat-val" id="pstat-total">—</span>
+            <span class="prospect-stat-lbl">Domains Scanned</span>
+          </div>
+          <div class="prospect-stat">
+            <span class="prospect-stat-val" id="pstat-cve" style="color:#C0392B">—</span>
+            <span class="prospect-stat-lbl">Have Live CVEs</span>
+          </div>
+          <div class="prospect-stat">
+            <span class="prospect-stat-val" id="pstat-critical" style="color:#C0392B">—</span>
+            <span class="prospect-stat-lbl">Critical (CVSS ≥9)</span>
+          </div>
+          <div class="prospect-stat">
+            <span class="prospect-stat-val" id="pstat-wp" style="color:#D4850A">—</span>
+            <span class="prospect-stat-lbl">WordPress Exposed</span>
+          </div>
+        </div>
+
+        <!-- Scan progress bar (prospects) -->
+        <div id="prospect-scan-progress" style="display:none;margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey);font-family:'Space Mono',monospace;margin-bottom:6px">
+            <span id="prospect-scan-label">Scanning…</span>
+            <span id="prospect-scan-pct">0%</span>
+          </div>
+          <div style="background:rgba(255,255,255,.06);border-radius:4px;height:4px">
+            <div id="prospect-scan-bar" style="height:4px;background:var(--lime);border-radius:4px;width:0%;transition:width .3s ease"></div>
+          </div>
+        </div>
+
+        <!-- Prospect cards grid -->
+        <div id="prospect-list" class="prospect-list">
+          <div class="db-empty" style="padding:60px;text-align:center">
+            <div style="font-size:32px;margin-bottom:12px">🎯</div>
+            <div style="color:var(--white);font-size:15px;font-weight:600;margin-bottom:8px">Prospect Intelligence Ready</div>
+            <div style="color:var(--grey);font-size:13px;max-width:400px;margin:0 auto 20px">
+              Click <strong style="color:var(--lime)">Run Live Scan</strong> to detect the most exposed domains across CEE —
+              sorted by CVE severity with AI-generated cold email hooks.
+            </div>
+            <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Live Scan Now</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ── TAB: OUTREACH ────────────────────────────────────── -->
+    <div class="db-page" id="db-outreach">
+      <div class="db-inner">
+
+        <div class="db-header">
+          <div>
+            <h2 class="db-title">📨 Outreach</h2>
+            <p style="color:var(--grey);font-size:13px;margin-top:4px">
+              Review AI-drafted cold emails, edit, approve, then send in one click
+            </p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-run-scan" onclick="outreachRunScan()">⟳ Run Scan Now</button>
+            <button class="btn-send-all" onclick="outreachSendApproved()" id="outreach-send-btn">
+              ✉ Send Approved
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters + stats -->
+        <div class="outreach-toolbar">
+          <button class="outreach-filter-btn active" onclick="outreachSetFilter('pending',this)">Pending</button>
+          <button class="outreach-filter-btn" onclick="outreachSetFilter('approved',this)">Approved</button>
+          <button class="outreach-filter-btn" onclick="outreachSetFilter('sent',this)">Sent</button>
+          <button class="outreach-filter-btn" onclick="outreachSetFilter('skipped',this)">Skipped</button>
+          <button class="outreach-filter-btn" onclick="outreachSetFilter('all',this)">All</button>
+          <div class="outreach-stats-mini" id="outreach-stats-mini">
+            <span class="outreach-stat-mini">Pending <span id="ostat-pending">—</span></span>
+            <span class="outreach-stat-mini">Approved <span id="ostat-approved">—</span></span>
+            <span class="outreach-stat-mini">Sent <span id="ostat-sent">—</span></span>
+          </div>
+        </div>
+
+        <!-- Scan progress -->
+        <div id="outreach-scan-progress" style="display:none;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey);font-family:'Space Mono',monospace;margin-bottom:5px">
+            <span id="outreach-scan-label">Running daily scan…</span>
+            <span id="outreach-scan-pct"></span>
+          </div>
+          <div style="background:rgba(255,255,255,.06);border-radius:3px;height:3px">
+            <div id="outreach-scan-bar" style="height:3px;background:var(--lime);border-radius:3px;width:5%;animation:scanPulse 1.2s ease-in-out infinite"></div>
+          </div>
+        </div>
+
+        <!-- Cards list -->
+        <div id="outreach-list" class="outreach-list">
+          <div class="outreach-empty">
+            <div style="font-size:28px;margin-bottom:10px">📨</div>
+            <div style="color:var(--white);font-weight:600;margin-bottom:6px">No outreach queue yet</div>
+            <div style="font-size:13px;max-width:360px;margin:0 auto 18px">
+              Click <strong style="color:var(--lime)">Run Scan Now</strong> to detect
+              vulnerable domains — AI drafts the email, you review and approve.
+            </div>
+            <button class="btn-send-all" onclick="outreachRunScan()">⟳ Run Scan Now</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ── TAB: ADMIN ───────────────────────────────────────── -->
+    <div class="db-page" id="db-admin">
+      <div class="db-inner">
+        <div class="db-header">
+          <div>
+            <h2 class="db-title">⚙️ Admin Panel</h2>
+            <p style="color:var(--grey);font-size:13px;margin-top:4px">Platform overview — users, domains, scans, risk</p>
+          </div>
+          <button class="btn-scan-all" onclick="adminLoad()">↻ Refresh</button>
+        </div>
+
+        <!-- Row 1: Core KPIs -->
+        <div class="admin-stat-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-users">—</span><span class="admin-stat-lbl">Total Users</span><span class="admin-stat-sub" id="astat-users-7d"></span></div>
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-domains">—</span><span class="admin-stat-lbl">Total Domains</span><span class="admin-stat-sub" id="astat-domains-7d"></span></div>
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-scans">—</span><span class="admin-stat-lbl">Total Scans</span><span class="admin-stat-sub" id="astat-scans-7d"></span></div>
+          <div class="admin-stat"><span class="admin-stat-val" id="astat-revenue" style="color:#2ECC71">—</span><span class="admin-stat-lbl">Revenue (EUR)</span><span class="admin-stat-sub" id="astat-sales"></span></div>
+        </div>
+
+        <!-- Row 2: Risk KPIs -->
+        <div style="display:flex;gap:12px;margin-bottom:12px">
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-avg-risk" style="color:#D4850A">—</span><span class="admin-stat-lbl">Avg Risk Score</span><span class="admin-stat-sub">across all domains</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-critical-d" style="color:#C0392B">—</span><span class="admin-stat-lbl">Critical Domains</span><span class="admin-stat-sub">score ≥ 70</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-warning-d" style="color:#D4850A">—</span><span class="admin-stat-lbl">At-Risk Domains</span><span class="admin-stat-sub">score 30–69</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-clean-d" style="color:#1A7A4A">—</span><span class="admin-stat-lbl">Clean Domains</span><span class="admin-stat-sub">score &lt; 30</span></div>
+        </div>
+
+        <!-- Row 3: User breakdown + scan activity -->
+        <div style="display:flex;gap:12px;margin-bottom:24px">
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-email" style="color:var(--lime)">—</span><span class="admin-stat-lbl">Email Users</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-new30" style="color:var(--lime)">—</span><span class="admin-stat-lbl">New Users (30d)</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-scans-24h">—</span><span class="admin-stat-lbl">Scans (24h)</span></div>
+          <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-paid">—</span><span class="admin-stat-lbl">Paid Sales</span></div>
+        </div>
+
+        <!-- Top risky + Recent scans side by side -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+          <!-- Top risky domains -->
+          <div class="admin-section" style="margin-bottom:0">
+            <div class="admin-section-title">Top Risky Domains</div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Domain</th><th>Risk</th><th>Crit</th><th>Warn</th></tr></thead>
+                <tbody id="admin-risky-body"><tr><td colspan="4" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Recent scan activity -->
+          <div class="admin-section" style="margin-bottom:0">
+            <div class="admin-section-title">Recent Scans</div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Domain</th><th>Risk</th><th>When</th></tr></thead>
+                <tbody id="admin-recent-body"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Check findings breakdown -->
+        <div class="admin-section">
+          <div class="admin-section-title">Check Findings Breakdown</div>
+          <div id="admin-checks-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;padding:4px 0"></div>
+        </div>
+
+        <!-- Users table -->
+        <div class="admin-section">
+          <div class="admin-section-title">All Users</div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Auth</th><th>Domains</th><th>Paid</th><th>Joined</th><th>Last Login</th><th>Actions</th></tr></thead>
+              <tbody id="admin-users-body"><tr><td colspan="9" style="text-align:center;padding:24px;color:var(--grey)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="admin-page-nav">
+            <button class="admin-btn-sm" onclick="adminUsersPage(-1)">← Prev</button>
+            <span id="admin-users-page-info">Page 1</span>
+            <button class="admin-btn-sm" onclick="adminUsersPage(1)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Domains table -->
+        <div class="admin-section">
+          <div class="admin-section-title">All Domains</div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Domain</th><th>User</th><th>Country</th><th>Risk</th><th>Paid</th><th>Added</th><th>Last Scan</th></tr></thead>
+              <tbody id="admin-domains-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--grey)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="admin-page-nav">
+            <button class="admin-btn-sm" onclick="adminDomainsPage(-1)">← Prev</button>
+            <span id="admin-domains-page-info">Page 1</span>
+            <button class="admin-btn-sm" onclick="adminDomainsPage(1)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Prospect Intelligence section -->
+        <div class="admin-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div>
+              <div class="admin-section-title" style="margin-bottom:2px">🎯 Prospect Intelligence</div>
+              <div style="font-size:12px;color:var(--grey)">Scan CEE company domains for CVEs → auto-generate cold outreach emails</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-scan-all" onclick="dbShowTab('prospects',document.getElementById('prospects-tab-btn'))">Open Scanner →</button>
+              <button class="btn-scan-all" onclick="dbShowTab('outreach',document.getElementById('outreach-tab-btn'))">Open Outreach →</button>
+            </div>
+          </div>
+
+          <!-- Prospect KPIs (live from scan) -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-total">—</span><span class="admin-stat-lbl">Domains in List</span></div>
+            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-cve" style="color:#C0392B">—</span><span class="admin-stat-lbl">Have Live CVEs</span></div>
+            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-critical" style="color:#C0392B">—</span><span class="admin-stat-lbl">CVSS ≥ 9 Critical</span></div>
+            <div class="admin-stat"><span class="admin-stat-val" id="aprospect-outreach">—</span><span class="admin-stat-lbl">Outreach Pending</span></div>
+          </div>
+
+          <!-- How it works -->
+          <div style="background:rgba(203,255,0,.03);border:1px solid rgba(203,255,0,.1);border-radius:8px;padding:16px 20px;margin-bottom:16px">
+            <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">How Prospect Intelligence Works</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">1. Passive CVE Scan</div>
+                <div style="font-size:12px;color:var(--grey);line-height:1.6">Connects to each domain, fingerprints server headers, detects software + version. Queries NVD for matching HIGH/CRITICAL CVEs.</div>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">2. Prospect Ranking</div>
+                <div style="font-size:12px;color:var(--grey);line-height:1.6">Domains ranked by max CVSS score. CVSS ≥ 9 = Critical, ≥ 7 = High priority. Country filter across CZ, PL, SK, HU, RO, AT, DE.</div>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">3. AI Email Draft</div>
+                <div style="font-size:12px;color:var(--grey);line-height:1.6">Claude AI generates a personalised cold email per prospect, referencing the exact CVE ID, CVSS score, and affected software version.</div>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">4. Outreach Workflow</div>
+                <div style="font-size:12px;color:var(--grey);line-height:1.6">Review → Approve → Send via Outreach tab. Tracks sent / pending / skipped status per prospect in the backend.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Outreach pipeline stats -->
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Outreach Pipeline</div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Status</th><th>Count</th><th>Action</th></tr></thead>
+              <tbody id="admin-prospect-pipeline">
+                <tr><td colspan="3" style="text-align:center;padding:16px;color:var(--grey)">Run a prospect scan first, then approve emails in the Outreach tab.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
 
