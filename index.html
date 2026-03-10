@@ -3211,10 +3211,9 @@ function prospectRender() {
           +'<div class="prospect-email-actions" id="pemail-actions-'+idx+'" style="display:none">'
             +'<button class="btn-copy-email" onclick="prospectCopyEmail('+idx+')">📋 Copy Email</button>'
             +'<button class="btn-regen-email" onclick="prospectRegenEmail('+idx+')" style="background:rgba(255,255,255,.06);color:var(--white);border:1px solid rgba(255,255,255,.15);padding:7px 14px;border-radius:6px;font-size:12px;font-family:Space Mono,monospace;cursor:pointer">↻ Re-draft</button>'
-            +'<button class="btn-add-domain-prospect" onclick="prospectAddDomain(\'' + p.domain + '\')">+ Add to Dashboard</button>'
           +'</div>'
         +'</div>'
-      : '<div style="padding:8px 0"><button class="btn-add-domain-prospect" onclick="prospectAddDomain(\'' + p.domain + '\')">+ Add to Dashboard</button></div>';
+      : '';
 
     var actionBar = '<div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">'
       +'<button class="btn-add-domain-prospect" style="font-size:11px;padding:4px 10px;border-color:rgba(203,255,0,.2);color:var(--lime)" onclick="prospectViewReport(\''+p.domain+'\')" title="Run a full security scan and view report">🔍 See Report</button>'
