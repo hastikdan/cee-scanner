@@ -3411,10 +3411,19 @@ async function prospectScheduleSelected() {
       method: 'POST',
       body: JSON.stringify({ domains: domains, scheduled_for: dateVal })
     });
-    toast('✅ ' + domains.length + ' domain' + (domains.length !== 1 ? 's' : '') + ' scheduled for ' + dateVal);
+    toast('✅ ' + domains.length + ' domain' + (domains.length !== 1 ? 's' : '') + ' approved for ' + dateVal);
     prospectClearSelection();
+    // Switch outreach queue to "approved" filter and reload so user sees them immediately
+    outreachFilter = 'approved';
+    document.querySelectorAll('.outreach-filter-btn').forEach(function(b) {
+      b.classList.toggle('active', b.textContent.toLowerCase().includes('approved'));
+    });
+    await outreachLoad();
+    // Scroll to the outreach queue
+    var queue = document.getElementById('outreach-list');
+    if (queue) queue.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(e) {
-    toast('Schedule failed: ' + e.message, true);
+    toast('Approve failed: ' + e.message, true);
   }
 }
 
