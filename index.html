@@ -1805,9 +1805,12 @@ function openReportPage(domain, isSample) {
 
       body.innerHTML = '<div style="text-align:center;padding:80px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div><p style="color:var(--grey);margin-top:16px;font-size:13px">Running security checks on ' + domain + '…</p></div>';
 
-      var res = await fetch(API + '/public-scan', {
+      var scanHeaders = {'Content-Type': 'application/json'};
+      if (sessionToken) scanHeaders['Authorization'] = 'Bearer ' + sessionToken;
+      var scanEndpoint = sessionToken ? (API + '/api/v1/scan') : (API + '/public-scan');
+      var res = await fetch(scanEndpoint, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: scanHeaders,
         body: JSON.stringify({domain: domain}),
         signal: AbortSignal.timeout(60000)
       });
@@ -1899,14 +1902,16 @@ function renderReportPage(data, domain, isSample) {
     html += '</div>';
   }
 
-  // Bottom CTA
-  html += '<div class="report-locked">';
-  html += '<h3>Get this report for your domain every month</h3>';
-  html += '<p>' + others.length + ' checks &middot; AI threat analysis &middot; Breach alerts &middot; NIS2 compliance evidence &middot; &euro;50/year</p>';
-  html += '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">';
-  html += '<button class="auth-btn-primary" style="width:auto;padding:12px 32px" onclick="showSignUp()">Create Free Account →</button>';
-  html += '<button class="btn-sm" onclick="showSignIn()">Sign In</button>';
-  html += '</div></div>';
+  // Bottom CTA — only for non-logged-in users
+  if (!sessionToken) {
+    html += '<div class="report-locked">';
+    html += '<h3>Get this report for your domain every month</h3>';
+    html += '<p>' + others.length + ' checks &middot; AI threat analysis &middot; Breach alerts &middot; NIS2 compliance evidence &middot; &euro;50/year</p>';
+    html += '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">';
+    html += '<button class="auth-btn-primary" style="width:auto;padding:12px 32px" onclick="showSignUp()">Create Free Account →</button>';
+    html += '<button class="btn-sm" onclick="showSignIn()">Sign In</button>';
+    html += '</div></div>';
+  }
 
   document.getElementById('rp-body').innerHTML = html;
 }
