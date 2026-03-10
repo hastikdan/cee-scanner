@@ -381,6 +381,143 @@
   .cta-banner h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
   .cta-banner p  { color: var(--grey); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
 
+  /* ── Side Panel ── */
+  #side-panel {
+    position: fixed;
+    top: 0; right: 0;
+    width: 340px;
+    height: 100vh;
+    background: #13121b;
+    border-left: 1px solid var(--border);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: -8px 0 32px rgba(0,0,0,.5);
+  }
+
+  #side-panel.open { transform: translateX(0); }
+
+  .sp-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sp-close {
+    position: absolute;
+    top: 14px; right: 16px;
+    background: transparent;
+    border: none;
+    color: var(--grey);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  .sp-close:hover { color: var(--white); }
+
+  .sp-flag { font-size: 28px; margin-bottom: 4px; }
+  .sp-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  .sp-meta { font-size: 11px; color: var(--grey); font-family: 'Space Mono', monospace; }
+
+  .sp-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .sp-body::-webkit-scrollbar { width: 4px; }
+  .sp-body::-webkit-scrollbar-track { background: transparent; }
+  .sp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 2px; }
+
+  .sp-section-label {
+    padding: 12px 20px 8px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,.02);
+    position: sticky;
+    top: 0;
+  }
+
+  .sp-domain-row {
+    display: flex;
+    align-items: center;
+    padding: 9px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.03);
+    gap: 10px;
+    transition: background .15s;
+  }
+
+  .sp-domain-row:hover { background: rgba(255,255,255,.03); }
+
+  .sp-rank {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--grey);
+    min-width: 26px;
+    text-align: right;
+  }
+
+  .sp-domain {
+    flex: 1;
+    font-size: 12px;
+    color: var(--white);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sp-scan-btn {
+    background: transparent;
+    border: 1px solid rgba(203,255,0,.2);
+    color: rgba(203,255,0,.7);
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    padding: 3px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+
+  .sp-scan-btn:hover {
+    background: rgba(203,255,0,.08);
+    color: #cbff00;
+    border-color: rgba(203,255,0,.4);
+  }
+
+  .sp-loading {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--grey);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    animation: blink 1.5s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .sp-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--grey);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    #side-panel { width: 100%; border-left: none; }
+  }
+
   footer {
     text-align: center;
     padding: 30px;
@@ -492,6 +629,19 @@
   </p>
   <p>Data aggregated from SwarmHawk passive scans. No personal data is collected or displayed.</p>
 </footer>
+
+<!-- ── Side Panel ── -->
+<div id="side-panel">
+  <button class="sp-close" onclick="closePanel()">✕</button>
+  <div class="sp-header">
+    <div class="sp-flag" id="sp-flag">🌐</div>
+    <div class="sp-name" id="sp-name">Country</div>
+    <div class="sp-meta" id="sp-meta"></div>
+  </div>
+  <div class="sp-body" id="sp-body">
+    <div class="sp-loading">LOADING…</div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
@@ -656,6 +806,11 @@ function placeMarkers(countries) {
       { sticky: true, className: 'sh-tooltip', direction: 'top' }
     );
 
+    /* Click → open side panel with top 100 domains */
+    circle.on('click', function(cc, cd) {
+      return function() { openPanel(cc, cd); };
+    }(c.country, c));
+
     circle.on('remove', function() {
       if (circle._pulseMarker) map.removeLayer(circle._pulseMarker);
     });
@@ -664,13 +819,13 @@ function placeMarkers(countries) {
   });
 }
 
+var _countryDataCache = {};
+
 function flyTo(code) {
   var coords = COUNTRY_COORDS[code];
   if (!coords) return;
   map.flyTo(coords, 5, { duration: 1 });
-  if (markers[code]) {
-    setTimeout(function(){ markers[code].openPopup(); }, 1000);
-  }
+  openPanel(code, _countryDataCache[code] || null);
 }
 
 function renderTable(countries) {
@@ -711,6 +866,8 @@ async function loadMapData() {
     document.getElementById('stat-critical').textContent  = totalCritical.toLocaleString();
 
     var countries = data.countries || [];
+    /* Cache per-country data for flyTo */
+    countries.forEach(function(c){ _countryDataCache[c.country] = c; });
     placeMarkers(countries);
     renderTable(countries);
 
@@ -741,6 +898,55 @@ function loadDemo() {
 
 loadMapData().catch(function() { loadDemo(); });
 setInterval(loadMapData, 5 * 60 * 1000);
+
+/* ── Side Panel ── */
+var panelOpen = false;
+
+function openPanel(countryCode, countryData) {
+  var flag = COUNTRY_FLAGS[countryCode] || '🌐';
+  var name = COUNTRY_NAMES[countryCode] || countryCode;
+  var score = Math.round((countryData && countryData.avg_risk) || 0);
+  var color = riskColor(score);
+
+  document.getElementById('sp-flag').textContent = flag;
+  document.getElementById('sp-name').textContent = name;
+  document.getElementById('sp-meta').innerHTML =
+    '<span style="color:'+color+';font-weight:700">Risk '+score+'</span>'
+    + (countryData ? ' &nbsp;·&nbsp; ' + countryData.domains + ' domains tracked' : '');
+  document.getElementById('sp-body').innerHTML = '<div class="sp-loading">LOADING TOP DOMAINS…</div>';
+
+  document.getElementById('side-panel').classList.add('open');
+  panelOpen = true;
+
+  fetch(API_BASE + '/map/country/' + countryCode)
+    .then(function(r) { return r.json(); })
+    .then(function(data) { renderPanelDomains(data.domains || [], name); })
+    .catch(function() { renderPanelDomains([], name); });
+}
+
+function closePanel() {
+  document.getElementById('side-panel').classList.remove('open');
+  panelOpen = false;
+}
+
+function renderPanelDomains(domains, countryName) {
+  var body = document.getElementById('sp-body');
+  if (!domains.length) {
+    body.innerHTML = '<div class="sp-empty">No Tranco data available for '
+      + countryName + '.<br><br>Data appears as domains are indexed in the Tranco top-1M list.</div>';
+    return;
+  }
+  var html = '<div class="sp-section-label">Top ' + domains.length + ' Domains · Tranco Top-1M</div>';
+  for (var i = 0; i < domains.length; i++) {
+    var d = domains[i];
+    html += '<div class="sp-domain-row">'
+      + '<span class="sp-rank">' + (i+1) + '</span>'
+      + '<span class="sp-domain" title="' + d + '">' + d + '</span>'
+      + '<a class="sp-scan-btn" href="/?domain=' + encodeURIComponent(d) + '" target="_blank">SCAN →</a>'
+      + '</div>';
+  }
+  body.innerHTML = html;
+}
 </script>
 </body>
 </html>
