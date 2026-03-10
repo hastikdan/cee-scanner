@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwarmHawk Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0d12;
+    --card: #16151e;
+    --border: rgba(255,255,255,.08);
+    --white: #f0eef8;
+    --grey: #6b6880;
+    --red: #C0392B;
+    --amber: #D4850A;
+    --green: #2ECC71;
+    --blue: #4285F4;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    width: 360px;
+    min-height: 200px;
+    padding: 0;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--white);
+  }
+
+  .logo span { color: var(--red); }
+
+  .settings-btn {
+    background: transparent;
+    border: none;
+    color: var(--grey);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 4px;
+  }
+
+  .settings-btn:hover { color: var(--white); }
+
+  #main-view, #settings-view { padding: 16px; }
+
+  #settings-view { display: none; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 8px;
+  }
+
+  .scan-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .scan-input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--white);
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    outline: none;
+  }
+
+  .scan-input:focus { border-color: rgba(192,57,43,.5); }
+
+  .scan-input::placeholder { color: var(--grey); font-size: 11px; }
+
+  .btn-scan {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-scan:hover { background: #a93226; }
+  .btn-scan:disabled { opacity: .5; cursor: default; }
+
+  #result-area {
+    min-height: 100px;
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 30px 0;
+  }
+
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-domain {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--grey);
+  }
+
+  .result-domain {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--grey);
+    margin-bottom: 12px;
+    word-break: break-all;
+  }
+
+  .score-block {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  .score-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 3px solid;
+  }
+
+  .score-num {
+    font-size: 20px;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .score-info { flex: 1; }
+
+  .risk-label {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .risk-counts {
+    font-size: 11px;
+    color: var(--grey);
+    display: flex;
+    gap: 10px;
+  }
+
+  .risk-bar {
+    background: rgba(255,255,255,.06);
+    border-radius: 3px;
+    height: 4px;
+    margin-bottom: 12px;
+  }
+
+  .risk-bar-fill { height: 4px; border-radius: 3px; }
+
+  .checks-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 14px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+
+  .check-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .check-name { color: var(--grey); flex: 1; }
+  .check-status { font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+
+  .dot-critical { background: var(--red); }
+  .dot-warning  { background: var(--amber); }
+  .dot-ok       { background: var(--green); }
+
+  .status-critical { color: var(--red); }
+  .status-warning  { color: var(--amber); }
+  .status-ok       { color: var(--green); }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-full-report {
+    flex: 1;
+    background: rgba(192,57,43,.12);
+    border: 1px solid rgba(192,57,43,.3);
+    color: var(--red);
+    border-radius: 8px;
+    padding: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-full-report:hover { background: rgba(192,57,43,.2); }
+
+  .error-state {
+    background: rgba(192,57,43,.1);
+    border: 1px solid rgba(192,57,43,.25);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 12px;
+    color: #e74c3c;
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .idle-state {
+    text-align: center;
+    padding: 24px 0 16px;
+    color: var(--grey);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .idle-state .hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: #3d3c4a;
+    margin-top: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  /* Settings */
+  .api-key-label {
+    font-size: 12px;
+    color: var(--grey);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .api-key-input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--white);
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    outline: none;
+    margin-bottom: 10px;
+  }
+
+  .api-key-input:focus { border-color: rgba(192,57,43,.5); }
+
+  .btn-save {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .save-status {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    margin-left: 10px;
+    display: none;
+  }
+
+  .get-key-link {
+    font-size: 11px;
+    color: var(--grey);
+    margin-top: 8px;
+    display: block;
+  }
+
+  .get-key-link a { color: var(--blue); text-decoration: none; }
+
+  /* No API key notice */
+  .no-key-notice {
+    background: rgba(66,133,244,.06);
+    border: 1px solid rgba(66,133,244,.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--grey);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .no-key-notice a { color: var(--blue); text-decoration: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer a {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--grey);
+    text-decoration: none;
+    letter-spacing: 1px;
+  }
+
+  footer a:hover { color: var(--white); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SWARM<span>HAWK</span></div>
+  <button class="settings-btn" id="toggle-settings" title="Settings">⚙</button>
+</header>
+
+<!-- Main scan view -->
+<div id="main-view">
+  <div class="section-label">Scan a Domain</div>
+  <div class="scan-input-row">
+    <input class="scan-input" id="domain-input" type="text" placeholder="e.g. company.com" autocomplete="off">
+    <button class="btn-scan" id="scan-btn" onclick="manualScan()">SCAN →</button>
+  </div>
+
+  <div id="result-area">
+    <div class="idle-state">
+      <div>Right-click any domain or link on a page to scan it instantly.</div>
+      <div class="hint">Tip: Select a domain name in a contract PDF, right-click → SwarmHawk: Scan</div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings view -->
+<div id="settings-view">
+  <div class="section-label">API Key (optional)</div>
+  <div class="api-key-label">
+    Add your SwarmHawk API key for unlimited scans and full results. Leave blank for free limited scans.
+  </div>
+  <input class="api-key-input" id="api-key-input" type="password" placeholder="sh_live_xxxxxxxxxxxxxxxx">
+  <div>
+    <button class="btn-save" onclick="saveApiKey()">SAVE KEY</button>
+    <span class="save-status" id="save-status">✓ Saved</span>
+  </div>
+  <span class="get-key-link">
+    Get your API key at <a href="https://www.swarmhawk.com" target="_blank">www.swarmhawk.com</a> → Account → API Keys
+  </span>
+</div>
+
+<footer>
+  <a href="https://www.swarmhawk.com" target="_blank">SWARMHAWK.COM</a>
+  <a href="https://www.swarmhawk.com/map.html" target="_blank">LIVE THREAT MAP</a>
+</footer>
+
+<script src="popup.js"></script>
+</body>
+</html>
