@@ -557,6 +557,8 @@ h1 span{color:var(--lime)}
 .btn-add-domain-prospect:hover{background:rgba(255,255,255,.1)}
 .prospect-chevron{font-size:12px;color:var(--grey);transition:transform .2s;margin-left:auto}
 .prospect-chevron.open{transform:rotate(180deg)}
+.prospect-check{width:16px;height:16px;accent-color:var(--lime);cursor:pointer;flex-shrink:0;margin-right:2px}
+.prospect-card.selected{border-color:rgba(203,255,0,.35);background:rgba(203,255,0,.03)}
 
 
 /* ── OUTREACH TAB ── */
@@ -1703,7 +1705,9 @@ function showSampleReport() {
 }
 
 function closeReportPage() {
-  document.getElementById('report-page').classList.remove('active');
+  var page = document.getElementById('report-page');
+  page.classList.remove('active');
+  page.style.zIndex = '';
   // If dashboard is open, keep body scroll locked
   if (document.getElementById('dashboard').style.display !== 'none') {
     document.body.style.overflow = 'hidden';
@@ -1746,6 +1750,8 @@ function openReportPage(domain, isSample) {
   demoTag.textContent = isSample ? 'SAMPLE REPORT' : 'LIVE SCAN';
   demoTag.style.color = isSample ? 'var(--grey)' : 'var(--lime)';
   body.innerHTML = '<div style="text-align:center;padding:80px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div><p style="color:var(--grey);margin-top:16px;font-size:13px">Running 18 security checks on ' + domain + '...</p></div>';
+  /* Raise above dashboard (z-index 9999) when inside dashboard */
+  page.style.zIndex = '10001';
   page.classList.add('active');
   document.body.style.overflow = 'hidden';
 
@@ -2127,6 +2133,17 @@ function renderReportPage(data, domain, isSample) {
           <div style="background:rgba(255,255,255,.06);border-radius:4px;height:4px">
             <div id="prospect-scan-bar" style="height:4px;background:var(--lime);border-radius:4px;width:0%;transition:width .3s ease"></div>
           </div>
+        </div>
+
+        <!-- Schedule toolbar (appears when domains are checked) -->
+        <div id="prospect-schedule-bar" style="display:none;background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.2);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--lime)" id="prospect-sel-label">0 selected</span>
+          <div style="flex:1;min-width:160px">
+            <label style="font-size:10px;color:var(--grey);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px">Outreach Date</label>
+            <input type="date" id="prospect-schedule-date" style="background:var(--card);border:1px solid rgba(255,255,255,.15);color:var(--white);font-family:'Space Mono',monospace;font-size:12px;padding:6px 10px;border-radius:6px;outline:none;cursor:pointer">
+          </div>
+          <button class="btn-scan-all" onclick="prospectScheduleSelected()" style="white-space:nowrap">📅 Schedule for Outreach</button>
+          <button onclick="prospectClearSelection()" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">✕ Clear</button>
         </div>
 
         <!-- Prospect cards grid -->
@@ -3190,6 +3207,7 @@ function prospectRender() {
 
     return '<div class="prospect-card '+priorityClass+'" id="pcard-'+idx+'">'
       +'<div class="prospect-card-head" onclick="prospectToggle('+idx+')">'
+        +'<input type="checkbox" class="prospect-check" data-domain="'+p.domain+'" data-idx="'+idx+'" onclick="event.stopPropagation();prospectCheckToggle(this)" title="Select for outreach scheduling">'
         +'<span style="font-size:12px;color:var(--grey);font-family:Space Mono,monospace;min-width:28px">#'+(idx+1)+'</span>'
         +'<span class="prospect-domain">'+p.domain+'</span>'
         +'<div class="prospect-badges">'+(countryFlag?'<span class="prospect-badge pbadge-country">'+countryFlag+' '+p.country+'</span>':'')+cveBadge+statusBadge+swBadges+'</div>'
@@ -3316,8 +3334,73 @@ function prospectCopyEmail(idx) {
 }
 
 function prospectViewReport(domain) {
-  // Open the full report page (public scan — no auth required)
+  // Open the full report page — z-index boosted above dashboard in openReportPage
   openReportPage(domain, false);
+}
+
+/* ── Prospect checkbox selection & scheduling ── */
+var prospectSelected = new Set();
+
+function prospectCheckToggle(cb) {
+  var domain = cb.dataset.domain;
+  var card   = document.getElementById('pcard-' + cb.dataset.idx);
+  if (cb.checked) {
+    prospectSelected.add(domain);
+    if (card) card.classList.add('selected');
+  } else {
+    prospectSelected.delete(domain);
+    if (card) card.classList.remove('selected');
+  }
+  prospectUpdateScheduleBar();
+}
+
+function prospectUpdateScheduleBar() {
+  var bar   = document.getElementById('prospect-schedule-bar');
+  var label = document.getElementById('prospect-sel-label');
+  var n     = prospectSelected.size;
+  if (!bar) return;
+  if (n > 0) {
+    bar.style.display = 'flex';
+    label.textContent = n + ' domain' + (n !== 1 ? 's' : '') + ' selected';
+    /* Default date = tomorrow */
+    var datePicker = document.getElementById('prospect-schedule-date');
+    if (datePicker && !datePicker.value) {
+      var tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      datePicker.value = tomorrow.toISOString().slice(0, 10);
+    }
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function prospectClearSelection() {
+  prospectSelected.clear();
+  document.querySelectorAll('.prospect-check').forEach(function(cb) {
+    cb.checked = false;
+    var card = document.getElementById('pcard-' + cb.dataset.idx);
+    if (card) card.classList.remove('selected');
+  });
+  var bar = document.getElementById('prospect-schedule-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+async function prospectScheduleSelected() {
+  if (!prospectSelected.size) return;
+  var dateVal = document.getElementById('prospect-schedule-date').value;
+  if (!dateVal) { toast('Please pick an outreach date first', true); return; }
+
+  var domains = Array.from(prospectSelected);
+  try {
+    await api('/outreach/prospects/schedule', {
+      method: 'POST',
+      body: JSON.stringify({ domains: domains, scheduled_for: dateVal })
+    });
+    toast('✅ ' + domains.length + ' domain' + (domains.length !== 1 ? 's' : '') + ' scheduled for ' + dateVal);
+    prospectClearSelection();
+  } catch(e) {
+    toast('Schedule failed: ' + e.message, true);
+  }
 }
 
 function prospectOpenOffer(idx) {
