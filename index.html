@@ -306,6 +306,32 @@ h1 span{color:var(--lime)}
 .ds-tags{display:flex;flex-wrap:wrap;gap:4px}
 .ds-tag{background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px}
 .ds-footer{display:flex;gap:0;background:var(--card);border:1px solid rgba(203,255,0,.1);border-radius:10px;overflow:hidden}
+/* FAQ */
+.faq-section{margin-top:56px;padding-top:40px;border-top:1px solid rgba(203,255,0,.07)}
+.faq-item{border-bottom:1px solid rgba(255,255,255,.05);padding:20px 0}
+.faq-item:last-child{border-bottom:none}
+.faq-q{font-family:'Space Mono',monospace;font-size:13px;color:var(--white);font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;user-select:none}
+.faq-q:hover{color:var(--lime)}
+.faq-arrow{font-size:10px;color:var(--grey);transition:transform .2s;flex-shrink:0}
+.faq-a{font-size:13px;color:var(--grey);line-height:1.8;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .2s}
+.faq-item.open .faq-a{max-height:300px;padding-top:12px}
+.faq-item.open .faq-arrow{transform:rotate(180deg);color:var(--lime)}
+/* Site footer */
+.site-footer{background:var(--card);border-top:1px solid rgba(203,255,0,.08);padding:48px 24px 32px}
+.site-footer-inner{max-width:1100px;margin:0 auto}
+.site-footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.sf-brand{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:10px}
+.sf-brand span{color:#C0392B}
+.sf-tagline{font-size:12px;color:var(--grey);line-height:1.7;max-width:240px}
+.sf-col-title{font-family:'Space Mono',monospace;font-size:9px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.sf-links{display:flex;flex-direction:column;gap:8px}
+.sf-links a{font-size:12px;color:var(--grey);text-decoration:none;transition:color .15s}
+.sf-links a:hover{color:var(--white)}
+.sf-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:1px solid rgba(255,255,255,.05)}
+.sf-copy{font-size:11px;color:#3d3c4a;font-family:'Space Mono',monospace}
+.sf-badges{display:flex;gap:8px}
+.sf-badge{font-family:'Space Mono',monospace;font-size:9px;color:var(--grey);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:3px 8px;letter-spacing:1px}
+@media(max-width:800px){.site-footer-grid{grid-template-columns:1fr 1fr}}
 .ds-stat{flex:1;text-align:center;padding:20px 12px;border-right:1px solid rgba(203,255,0,.08)}
 .ds-stat:last-child{border-right:none}
 .ds-stat-val{display:block;font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--lime)}
@@ -1128,10 +1154,87 @@ python3 swarmhawk_mcp.py --http</pre></div>
         <div class="ds-stat"><span class="ds-stat-val">36</span><span class="ds-stat-lbl">Countries</span></div>
         <div class="ds-stat"><span class="ds-stat-val">Real-time</span><span class="ds-stat-lbl">All Data Sources</span></div>
       </div>
+
+      <!-- FAQ -->
+      <div class="faq-section">
+        <div class="section-label-tag" style="margin-bottom:24px">❓ Frequently Asked Questions</div>
+
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">What exactly does SwarmHawk scan? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">SwarmHawk runs 22 automated security checks on any domain — including SSL/TLS validity, DNS configuration (SPF, DMARC, DKIM), open ports via Shodan, data breach exposure (12B+ accounts), blacklist status across VirusTotal, Spamhaus, URLhaus and Google Safe Browsing, CVE vulnerabilities in detected software, typosquat monitoring, and an AI-generated threat summary. Every scan queries live data — no cached results.</div>
+        </div>
+
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">Do I need technical knowledge to use it? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">No. SwarmHawk is built for business owners and compliance teams, not just security engineers. Enter your domain, get a plain-English report with a risk score (0–100), colour-coded findings, and a prioritised action list. The AI threat summary translates every finding into language your board or legal team can understand.</div>
+        </div>
+
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">How is SwarmHawk different from free tools like SSL Labs or MXToolbox? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">Free tools check one thing at a time. SwarmHawk runs 22 checks in parallel from a single scan, cross-references results across 16 intelligence sources, calculates a unified risk score, and generates an AI briefing with remediation steps. It also tracks your domain over time, sends monthly PDF reports, and provides NIS2/DORA audit evidence — none of which free tools offer.</div>
+        </div>
+
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">Is my data safe? Who can see my scan results? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">Scan results are stored securely in your private account — no other user can access them. We query public-facing data only (the same data any attacker can see), so we never need credentials or access to your systems. We do not sell or share your data with third parties. All API traffic is encrypted over HTTPS.</div>
+        </div>
+
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">What does the $50/year plan include, and can I cancel? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">The Annual plan ($50/year per domain) includes monthly automated rescans, email alerts on new critical findings, downloadable PDF reports suitable as NIS2 / DORA audit evidence, AI threat briefings, and unlimited domains. You can cancel at any time — no long-term contract. The $10 one-time option gives you a single full scan and report with no recurring charge.</div>
+        </div>
+      </div>
+
     </div>
   </div>
 
 </div>
+
+<!-- SITE FOOTER -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-grid">
+      <div>
+        <div class="sf-brand">SWARM<span>HAWK</span></div>
+        <div class="sf-tagline">Domain security intelligence for businesses that can't afford a breach. 22 checks · AI analysis · 36 countries.</div>
+      </div>
+      <div>
+        <div class="sf-col-title">Product</div>
+        <div class="sf-links">
+          <a href="/">Scanner</a>
+          <a href="/map.html">Live Threat Map</a>
+          <a href="#" onclick="showNavPage('datasources',null);return false">Data Sources</a>
+          <a href="#" onclick="showNavPage('developers',null);return false">Developers</a>
+        </div>
+      </div>
+      <div>
+        <div class="sf-col-title">Resources</div>
+        <div class="sf-links">
+          <a href="#" onclick="openReportPage('csob.cz',true);return false">Sample Report</a>
+          <a href="https://www.swarmhawk.com/mcp" target="_blank" rel="noopener">MCP API Docs</a>
+          <a href="https://github.com/hastikdan/swarmhawk" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div>
+        <div class="sf-col-title">Legal</div>
+        <div class="sf-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">GDPR</a>
+          <a href="mailto:hello@swarmhawk.com">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="sf-bottom">
+      <div class="sf-copy">© 2025 SwarmHawk · www.swarmhawk.com</div>
+      <div class="sf-badges">
+        <span class="sf-badge">NIS2 READY</span>
+        <span class="sf-badge">DORA ALIGNED</span>
+        <span class="sf-badge">GDPR COMPLIANT</span>
+      </div>
+    </div>
+  </div>
+</footer>
 
 <!-- SUCCESS BANNER -->
 <div id="success-banner" class="success-banner" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:999;width:auto">
@@ -4516,6 +4619,10 @@ function scoreColor(s) {
 
 function switchCountry(code) {
   renderTopDomains(code);
+}
+
+function faqToggle(item) {
+  item.classList.toggle('open');
 }
 
 function renderTopDomains(code) {
