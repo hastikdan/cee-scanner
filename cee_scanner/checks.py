@@ -641,6 +641,204 @@ def check_cve(domain: str) -> CheckResult:
     return _check_cve(domain)
 
 
+def check_darkweb(domain: str) -> CheckResult:
+    """
+    Dark-web credential & leak intelligence via ParanoidLab.
+    Categorises leaks into: ransomware, infostealers, credentials, forum mentions.
+    Requires PARANOIDLAB_API_KEY env var. Graceful fallback if absent.
+    """
+    import os
+    r = CheckResult("darkweb", domain)
+
+    api_key = os.getenv("PARANOIDLAB_API_KEY", "")
+    if not api_key:
+        r.status = "ok"
+        r.title  = "Dark-web scan skipped"
+        r.detail = "Set PARANOIDLAB_API_KEY to enable dark-web credential monitoring (paranoidlab.com)"
+        r.score_impact = 0
+        # Store skip marker so frontend knows to show the tip
+        r.darkweb_data = {"skipped": True}
+        return r
+
+    base = "https://paranoidlab.com/v1"
+    headers = {"X-Key": api_key, "Content-Type": "application/json"}
+
+    # ── Fetch leaks ──────────────────────────────────────────────────────────
+    leaks_raw = []
+    leaks_total = 0
+    leaks_error = None
+    try:
+        resp = requests.get(
+            f"{base}/leaks",
+            headers=headers,
+            params={"data_url": domain, "limit": 50, "offset": 0},
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            leaks_raw   = data.get("items") or data.get("leaks") or []
+            leaks_total = data.get("total") or len(leaks_raw)
+        elif resp.status_code == 401:
+            leaks_error = "Invalid ParanoidLab API key"
+        elif resp.status_code == 429:
+            leaks_error = "Rate limited — retry later"
+        elif resp.status_code == 404:
+            leaks_total = 0   # no leaks found = clean
+        else:
+            leaks_error = f"API error {resp.status_code}"
+    except requests.exceptions.Timeout:
+        leaks_error = "Request timed out"
+    except Exception as e:
+        leaks_error = str(e)[:80]
+
+    # ── Fetch Telegram mentions ──────────────────────────────────────────────
+    tg_posts = []
+    tg_total = 0
+    try:
+        resp_tg = requests.get(
+            f"{base}/telegram/posts",
+            headers=headers,
+            params={"keyword": domain, "limit": 20},
+            timeout=12,
+        )
+        if resp_tg.status_code == 200:
+            tg_data  = resp_tg.json()
+            tg_posts = tg_data.get("posts") or tg_data.get("items") or []
+            tg_total = tg_data.get("total") or len(tg_posts)
+    except Exception:
+        pass   # Telegram is bonus intel — fail silently
+
+    # ── Categorise leaks ────────────────────────────────────────────────────
+    ransomware   = []
+    infostealers = []
+    credentials  = []
+    forum_hits   = []
+
+    for item in leaks_raw:
+        source  = (item.get("source") or "").lower()
+        itype   = (item.get("type")   or "").lower()
+        # Mask email in sample
+        email = item.get("data_user") or item.get("email") or ""
+        if email and "@" in email:
+            local, host = email.split("@", 1)
+            email = local[:3] + "***@" + host
+
+        record = {
+            "source":   item.get("source") or "unknown",
+            "type":     itype,
+            "date":     (item.get("created_at") or "")[:10],
+            "email":    email,
+            "severity": item.get("risk_level") or "medium",
+        }
+
+        if "ransom" in source or itype == "ransomware":
+            ransomware.append(record)
+        elif "stealer" in source or "malware" in source or itype == "cookie":
+            infostealers.append(record)
+        elif itype in ("password", "pii") or "combo" in source or "breach" in source:
+            credentials.append(record)
+        else:
+            forum_hits.append(record)
+
+    # Add Telegram as forum hits
+    for post in tg_posts[:5]:
+        forum_hits.append({
+            "source":   "Telegram dark-web channel",
+            "type":     "forum",
+            "date":     (post.get("date") or "")[:10],
+            "email":    "",
+            "severity": "medium",
+            "preview":  (post.get("text") or "")[:120],
+        })
+
+    # ── Score ────────────────────────────────────────────────────────────────
+    impact = 0
+    if ransomware:
+        impact += 25
+    if infostealers:
+        impact += 20
+    if len(credentials) >= 100:
+        impact += 20
+    elif credentials:
+        impact += 10
+    if forum_hits or tg_total > 0:
+        impact += 5
+
+    total_leaks = leaks_total + tg_total
+    darkweb_data = {
+        "total":       total_leaks,
+        "ransomware":  ransomware[:5],
+        "infostealers":infostealers[:5],
+        "credentials": credentials[:5],
+        "forum_hits":  forum_hits[:5],
+        "counts": {
+            "ransomware":   len(ransomware),
+            "infostealers": len(infostealers),
+            "credentials":  len(credentials),
+            "forum_hits":   tg_total + len(forum_hits),
+        },
+        "error": leaks_error,
+    }
+
+    if leaks_error and leaks_total == 0 and not tg_total:
+        r.status = "error"
+        r.title  = "Dark-web check failed"
+        r.detail = leaks_error
+        r.score_impact = 0
+        r.darkweb_data = darkweb_data
+        return r
+
+    if ransomware:
+        r.crit(f"Ransomware group leak detected for {domain}",
+               f"{len(ransomware)} ransomware leak(s) · {len(infostealers)} stealer(s) · "
+               f"{len(credentials)} credential(s) · {tg_total} Telegram mentions",
+               impact=min(impact, 25))
+    elif infostealers:
+        r.crit(f"Infostealer credentials leaked for {domain}",
+               f"{len(infostealers)} stealer log(s) · {len(credentials)} credential record(s) · "
+               f"{tg_total} Telegram mentions",
+               impact=min(impact, 25))
+    elif credentials:
+        if len(credentials) >= 10:
+            r.crit(f"{len(credentials)}+ credentials found in dark-web leaks",
+                   f"Source: combo lists & breach databases · {tg_total} Telegram mentions",
+                   impact=min(impact, 20))
+        else:
+            r.warn(f"{len(credentials)} credential record(s) found in leak databases",
+                   f"Source: combo lists · {tg_total} Telegram mentions",
+                   impact=min(impact, 10))
+    elif tg_total > 0 or forum_hits:
+        r.warn(f"Domain mentioned {tg_total} time(s) in dark-web Telegram channels",
+               "No credential leaks found but domain has dark-web exposure",
+               impact=5)
+    else:
+        r.status = "ok"
+        r.title  = f"No dark-web leaks found for {domain}"
+        r.detail = "Not detected in credential dumps, stealer logs, or Telegram dark-web channels"
+        r.score_impact = 0
+
+    r.darkweb_data = darkweb_data
+    return r
+
+
+def _check_darkweb_serialise(r: "CheckResult") -> dict:
+    """Extend to_dict() to include darkweb_data blob."""
+    d = r.to_dict()
+    if hasattr(r, "darkweb_data"):
+        d["darkweb_data"] = r.darkweb_data
+    return d
+
+
+# Monkey-patch to_dict so darkweb_data travels through scan_domain
+_orig_to_dict = CheckResult.to_dict
+def _patched_to_dict(self):
+    d = _orig_to_dict(self)
+    if hasattr(self, "darkweb_data"):
+        d["darkweb_data"] = self.darkweb_data
+    return d
+CheckResult.to_dict = _patched_to_dict
+
+
 ALL_CHECKS = [
     check_ssl,
     check_headers,
@@ -656,6 +854,8 @@ ALL_CHECKS = [
     check_virustotal,           # free key: virustotal.com
     # ── CVE Enrichment Skill ──
     check_cve,                  # free (NVD API); set NVD_API_KEY for higher rate limits
+    # ── Dark-web credential intelligence ──
+    check_darkweb,              # paranoidlab.com — set PARANOIDLAB_API_KEY
 ]
 
 
