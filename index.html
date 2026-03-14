@@ -5145,18 +5145,23 @@ async function compAdd() {
     document.getElementById('comp-label').value  = '';
     compToggleAdd();
     await compLoad();
+    // Scroll competitor list into view
+    var cl = document.getElementById('comp-list');
+    if (cl) cl.scrollIntoView({behavior:'smooth', block:'nearest'});
     // Poll until scan finishes (scan_domain takes 30-60s as background task)
     var polls = 0;
     var poll = setInterval(async function() {
       polls++;
-      await compLoad();
-      var data = await api('/competitors').catch(function(){ return {}; });
-      var comps = (data.competitors || []);
-      var c = comps.find(function(x){ return x.domain === domain && x.scanned_at; });
-      if (c || polls > 24) {
-        clearInterval(poll);
-        if (c) toast('✓ ' + domain + ' scan complete');
-      }
+      try {
+        var data = await api('/competitors');
+        var comps = data.competitors || [];
+        var done = comps.find(function(x){ return x.domain === domain && x.scanned_at; });
+        await compLoad();
+        if (done || polls > 24) {
+          clearInterval(poll);
+          if (done) toast('✓ ' + domain + ' scan complete');
+        }
+      } catch(e) { clearInterval(poll); }
     }, 5000);
   } catch(e) { toast('Error: ' + e.message, true); }
   finally { btn.disabled=false; btn.textContent='Track →'; }
@@ -5213,7 +5218,10 @@ async function compLoad() {
         +'<button onclick="compDelete(\''+c.id+'\',\''+c.domain+'\')" style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.2);color:#E74C3C;font-size:9px;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:Space Mono,monospace">✕ Remove</button>'
         +'</div></div>';
     }).join('');
-  } catch(e) { console.warn('compLoad:', e.message); }
+  } catch(e) {
+    console.warn('compLoad:', e.message);
+    el.innerHTML = '<div class="db-empty" style="color:#C0392B;padding:16px">⚠ Could not load competitor data: ' + e.message + '</div>';
+  }
 }
 
 async function compDelete(id, domain) {
