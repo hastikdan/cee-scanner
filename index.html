@@ -5122,7 +5122,20 @@ async function compAdd() {
     document.getElementById('comp-domain').value = '';
     document.getElementById('comp-label').value  = '';
     compToggleAdd();
-    setTimeout(compLoad, 2000);
+    await compLoad();
+    // Poll until scan finishes (scan_domain takes 30-60s as background task)
+    var polls = 0;
+    var poll = setInterval(async function() {
+      polls++;
+      await compLoad();
+      var data = await api('/competitors').catch(function(){ return {}; });
+      var comps = (data.competitors || []);
+      var c = comps.find(function(x){ return x.domain === domain && x.scanned_at; });
+      if (c || polls > 24) {
+        clearInterval(poll);
+        if (c) toast('✓ ' + domain + ' scan complete');
+      }
+    }, 5000);
   } catch(e) { toast('Error: ' + e.message, true); }
   finally { btn.disabled=false; btn.textContent='Track →'; }
 }
