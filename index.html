@@ -3716,9 +3716,11 @@ async function dbLoadIntel(force) {
   var today = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
 
   try {
-    // Try backend /intel first (has ANTHROPIC_API_KEY), fall back to direct call
+    // Try backend /intel (has ANTHROPIC_API_KEY)
     var text = '';
     var backendOk = false;
+    var backendErrMsg = '';
+    var coldStart = false;
     try {
       var br = await fetch(API + '/intel', {
         method: 'POST',
@@ -3729,19 +3731,58 @@ async function dbLoadIntel(force) {
         var bd = await br.json();
         text = bd.text || bd.briefing || '';
         backendOk = true;
+      } else {
+        // 503 = ANTHROPIC_API_KEY missing or backend cold-starting
+        // 502 / 504 = Render still warming up
+        coldStart = (br.status === 502 || br.status === 504);
+        try {
+          var errJson = await br.json();
+          backendErrMsg = errJson.detail || '';
+          if (br.status === 503 && backendErrMsg.toLowerCase().includes('anthropic')) coldStart = false;
+          else if (br.status === 503) coldStart = true;
+        } catch(_) { coldStart = true; }
       }
-    } catch(be) { console.warn('Backend intel unavailable:', be.message); }
+    } catch(be) {
+      console.warn('Backend intel unavailable:', be.message);
+      coldStart = true; // network error = cold start / not yet up
+    }
 
-    // Backend /intel not available — show clear message instead of API key prompt
+    // Show error with auto-retry if cold start, or permanent message if config missing
     if (!backendOk) {
-      document.getElementById('intel-content').innerHTML =
-        '<div style="padding:32px;text-align:center">' +
-        '<div style="font-size:28px;margin-bottom:12px">🧠</div>' +
-        '<p style="color:var(--white);font-weight:600;margin-bottom:8px">Intelligence service unavailable</p>' +
-        '<p style="color:var(--grey);font-size:13px;max-width:380px;margin:0 auto">The backend is warming up or ANTHROPIC_API_KEY is not set on the server. Try again in 30 seconds.</p>' +
-        '<button class="btn-scan-all" style="margin-top:16px" onclick="dbLoadIntel(true)">↻ Retry</button>' +
-        '</div>';
-      btn.disabled = false; btn.textContent = '↻ Refresh Briefing';
+      if (coldStart) {
+        // Auto-retry countdown
+        var countdown = 30;
+        var intelEl = document.getElementById('intel-content');
+        function showCountdown() {
+          intelEl.innerHTML =
+            '<div style="padding:32px;text-align:center">' +
+            '<div class="spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 12px"></div>' +
+            '<p style="color:var(--white);font-weight:600;margin-bottom:8px">Backend is waking up…</p>' +
+            '<p style="color:var(--grey);font-size:13px;margin:0 auto 14px">Render free tier needs a moment to start. Auto-retrying in <strong id="intel-countdown">' + countdown + '</strong>s.</p>' +
+            '<button class="btn-scan-all" onclick="dbLoadIntel(true)">↻ Retry Now</button>' +
+            '</div>';
+        }
+        showCountdown();
+        btn.disabled = false; btn.textContent = '↻ Refresh Briefing';
+        var ticker = setInterval(function() {
+          countdown--;
+          var el = document.getElementById('intel-countdown');
+          if (el) el.textContent = countdown;
+          if (countdown <= 0) {
+            clearInterval(ticker);
+            dbLoadIntel(true);
+          }
+        }, 1000);
+      } else {
+        document.getElementById('intel-content').innerHTML =
+          '<div style="padding:32px;text-align:center">' +
+          '<div style="font-size:28px;margin-bottom:12px">🔑</div>' +
+          '<p style="color:var(--white);font-weight:600;margin-bottom:8px">AI key not configured</p>' +
+          '<p style="color:var(--grey);font-size:13px;max-width:380px;margin:0 auto">ANTHROPIC_API_KEY is not set in Render environment variables.</p>' +
+          '<button class="btn-scan-all" style="margin-top:16px" onclick="dbLoadIntel(true)">↻ Retry</button>' +
+          '</div>';
+        btn.disabled = false; btn.textContent = '↻ Refresh Briefing';
+      }
       return;
     }
     var clean = text.replace(/```json|```/g, '').trim();
