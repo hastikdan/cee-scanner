@@ -2211,7 +2211,7 @@ async function startCheckout(plan) {
   }
 }
 
-function checkout_mcp() { toast('MCP Pro plans coming soon — email hello@swarmhawk.eu to get early access'); }
+function checkout_mcp() { toast('MCP Pro plans coming soon — email hello@swarmhawk.com to get early access'); }
 
 function generateKey() {
   const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -4149,7 +4149,7 @@ async function prospectLoadEmail(idx) {
     '2. Briefly explain the risk in plain language (one sentence)\n' +
     '3. Offer a free full report as CTA\n' +
     '4. Be urgent but not alarmist — professional tone\n' +
-    '5. Sign off as "The SwarmHawk Team | swarmhawk.eu"\n\n' +
+    '5. Sign off as "The SwarmHawk Team | swarmhawk.com"\n\n' +
     'Output ONLY the email body text. No subject line. No explanation. No markdown.';
 
   try {
@@ -4203,8 +4203,8 @@ function prospectFallbackEmail(p) {
     'Our automated security scanner detected ' +
     (topCve ? topCve.top_cve + ' (CVSS ' + topCve.top_cvss + ') on your server running ' + topCve.product + ' ' + topCve.version : 'exposed software versions on your domain') +
     '. This vulnerability is publicly known and could expose your business to data breaches or compliance penalties under NIS2.\n\n' +
-    'We have prepared a free full security report for ' + p.domain + ' which outlines the exact risks and remediation steps. Reply to this email or visit swarmhawk.eu to access it.\n\n' +
-    'The SwarmHawk Team | swarmhawk.eu';
+    'We have prepared a free full security report for ' + p.domain + ' which outlines the exact risks and remediation steps. Reply to this email or visit swarmhawk.com to access it.\n\n' +
+    'The SwarmHawk Team | swarmhawk.com';
 }
 
 function prospectCopyEmail(idx) {
@@ -4675,7 +4675,7 @@ async function outreachRegenEmail(id, idx) {
     var prompt = 'Write a short professional cold outreach email (6-8 sentences) from SwarmHawk to the IT manager of ' + p.domain + '.\n' +
       'Exposed software: ' + sw.map(function(s){ return s.product+' '+s.version; }).join(', ') + '\n' +
       'CVEs: ' + cves.map(function(c){ return c.id+' CVSS '+c.cvss; }).join(', ') + '\n' +
-      'Start with Subject: line. Reference NIS2. Offer free report at swarmhawk.eu. Sign as SwarmHawk Team.';
+      'Start with Subject: line. Reference NIS2. Offer free report at swarmhawk.com. Sign as SwarmHawk Team.';
 
     var resp = await api('/intel', { method: 'POST', body: JSON.stringify({ prompt: prompt, max_tokens: 500 }) });
     var text = resp.text || resp.content || '';
@@ -5869,9 +5869,9 @@ var _EMAIL_SUGGESTIONS = {
     '2. Open with {top_cve_id} (CVSS {top_cvss}) as concrete proof',
     '3. One sentence plain-language risk explanation',
     '4. Reference NIS2 compliance briefly',
-    '5. Offer a free full security report at swarmhawk.eu',
+    '5. Offer a free full security report at swarmhawk.com',
     '6. Professional, direct — not alarmist',
-    '7. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '7. Sign off: The SwarmHawk Team | swarmhawk.com',
     '',
     'Output ONLY the email. No preamble. No markdown.',
   ].join('\n'),
@@ -5888,9 +5888,9 @@ var _EMAIL_SUGGESTIONS = {
     '2. Open with {top_cve_id} (CVSS {top_cvss}) as the evidence',
     '3. Immediately connect this to NIS2 Article 21 obligations and penalty exposure (up to €10M or 2% of annual revenue)',
     '4. One sentence on what an attacker could do with this vulnerability',
-    '5. Offer a free full security report with NIS2 audit evidence at swarmhawk.eu',
+    '5. Offer a free full security report with NIS2 audit evidence at swarmhawk.com',
     '6. Calm, authoritative tone — not threatening',
-    '7. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '7. Sign off: The SwarmHawk Team | swarmhawk.com',
     '',
     'Output ONLY the email. No preamble. No markdown.',
   ].join('\n'),
@@ -5907,9 +5907,9 @@ var _EMAIL_SUGGESTIONS = {
     '2. Lead with the business risk of {top_cve_id} (CVSS {top_cvss}) in executive language — no technical jargon',
     '3. Mention that this is a passive scan finding visible to any attacker — no credentials were used',
     '4. Reference NIS2 board-level accountability briefly',
-    '5. Offer a free full security report at swarmhawk.eu with remediation roadmap',
+    '5. Offer a free full security report at swarmhawk.com with remediation roadmap',
     '6. Respectful of their time — no marketing language',
-    '7. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '7. Sign off: The SwarmHawk Team | swarmhawk.com',
     '',
     'Output ONLY the email. No preamble. No markdown.',
   ].join('\n'),
@@ -5925,9 +5925,9 @@ var _EMAIL_SUGGESTIONS = {
     '1. Subject line on first line as: Subject: <subject>',
     '2. First sentence: state the CVE and CVSS score as plain fact',
     '3. Second sentence: one-line consequence (data breach / NIS2 fine risk)',
-    '4. Third sentence: offer free report at swarmhawk.eu',
+    '4. Third sentence: offer free report at swarmhawk.com',
     '5. No filler, no pleasantries beyond a single professional opener',
-    '6. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '6. Sign off: The SwarmHawk Team | swarmhawk.com',
     '',
     'Output ONLY the email. No preamble. No markdown.',
   ].join('\n'),
