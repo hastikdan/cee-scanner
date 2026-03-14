@@ -419,6 +419,8 @@ h1 span{color:var(--lime)}
 .db-stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
 .tpl-var-chip{font-family:'Space Mono',monospace;font-size:10px;background:rgba(203,255,0,.07);border:1px solid rgba(203,255,0,.2);color:var(--lime);padding:3px 9px;border-radius:4px;cursor:pointer;user-select:none;transition:background .15s}
 .tpl-var-chip:hover{background:rgba(203,255,0,.15)}
+.tpl-suggestion-btn{font-family:'Space Mono',monospace;font-size:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#ccc;padding:5px 13px;border-radius:5px;cursor:pointer;transition:background .15s,border-color .15s}
+.tpl-suggestion-btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:var(--white)}
 .db-stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .18s,background .18s;text-decoration:none;color:inherit}
 .db-stat-card:hover{border-color:rgba(203,255,0,.35);background:rgba(203,255,0,.03)}
 .db-stat-card.active-filter{border-color:var(--lime);background:rgba(203,255,0,.06)}
@@ -3027,6 +3029,17 @@ function renderReportPage(data, domain, isSample) {
             <div style="display:flex;gap:8px;flex-shrink:0;padding-bottom:1px">
               <button class="btn-scan-all" onclick="adminSaveEmailTemplate()">💾 Save</button>
               <button onclick="adminResetEmailTemplate()" style="background:transparent;border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">↩ Reset to Default</button>
+            </div>
+          </div>
+
+          <!-- Template suggestions -->
+          <div style="margin-bottom:14px">
+            <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Quick-load suggestions — click to insert:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button onclick="adminLoadSuggestion('standard')"    class="tpl-suggestion-btn">📧 Standard</button>
+              <button onclick="adminLoadSuggestion('compliance')"  class="tpl-suggestion-btn">⚖ Compliance-first</button>
+              <button onclick="adminLoadSuggestion('executive')"   class="tpl-suggestion-btn">👔 Executive / CISO</button>
+              <button onclick="adminLoadSuggestion('short')"       class="tpl-suggestion-btn">⚡ Short & direct</button>
             </div>
           </div>
 
@@ -5842,6 +5855,96 @@ async function adminResetReportEmailTemplate() {
 }
 
 // ── AI Email Template Editor ──────────────────────────────────────────────────
+
+var _EMAIL_SUGGESTIONS = {
+  standard: [
+    'Write a short professional cold outreach email (6-8 sentences) from SwarmHawk, a European cybersecurity intelligence company, to the webmaster or IT manager of {domain}.',
+    '',
+    'Findings from our passive scan:',
+    '- Exposed software: {sw_list}',
+    '- Live CVEs: {cve_list}',
+    '',
+    'Requirements:',
+    '1. Subject line on first line as: Subject: <subject>',
+    '2. Open with {top_cve_id} (CVSS {top_cvss}) as concrete proof',
+    '3. One sentence plain-language risk explanation',
+    '4. Reference NIS2 compliance briefly',
+    '5. Offer a free full security report at swarmhawk.eu',
+    '6. Professional, direct — not alarmist',
+    '7. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '',
+    'Output ONLY the email. No preamble. No markdown.',
+  ].join('\n'),
+
+  compliance: [
+    'Write a professional cold outreach email (6-8 sentences) from SwarmHawk to the IT manager or compliance officer of {domain}.',
+    '',
+    'Findings from our passive scan:',
+    '- Exposed software: {sw_list}',
+    '- Live CVEs: {cve_list}',
+    '',
+    'Requirements:',
+    '1. Subject line on first line as: Subject: <subject>',
+    '2. Open with {top_cve_id} (CVSS {top_cvss}) as the evidence',
+    '3. Immediately connect this to NIS2 Article 21 obligations and penalty exposure (up to €10M or 2% of annual revenue)',
+    '4. One sentence on what an attacker could do with this vulnerability',
+    '5. Offer a free full security report with NIS2 audit evidence at swarmhawk.eu',
+    '6. Calm, authoritative tone — not threatening',
+    '7. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '',
+    'Output ONLY the email. No preamble. No markdown.',
+  ].join('\n'),
+
+  executive: [
+    'Write a concise strategic cold outreach email (6-8 sentences) from SwarmHawk to the CISO or CTO of {domain}.',
+    '',
+    'Findings from our passive scan:',
+    '- Exposed software: {sw_list}',
+    '- Live CVEs: {cve_list}',
+    '',
+    'Requirements:',
+    '1. Subject line on first line as: Subject: <subject>',
+    '2. Lead with the business risk of {top_cve_id} (CVSS {top_cvss}) in executive language — no technical jargon',
+    '3. Mention that this is a passive scan finding visible to any attacker — no credentials were used',
+    '4. Reference NIS2 board-level accountability briefly',
+    '5. Offer a free full security report at swarmhawk.eu with remediation roadmap',
+    '6. Respectful of their time — no marketing language',
+    '7. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '',
+    'Output ONLY the email. No preamble. No markdown.',
+  ].join('\n'),
+
+  short: [
+    'Write a short punchy cold outreach email (4-5 sentences maximum) from SwarmHawk to {domain}.',
+    '',
+    'Facts:',
+    '- {top_cve_id} (CVSS {top_cvss}) detected on {sw_list}',
+    '- Additional CVEs: {cve_list}',
+    '',
+    'Requirements:',
+    '1. Subject line on first line as: Subject: <subject>',
+    '2. First sentence: state the CVE and CVSS score as plain fact',
+    '3. Second sentence: one-line consequence (data breach / NIS2 fine risk)',
+    '4. Third sentence: offer free report at swarmhawk.eu',
+    '5. No filler, no pleasantries beyond a single professional opener',
+    '6. Sign off: The SwarmHawk Team | swarmhawk.eu',
+    '',
+    'Output ONLY the email. No preamble. No markdown.',
+  ].join('\n'),
+};
+
+function adminLoadSuggestion(key) {
+  var ta = document.getElementById('tpl-prompt');
+  if (!ta) return;
+  var tpl = _EMAIL_SUGGESTIONS[key];
+  if (!tpl) return;
+  ta.value = tpl;
+  ta.focus();
+  ta.scrollTop = 0;
+  // Flash the textarea border lime briefly
+  ta.style.borderColor = 'rgba(203,255,0,.5)';
+  setTimeout(function(){ ta.style.borderColor = ''; }, 600);
+}
 
 var _emailTemplates = {};
 
