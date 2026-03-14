@@ -2879,6 +2879,22 @@ function renderReportPage(data, domain, isSample) {
           <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-paid">—</span><span class="admin-stat-lbl">Paid Sales</span></div>
         </div>
 
+        <!-- Developer API Stats -->
+        <div class="admin-section" style="margin-bottom:20px">
+          <div class="admin-section-title">🔑 Developer API Usage</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+            <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-active">—</span><span class="admin-stat-lbl">Active Keys</span><span class="admin-stat-sub" id="astat-api-total"></span></div>
+            <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-calls" style="color:var(--lime)">—</span><span class="admin-stat-lbl">API Calls (this month)</span></div>
+            <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-new7d">—</span><span class="admin-stat-lbl">New Keys (7d)</span><span class="admin-stat-sub" id="astat-api-new30d"></span></div>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Key (truncated)</th><th>Calls this month</th><th>Limit</th><th>Usage</th></tr></thead>
+              <tbody id="admin-api-body"><tr><td colspan="4" style="text-align:center;padding:16px;color:var(--grey)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Top risky + Recent scans side by side -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
           <!-- Top risky domains -->
@@ -6506,6 +6522,33 @@ async function adminLoadStats() {
     set('astat-new30',      data.users.new_30d);
     set('astat-scans-24h',  data.scans.last_24h);
     set('astat-paid',       data.revenue.total_sales);
+
+    // API key stats
+    if (data.api_keys) {
+      var ak = data.api_keys;
+      set('astat-api-active', ak.active);
+      set('astat-api-total',  ak.total + ' total keys');
+      set('astat-api-calls',  ak.calls_this_month);
+      set('astat-api-new7d',  ak.new_7d);
+      set('astat-api-new30d', ak.new_30d + ' keys (30d)');
+      var apiBody = document.getElementById('admin-api-body');
+      if (apiBody) {
+        if (!ak.top_users || !ak.top_users.length) {
+          apiBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:var(--grey)">No API activity yet</td></tr>';
+        } else {
+          apiBody.innerHTML = ak.top_users.map(function(k) {
+            var pct = Math.round(k.calls / (k.limit || 10) * 100);
+            var barColor = pct >= 80 ? '#C0392B' : 'var(--lime)';
+            return '<tr>'
+              + '<td style="font-family:Space Mono,monospace;font-size:11px;color:var(--lime)">' + k.key + '</td>'
+              + '<td style="font-family:Space Mono,monospace;font-weight:700;color:var(--white)">' + k.calls + '</td>'
+              + '<td style="font-family:Space Mono,monospace;color:var(--grey)">' + k.limit + '</td>'
+              + '<td style="min-width:80px"><div style="background:rgba(255,255,255,.08);border-radius:2px;height:6px"><div style="height:6px;border-radius:2px;background:'+barColor+';width:'+Math.min(pct,100)+'%"></div></div><span style="font-size:10px;color:var(--grey)">'+pct+'%</span></td>'
+              + '</tr>';
+          }).join('');
+        }
+      }
+    }
 
     // Top risky domains
     var riskyBody = document.getElementById('admin-risky-body');
