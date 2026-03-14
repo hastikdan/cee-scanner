@@ -3208,9 +3208,8 @@ function renderReportPage(data, domain, isSample) {
             <button id="acct-billing-btn" onclick="acctOpenBillingPortal()" style="background:transparent;border:1px solid rgba(203,255,0,.3);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:9px 16px;border-radius:6px;cursor:pointer">Manage Billing →</button>
           </div>
 
-          <!-- Danger zone card -->
-          <div style="background:var(--card);border:1px solid rgba(192,57,43,.3);border-radius:10px;padding:24px">
-            <!-- Developer API Keys -->
+          <!-- Developer API Keys card -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px">
             <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Developer API</div>
             <p style="font-size:12px;color:var(--grey);margin-bottom:12px;line-height:1.6">Use your API key to integrate SwarmHawk into your own tools. Free tier: 10 scans/month. Unlimited with any paid plan.</p>
             <div id="api-keys-list" style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:12px">Loading…</div>
@@ -3218,8 +3217,11 @@ function renderReportPage(data, domain, isSample) {
               <button onclick="acctGenerateApiKey()" id="btn-gen-api-key" style="background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(203,255,0,.25);border-radius:6px;cursor:pointer">+ Generate API Key</button>
               <a href="https://github.com/hastikdan/swarmhawk-backend#api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
             </div>
-            <div style="margin-top:24px"></div>
-            <div style="font-family:'Space Mono',monospace;font-size:10px;color:#C0392B;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Danger Zone</div>
+          </div>
+
+          <!-- Danger Zone card -->
+          <div style="background:rgba(192,57,43,.04);border:1px solid rgba(192,57,43,.3);border-radius:10px;padding:24px">
+            <div style="font-family:'Space Mono',monospace;font-size:10px;color:#C0392B;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">⚠ Danger Zone</div>
             <p style="font-size:12px;color:var(--grey);margin-bottom:16px;line-height:1.6">Deleting your account removes all domains, scan history, and reports permanently. This cannot be undone.</p>
             <button onclick="acctDeleteAccount()" style="background:rgba(192,57,43,.15);color:#E74C3C;font-family:'Space Mono',monospace;font-size:11px;padding:9px 16px;border:1px solid rgba(192,57,43,.4);border-radius:6px;cursor:pointer">Delete My Account</button>
           </div>
@@ -4746,12 +4748,17 @@ async function outreachApproveFromProspect(id) {
 
 var outreachProspects = [];
 var outreachFilter    = 'pending';
+var _outreachTemplates = null;
 
 async function outreachLoad() {
   // Also populate Section 1 (Threat Discovery) from backend on every load
   prospectLoadFromBackend();
+  // Pre-fetch country templates for re-draft feature
+  if (!_outreachTemplates) {
+    api('/outreach/templates').then(function(td){ _outreachTemplates = td.templates || {}; }).catch(function(){});
+  }
   try {
-    var data = await api('/outreach/prospects?status=' + outreachFilter + '&min_cvss=7');
+    var data = await api('/outreach/prospects?status=' + outreachFilter);
     outreachProspects = data.prospects || [];
     outreachUpdateStats();
     outreachRender();
@@ -4794,6 +4801,9 @@ function outreachRender() {
     return;
   }
 
+  var COUNTRY_OPTS = ['CZ','PL','SK','HU','RO','AT','DE','GB','FR','IT','ES','NL','SE','NO','FI','DK','CH','BE','PT','UA'];
+  var FLAGS = {CZ:'🇨🇿',PL:'🇵🇱',SK:'🇸🇰',HU:'🇭🇺',RO:'🇷🇴',AT:'🇦🇹',DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',IT:'🇮🇹',ES:'🇪🇸',NL:'🇳🇱',SE:'🇸🇪',NO:'🇳🇴',FI:'🇫🇮',DK:'🇩🇰',CH:'🇨🇭',BE:'🇧🇪',PT:'🇵🇹',UA:'🇺🇦'};
+
   list.innerHTML = outreachProspects.map(function(p, idx) {
     var cves    = Array.isArray(p.cves) ? p.cves : [];
     var top     = cves[0] || {};
@@ -4801,6 +4811,7 @@ function outreachRender() {
     var statusClass = 'status-' + p.status;
     var pillClass   = 'pill-' + p.status;
     var statusLabel = { pending:'⏳ Pending', approved:'✓ Approved', sent:'✉ Sent', skipped:'— Skipped' }[p.status] || p.status;
+    var isApproved  = p.status === 'approved';
 
     var cvssColor = p.max_cvss >= 9 ? '#E74C3C' : p.max_cvss >= 7 ? '#E67E22' : '#3498DB';
     var cveInline = top.id ? '<span class="outreach-cve-inline">' + top.id + ' CVSS ' + top.cvss + '</span>' : '';
@@ -4808,20 +4819,30 @@ function outreachRender() {
 
     var emailBody = (p.email_body || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
+    // Country template selector options
+    var tplOpts = COUNTRY_OPTS.map(function(c){
+      var sel = c === (p.country||'CZ') ? ' selected' : '';
+      return '<option value="'+c+'"'+sel+'>'+(FLAGS[c]||'')+'  '+c+'</option>';
+    }).join('');
+
     var actionBtns = '';
-    if (p.status === 'pending' || p.status === 'approved') {
-      actionBtns = (p.status === 'pending'
-        ? '<button class="btn-approve" onclick="outreachApprove(\''+p.id+'\','+idx+')">✓ Approve</button>'
-        : '<button class="btn-approve" style="opacity:.6" onclick="outreachUnapprove(\''+p.id+'\','+idx+')">↩ Unapprove</button>') +
-        '<button class="btn-regen-email" onclick="outreachRegenEmail(\''+p.id+'\','+idx+')">↻ Re-draft</button>' +
-        '<button class="btn-skip-prospect" onclick="outreachSkip(\''+p.id+'\','+idx+')">Skip</button>';
+    if (p.status !== 'sent') {
+      actionBtns = '<button class="btn-regen-email" onclick="outreachRegenEmail(\''+p.id+'\','+idx+')">↻ Re-draft</button>' +
+        (p.status !== 'skipped' ? '<button class="btn-skip-prospect" onclick="outreachSkip(\''+p.id+'\','+idx+')">Skip</button>' : '');
     }
 
     return '<div class="outreach-card ' + statusClass + '" id="ocard-' + idx + '">' +
-      '<div class="outreach-card-head" onclick="outreachToggle(' + idx + ')">' +
+      '<div class="outreach-card-head">' +
+        // Approval checkbox — click doesn't expand/collapse
+        '<label onclick="event.stopPropagation()" title="'+(isApproved?'Click to unapprove':'Click to approve')+'" style="display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;padding:4px 8px 4px 0">' +
+          '<input type="checkbox" id="oapprove-'+idx+'" '+(isApproved?'checked':'')+
+            ' onchange="outreachToggleApproval(\''+p.id+'\','+idx+',this)"'+
+            ' style="width:16px;height:16px;accent-color:var(--lime);cursor:pointer">' +
+          '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+(isApproved?'var(--lime)':'var(--grey)')+';letter-spacing:1px;white-space:nowrap">'+(isApproved?'APPROVED':'APPROVE')+'</span>' +
+        '</label>' +
         '<span style="font-size:12px;color:var(--grey);font-family:\'Space Mono\',monospace;min-width:24px">#'+(idx+1)+'</span>' +
-        '<span class="outreach-domain">' + p.domain + '</span>' +
-        '<div class="outreach-meta">' +
+        '<span class="outreach-domain" style="cursor:pointer" onclick="outreachToggle('+idx+')">' + p.domain + '</span>' +
+        '<div class="outreach-meta" style="cursor:pointer" onclick="outreachToggle('+idx+')">' +
           '<span style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace">' + swInline + '</span>' +
           (p.max_cvss ? '<span style="font-size:12px;font-weight:700;color:'+cvssColor+';font-family:\'Space Mono\',monospace">CVSS '+p.max_cvss+'</span>' : '') +
           cveInline +
@@ -4829,10 +4850,17 @@ function outreachRender() {
           '<span class="outreach-status-pill ' + pillClass + '">' + statusLabel + '</span>' +
           (p.edited ? '<span style="font-size:10px;color:var(--lime);font-family:\'Space Mono\',monospace">edited</span>' : '') +
         '</div>' +
-        '<span style="font-size:12px;color:var(--grey)" id="ochev-'+idx+'">▼</span>' +
+        '<span style="font-size:12px;color:var(--grey);cursor:pointer" id="ochev-'+idx+'" onclick="outreachToggle('+idx+')">▼</span>' +
       '</div>' +
       '<div class="outreach-card-body" id="obody-' + idx + '">' +
-        '<div style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace;margin:10px 0 4px">✉ EMAIL DRAFT — edit freely before approving</div>' +
+        // Country template selector
+        '<div style="display:flex;align-items:center;gap:10px;margin:10px 0 12px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:6px;flex-wrap:wrap">' +
+          '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap">Email Template</span>' +
+          '<select id="otpl-'+idx+'" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer;flex:1;min-width:120px">'+tplOpts+'</select>' +
+          '<button onclick="outreachRegenEmail(\''+p.id+'\','+idx+')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer;white-space:nowrap">↻ Re-draft with template</button>' +
+          '<button onclick="dbShowTabAdmin(\'admin\',null);setTimeout(function(){var s=document.getElementById(\'tpl-country\');if(s)s.value=\''+p.country+'\';adminLoadCountryTemplate();},200)" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap">Edit template ↗</button>' +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace;margin-bottom:4px">✉ EMAIL DRAFT — edit freely before approving</div>' +
         '<textarea class="outreach-email-editor" id="oemail-' + idx + '" ' +
           'onblur="outreachSaveDraft(\'' + p.id + '\',' + idx + ')" ' +
           'onkeydown="if((event.ctrlKey||event.metaKey)&&event.key===\'s\'){event.preventDefault();outreachSaveDraft(\''+p.id+'\','+idx+')}">' +
@@ -4902,18 +4930,57 @@ async function outreachSkip(id, idx) {
   } catch(e) { toast('Error: ' + e.message, true); }
 }
 
+async function outreachToggleApproval(id, idx, cb) {
+  var p = outreachProspects[idx];
+  var approve = cb.checked;
+  var label = document.querySelector('#ocard-'+idx+' label span');
+  try {
+    await api('/outreach/prospects/' + id + '/' + (approve ? 'approve' : 'unapprove'), { method: 'POST' });
+    p.status = approve ? 'approved' : 'pending';
+    var card = document.getElementById('ocard-'+idx);
+    if (card) { card.className = 'outreach-card status-' + p.status; }
+    var pill = card && card.querySelector('.outreach-status-pill');
+    if (pill) { pill.textContent = approve ? '✓ Approved' : '⏳ Pending'; pill.className = 'outreach-status-pill pill-' + p.status; }
+    if (label) { label.textContent = approve ? 'APPROVED' : 'APPROVE'; label.style.color = approve ? 'var(--lime)' : 'var(--grey)'; }
+    if (label && label.previousSibling) { /* checkbox title update */ }
+    outreachUpdateStats();
+  } catch(e) {
+    cb.checked = !approve; // revert
+    toast('Error: ' + e.message, true);
+  }
+}
+
 async function outreachRegenEmail(id, idx) {
   var ta = document.getElementById('oemail-'+idx);
   if (ta) ta.value = 'Regenerating…';
   try {
-    // Call backend intel endpoint to regenerate
     var p = outreachProspects[idx];
     var cves = Array.isArray(p.cves) ? p.cves : [];
     var sw   = Array.isArray(p.software) ? p.software : [];
-    var prompt = 'Write a short professional cold outreach email (6-8 sentences) from SwarmHawk to the IT manager of ' + p.domain + '.\n' +
-      'Exposed software: ' + sw.map(function(s){ return s.product+' '+s.version; }).join(', ') + '\n' +
-      'CVEs: ' + cves.map(function(c){ return c.id+' CVSS '+c.cvss; }).join(', ') + '\n' +
-      'Start with Subject: line. Reference NIS2. Offer free report at swarmhawk.com. Sign as SwarmHawk Team.';
+    var swList  = sw.map(function(s){ return s.product+' '+s.version; }).join(', ') || 'unknown software';
+    var cveList = cves.map(function(c){ return c.id+' CVSS '+c.cvss; }).join(', ') || 'no CVEs';
+    var topCve  = cves[0] || {};
+
+    // Get country template for selected country
+    var selEl = document.getElementById('otpl-'+idx);
+    var selCountry = selEl ? selEl.value : (p.country || 'CZ');
+    var promptTpl = (_outreachTemplates && _outreachTemplates[selCountry] && _outreachTemplates[selCountry].prompt) || null;
+
+    var prompt;
+    if (promptTpl) {
+      // Fill template variables
+      prompt = promptTpl
+        .replace(/\{domain\}/g, p.domain)
+        .replace(/\{sw_list\}/g, swList)
+        .replace(/\{cve_list\}/g, cveList)
+        .replace(/\{top_cve_id\}/g, topCve.id || 'N/A')
+        .replace(/\{top_cvss\}/g, topCve.cvss || 'N/A');
+    } else {
+      // Fallback prompt
+      prompt = 'Write a short professional cold outreach email (6-8 sentences) from SwarmHawk to the IT manager of ' + p.domain + '.\n' +
+        'Exposed software: ' + swList + '\nCVEs: ' + cveList + '\n' +
+        'Start with Subject: line. Reference NIS2. Offer free scan at swarmhawk.com. Sign as SwarmHawk Team.';
+    }
 
     var resp = await api('/intel', { method: 'POST', body: JSON.stringify({ prompt: prompt, max_tokens: 500 }) });
     var text = resp.text || resp.content || '';
