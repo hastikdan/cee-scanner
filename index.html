@@ -175,7 +175,7 @@ h1 span{color:var(--lime)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--card);border:1px solid rgba(203,255,0,.2);color:var(--white);font-size:13px;padding:12px 20px;border-radius:8px;animation:fadeIn .3s ease;max-width:360px;line-height:1.4}
+.toast{position:fixed;bottom:24px;right:24px;z-index:10100;background:var(--card);border:1px solid rgba(203,255,0,.2);color:var(--white);font-size:13px;padding:12px 20px;border-radius:8px;animation:fadeIn .3s ease;max-width:360px;line-height:1.4}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 /* LANDING SECTIONS */
@@ -1546,12 +1546,14 @@ const CHECK_LABELS = {
   sast:'SAST — Source Exposure', sca:'SCA — Dependency CVEs',
   dast:'DAST — App Testing', iac:'IaC — Config Exposure',
   ip_intel:'IP Intelligence', darkweb:'Dark-Web Intelligence',
+  paranoidlab:'Dark Web Leaks',
 };
 const CHECK_ICONS = {
   ssl:'🔒', headers:'🛡️', dns:'🌐', http_redirect:'↩️', breach:'💀',
   typosquat:'🎭', response_time:'⏱️', email_security:'📧', whois:'📋',
   urlhaus:'🦟', spamhaus:'🚨', safebrowsing:'🌍', virustotal:'🔍', cve:'🏷️',
   sast:'🔎', sca:'📦', dast:'⚡', iac:'🏗️', ip_intel:'🌐', darkweb:'🕸',
+  paranoidlab:'🕵️',
 };
 const CHECK_RECOMMENDATIONS = {
   ssl:'Renew or reissue the SSL/TLS certificate and enforce HTTPS site-wide.',
@@ -1572,6 +1574,7 @@ const CHECK_RECOMMENDATIONS = {
   dast:'Restrict or password-protect admin panels, API documentation, and monitoring endpoints.',
   iac:'Remove or block public access to exposed Terraform state, Kubernetes configs, and CI/CD pipeline files.',
   ip_intel:'Investigate the flagged IP addresses — check AbuseIPDB, request delisting from blocklists, and consider migrating to a reputable hosting provider.',
+  paranoidlab:'Reset all exposed credentials immediately, notify affected users, and enable dark-web monitoring alerts via ParanoidLab to detect future leaks.',
 };
 
 // ── NIS2 Autopilot helpers ────────────────────────────────────────────────
@@ -1659,6 +1662,16 @@ function renderNis2AiNarrative(ai) {
   return html;
 }
 
+// ── Open NIS2 tab from Overview banner ────────────────────────────────────
+function openNis2Autopilot() {
+  var tab = document.querySelector('.db-tab[onclick*="\'domains\'"]');
+  dbShowTab('domains', tab);
+  setTimeout(function(){
+    var grid = document.getElementById('nis2-domains-grid');
+    if (grid) grid.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 400);
+}
+
 // ── NIS2 tab: load all domains ────────────────────────────────────────────
 async function nis2Load() {
   var grid = document.getElementById('nis2-domains-grid');
@@ -1674,6 +1687,23 @@ async function nis2Load() {
     var results = await Promise.all(domains.map(function(dom){
       return api('/domains/'+dom.id+'/nis2').then(function(d){ return {dom:dom, nis2:d}; }).catch(function(){ return {dom:dom, nis2:null}; });
     }));
+    var NIS2_FIXES = {
+      ssl:            'Renew/upgrade TLS certificate → Art.21(2)(i)',
+      headers:        'Add HSTS, CSP, X-Frame-Options headers → Art.21(2)(i)',
+      email_security: 'Configure SPF & DKIM records → Art.21(2)(i)',
+      dmarc:          'Set DMARC policy to p=quarantine or p=reject → Art.21(2)(i)',
+      dnssec:         'Enable DNSSEC on DNS provider → Art.21(2)(h)',
+      open_ports:     'Close unnecessary open ports / tighten firewall → Art.21(2)(e)',
+      virustotal:     'Request removal from threat intel feeds → Art.21(2)(b)',
+      urlhaus:        'Scan site for malware injections & clean → Art.21(2)(b)',
+      spamhaus:       'Remove IP/domain from blacklists → Art.21(2)(b)',
+      leaks:          'Rotate all exposed credentials immediately → Art.21(2)(g)',
+      paranoidlab:    'Reset leaked passwords & notify affected users → Art.21(2)(g)',
+      typosquat:      'Register lookalike domains to prevent brandjacking → Art.21(2)(f)',
+      shodan:         'Reduce exposed attack surface (close services) → Art.21(2)(e)',
+      cms_version:    'Update CMS/frameworks to latest versions → Art.21(2)(e)',
+      dast:           'Fix web application vulnerabilities found in scan → Art.21(2)(e)',
+    };
     grid.innerHTML = '';
     results.forEach(function(r){
       var dom  = r.dom;
@@ -1683,15 +1713,48 @@ async function nis2Load() {
       var c    = pct !== null ? nis2Color(pct) : '#555';
       var bg   = pct !== null ? nis2RatingBg(pct) : 'rgba(255,255,255,.03)';
       var border = pct !== null ? nis2RatingBorder(pct) : 'rgba(255,255,255,.08)';
-      var cardHtml = '<div style="background:'+bg+';border:1px solid '+border+';border-radius:10px;padding:20px;display:flex;align-items:center;gap:20px">'
+
+      // Semaphore: three dots — only the active state lights up
+      var semR = (pct !== null && pct < 50)               ? '#C0392B' : 'rgba(192,57,43,.18)';
+      var semA = (pct !== null && pct >= 50 && pct < 80)  ? '#D4850A' : 'rgba(212,133,10,.18)';
+      var semG = (pct !== null && pct >= 80)               ? '#2ECC71' : 'rgba(46,204,113,.18)';
+      var semLabel = pct === null ? 'NO DATA' : pct >= 80 ? '✓ COMPLIANT' : pct >= 50 ? '⚠ PARTIAL' : '✕ NON-COMPLIANT';
+      var semLabelColor = pct === null ? '#555' : c;
+      var semaphore = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">'
+        +'<div title="Non-compliant" style="width:12px;height:12px;border-radius:50%;background:'+semR+'"></div>'
+        +'<div title="Partial compliance" style="width:12px;height:12px;border-radius:50%;background:'+semA+'"></div>'
+        +'<div title="Compliant" style="width:12px;height:12px;border-radius:50%;background:'+semG+'"></div>'
+        +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+semLabelColor+';letter-spacing:1px">'+semLabel+'</span>'
+        +'</div>';
+
+      // Top failing checks → quick fixes
+      var fixHtml = '';
+      if (nis2) {
+        var topGaps = (nis2.findings||[]).filter(function(f){ return !f.passed; })
+          .sort(function(a,b){ return b.weight - a.weight; }).slice(0, 3);
+        if (topGaps.length) {
+          fixHtml = '<div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.05);padding-top:8px">'
+            +'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--grey);letter-spacing:1px;margin-bottom:5px">QUICK FIXES</div>'
+            +topGaps.map(function(f){
+              return '<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-size:10px;color:#aaa">'
+                +'<span style="color:#C0392B;flex-shrink:0;margin-top:1px">▸</span>'
+                +'<span>'+(NIS2_FIXES[f.check]||f.requirement)+'</span>'
+                +'</div>';
+            }).join('')
+            +'</div>';
+        }
+      }
+
+      var cardHtml = '<div style="background:'+bg+';border:1px solid '+border+';border-radius:10px;padding:20px;display:flex;align-items:flex-start;gap:20px">'
         + (pct !== null ? nis2Gauge(pct, 72) : '<div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">?</div>')
-        +'<div style="flex:1">'
+        +'<div style="flex:1;min-width:0">'
+        +semaphore
         +'<div style="font-family:Space Mono,monospace;font-size:13px;color:var(--white);font-weight:700;margin-bottom:4px">'+dom.domain+'</div>'
-        +'<div style="font-size:11px;font-weight:700;color:'+c+';margin-bottom:6px">'+rating+'</div>'
         +(pct !== null ? '<div style="background:rgba(255,255,255,.06);border-radius:3px;height:4px;margin-bottom:8px"><div style="background:'+c+';height:4px;border-radius:3px;width:'+pct+'%"></div></div>' : '')
-        +(nis2 ? '<div style="font-size:11px;color:var(--grey)">'+(nis2.findings||[]).filter(function(f){return !f.passed;}).length+' gaps · '+(nis2.findings||[]).filter(function(f){return f.passed;}).length+' passed</div>' : '<div style="font-size:11px;color:var(--grey)">Scan required</div>')
+        +(nis2 ? '<div style="font-size:11px;color:var(--grey)">'+(nis2.findings||[]).filter(function(f){return !f.passed;}).length+' gaps · '+(nis2.findings||[]).filter(function(f){return f.passed;}).length+' passed · '+pct+'% compliant</div>' : '<div style="font-size:11px;color:var(--grey)">Scan required to assess compliance</div>')
+        +fixHtml
         +'</div>'
-        +'<button onclick="nis2RunAutopilot(\''+dom.id+'\',\''+dom.domain+'\')" style="background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.25);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:8px 16px;border-radius:6px;cursor:pointer;letter-spacing:1px;white-space:nowrap" id="nis2-ap-btn-'+dom.id+'">🛡 RUN AUTOPILOT →</button>'
+        +'<button onclick="nis2RunAutopilot(\''+dom.id+'\',\''+dom.domain+'\')" style="background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.25);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:8px 16px;border-radius:6px;cursor:pointer;letter-spacing:1px;white-space:nowrap;flex-shrink:0" id="nis2-ap-btn-'+dom.id+'">🛡 FULL REPORT →</button>'
         +'</div>';
       var card = document.createElement('div');
       card.innerHTML = cardHtml;
@@ -2018,11 +2081,28 @@ function renderAI(text) {
 }
 
 async function sendReportEmail(domainId) {
-  const emailInput=document.getElementById('email-to'); const btn=document.getElementById('btn-send-email');
-  const email=emailInput.value.trim(); if(!email||!email.includes('@')){toast('Enter a valid email',true);return;}
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> SENDING…';
-  try { await api('/send-report',{method:'POST',body:JSON.stringify({domain_id:domainId,email})}); toast(`✓ Report sent to ${email}`); btn.innerHTML='✓ SENT'; setTimeout(()=>{btn.innerHTML='SEND PDF REPORT';btn.disabled=false;},3000); }
-  catch(e){toast('Send failed: '+e.message,true);btn.innerHTML='SEND PDF REPORT';btn.disabled=false;}
+  const emailInput = document.getElementById('email-to');
+  const btn = document.getElementById('btn-send-email');
+  const email = emailInput.value.trim();
+  if (!email || !email.includes('@')) { toast('Enter a valid email address', true); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> SENDING…';
+  try {
+    await api('/send-report', { method: 'POST', body: JSON.stringify({ domain_id: domainId, email }) });
+    toast(`✓ Report sent to ${email}`);
+    btn.innerHTML = '✓ SENT';
+    btn.style.background = '#1a7a4a';
+    setTimeout(() => { btn.innerHTML = 'SEND PDF REPORT'; btn.style.background = ''; btn.disabled = false; }, 4000);
+  } catch(e) {
+    const msg = e.message.includes('503') ? 'Email service not configured on server'
+              : e.message.includes('404') ? 'Domain not found — try re-opening the report'
+              : e.message.includes('400') ? 'No scan data yet — run a scan first'
+              : e.message.includes('401') ? 'Session expired — please sign in again'
+              : 'Failed to send: ' + e.message;
+    toast(msg, true);
+    btn.innerHTML = 'SEND PDF REPORT';
+    btn.disabled = false;
+  }
 }
 
 function closeModal(){document.getElementById('modal').style.display='none';}
@@ -2392,7 +2472,7 @@ function renderReportPage(data, domain, isSample) {
               <div id="overview-nis2-status" style="font-size:14px;color:var(--white)">Loading NIS2 status across your domains…</div>
             </div>
           </div>
-          <button onclick="dbShowTab('domains',document.querySelector('[onclick*=\"domains\"]'));setTimeout(function(){document.getElementById('nis2-domains-grid').scrollIntoView({behavior:'smooth'})},200);nis2Load()" style="background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:9px 18px;border:none;border-radius:6px;cursor:pointer;letter-spacing:1px;white-space:nowrap">Open NIS2 Autopilot →</button>
+          <button onclick="openNis2Autopilot()" style="background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:9px 18px;border:none;border-radius:6px;cursor:pointer;letter-spacing:1px;white-space:nowrap">Open NIS2 Autopilot →</button>
         </div>
 
         <div class="db-two-col">
@@ -2848,6 +2928,66 @@ function renderReportPage(data, domain, isSample) {
               </tbody>
             </table>
           </div>
+        </div>
+
+        <!-- AI Email Draft Templates -->
+        <div class="admin-section" id="admin-email-templates-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div class="admin-section-title" style="margin-bottom:2px">✉ AI Email Draft Templates</div>
+              <div style="font-size:12px;color:var(--grey)">Customise outreach email prompts per country language · Variables: {domain} {sw_list} {cve_list} {top_cve_id} {top_cvss}</div>
+            </div>
+            <button class="btn-scan-all" onclick="adminLoadEmailTemplates()">↻ Load Templates</button>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:160px">
+              <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">Country</label>
+              <select id="tpl-country" class="prospect-select" style="width:100%" onchange="adminLoadCountryTemplate()">
+                <option value="CZ">🇨🇿 Czech Republic (cs)</option>
+                <option value="PL">🇵🇱 Poland (pl)</option>
+                <option value="SK">🇸🇰 Slovakia (sk)</option>
+                <option value="HU">🇭🇺 Hungary (hu)</option>
+                <option value="RO">🇷🇴 Romania (ro)</option>
+                <option value="AT">🇦🇹 Austria (de)</option>
+                <option value="DE">🇩🇪 Germany (de)</option>
+                <option value="FR">🇫🇷 France (fr)</option>
+                <option value="IT">🇮🇹 Italy (it)</option>
+                <option value="ES">🇪🇸 Spain (es)</option>
+                <option value="NL">🇳🇱 Netherlands (nl)</option>
+                <option value="SE">🇸🇪 Sweden (sv)</option>
+                <option value="PL">🇵🇱 Poland (pl)</option>
+                <option value="UA">🇺🇦 Ukraine (uk)</option>
+                <option value="GB">🇬🇧 UK / English</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:120px">
+              <label style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">Language Label</label>
+              <input id="tpl-language" type="text" placeholder="e.g. Czech" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:13px;padding:9px 12px;box-sizing:border-box;font-family:inherit">
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;padding-bottom:1px">
+              <button class="btn-scan-all" onclick="adminSaveEmailTemplate()">💾 Save</button>
+              <button onclick="adminResetEmailTemplate()" style="background:transparent;border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">↩ Reset to Default</button>
+            </div>
+          </div>
+
+          <!-- Prompt textarea -->
+          <textarea id="tpl-prompt" rows="10" placeholder="Loading template…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--white);font-size:12px;font-family:'Space Mono',monospace;padding:14px 16px;resize:vertical;line-height:1.6;outline:none"></textarea>
+
+          <!-- Test email generator -->
+          <div style="margin-top:16px;background:rgba(203,255,0,.03);border:1px solid rgba(203,255,0,.1);border-radius:8px;padding:16px">
+            <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Test Generated Email</div>
+            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+              <div style="flex:1;min-width:180px">
+                <label style="font-size:10px;color:var(--grey);font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px">Test Domain</label>
+                <input id="tpl-test-domain" type="text" value="example.cz" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:13px;padding:9px 12px;box-sizing:border-box;font-family:inherit">
+              </div>
+              <button class="btn-scan-all" onclick="adminTestEmailTemplate()" id="tpl-test-btn">⚡ Generate Test Email</button>
+            </div>
+            <div id="tpl-test-result" style="display:none;margin-top:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:14px;font-size:12px;color:#ccc;font-family:'Space Mono',monospace;white-space:pre-wrap;line-height:1.7"></div>
+          </div>
+
+          <div id="tpl-save-status" style="display:none;margin-top:8px;font-family:'Space Mono',monospace;font-size:11px;color:#2ECC71">✓ Template saved</div>
         </div>
 
         <!-- LLM Intelligence Costs (Portkey) -->
@@ -3341,21 +3481,35 @@ function dbRenderThreats() {
     return (o[a.check.status]||9) - (o[b.check.status]||9);
   });
 
-  // Priority actions — top 5 critical
-  var priority = all.filter(function(x){ return x.check.status === 'critical'; }).slice(0,5);
+  // Priority actions — top 8 critical, fill with warnings if fewer
+  var criticals = all.filter(function(x){ return x.check.status === 'critical'; });
+  var warnings  = all.filter(function(x){ return x.check.status === 'warning'; });
+  var priority  = criticals.slice(0, 8);
+  if (priority.length < 8) priority = priority.concat(warnings.slice(0, 8 - priority.length));
+
   var prEl = document.getElementById('threats-priority');
   if (!priority.length) {
     prEl.innerHTML = '<div class="db-empty">No critical findings — looking good!</div>';
   } else {
     prEl.innerHTML = priority.map(function(x, i) {
+      var isCrit = x.check.status === 'critical';
+      var pillClass = isCrit ? 'pill-critical' : 'pill-warning';
+      var checkKey = x.check.check || x.check.title || '';
+      var action = CHECK_RECOMMENDATIONS[checkKey] || (x.check.detail ? x.check.detail.substring(0,160) : 'Review and remediate this finding.');
       return '<div class="threat-fix-row">'+
         '<span class="fix-num">'+(i+1)+'</span>'+
         '<div class="fix-content">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+            '<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--lime);background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.15);padding:2px 8px;border-radius:10px">🌐 '+x.domain+'</span>'+
+          '</div>'+
           '<div class="fix-title">'+x.check.title+'</div>'+
           '<div class="fix-desc">'+(x.check.detail||'').substring(0,120)+(x.check.detail&&x.check.detail.length>120?'…':'')+'</div>'+
-          '<div class="fix-domain">'+x.domain+'</div>'+
+          '<div style="display:flex;gap:6px;align-items:baseline;margin-top:6px;font-size:11px;color:#aaa;line-height:1.5">'+
+            '<span style="color:#D4850A;flex-shrink:0">→</span>'+
+            '<span>'+action+'</span>'+
+          '</div>'+
         '</div>'+
-        '<span class="status-pill pill-critical fix-pill">CRITICAL</span>'+
+        '<span class="status-pill '+pillClass+' fix-pill">'+x.check.status.toUpperCase()+'</span>'+
         '</div>';
     }).join('');
   }
@@ -3372,10 +3526,16 @@ function dbRenderThreatsTable(all, filter) {
   }
   el.innerHTML = filtered.map(function(x) {
     var pc = x.check.status === 'critical' ? 'critical' : 'warning';
+    var checkKey = x.check.check || x.check.title || '';
+    var action = CHECK_RECOMMENDATIONS[checkKey] || '';
     return '<div class="threat-row">'+
       '<span class="status-pill pill-'+pc+'">'+x.check.status.toUpperCase()+'</span>'+
-      '<span class="threat-domain">'+x.domain+'</span>'+
-      '<div class="threat-text"><strong>'+x.check.title+'</strong>'+(x.check.detail||'').substring(0,100)+(x.check.detail&&x.check.detail.length>100?'…':'')+'</div>'+
+      '<span class="threat-domain" style="color:var(--lime);opacity:.85">'+x.domain+'</span>'+
+      '<div class="threat-text">'+
+        '<strong>'+x.check.title+'</strong>'+
+        (x.check.detail||'').substring(0,100)+(x.check.detail&&x.check.detail.length>100?'…':'')+
+        (action ? '<div style="margin-top:4px;color:#888;font-size:11px"><span style="color:#D4850A">→</span> '+action+'</div>' : '')+
+      '</div>'+
       '</div>';
   }).join('');
 }
@@ -3621,7 +3781,7 @@ var prospectScanning = false;
 
 function prospectFilterCountry(val) {
   prospectCurrentCountry = val;
-  prospectRender();
+  prospectLoadFromBackend();
 }
 
 function prospectGetVisible() {
@@ -4000,85 +4160,136 @@ function prospectAddDomain(domain) {
   toast('Domain pre-filled — press Enter or click Add →');
 }
 
-// ── Live scanner ──────────────────────────────────────────────────────────────
+// ── Prospect scanner: trigger backend daily-scan job ──────────────────────
 
 async function prospectRunScan() {
   if (prospectScanning) return;
   prospectScanning = true;
-  prospectAllData = {};
-  prospectEmailCache = {};
-
-  var progressWrap = document.getElementById('prospect-scan-progress');
-  var bar = document.getElementById('prospect-scan-bar');
-  var label = document.getElementById('prospect-scan-label');
-  var pct = document.getElementById('prospect-scan-pct');
-  if (progressWrap) progressWrap.style.display = 'block';
+  var btn = document.querySelector('[onclick="prospectRunScan()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '↻ Starting…'; }
 
   var list = document.getElementById('prospect-list');
-  if (list) list.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center"><div class="spinner" style="width:28px;height:28px;border-width:2.5px;margin:0 auto 12px"></div>Scanning domains across CEE…</div>';
-
-  var selectedCountry = (document.getElementById('prospect-country') || {}).value || 'all';
-  var countries = selectedCountry === 'all' ? Object.keys(PROSPECT_DOMAINS) : [selectedCountry];
-  var totalDomains = countries.reduce(function(s,c){ return s + (PROSPECT_DOMAINS[c] || []).length; }, 0);
-  var scanned = 0;
-
-  for (var ci = 0; ci < countries.length; ci++) {
-    var country = countries[ci];
-    var domains = PROSPECT_DOMAINS[country];
-    prospectAllData[country] = [];
-
-    // Scan in batches of 6 concurrently
-    var batchSize = 6;
-    for (var bi = 0; bi < domains.length; bi += batchSize) {
-      var batch = domains.slice(bi, bi + batchSize);
-      var results = await Promise.allSettled(batch.map(function(d){ return prospectScanDomain(d, country); }));
-      results.forEach(function(r){
-        scanned++;
-        if (r.status === 'fulfilled' && r.value) prospectAllData[country].push(r.value);
-      });
-
-      var p2 = Math.round((scanned / totalDomains) * 100);
-      if (bar) bar.style.width = p2 + '%';
-      if (pct) pct.textContent = p2 + '%';
-      if (label) label.textContent = 'Scanning ' + country + ' domains (' + scanned + '/' + totalDomains + ')…';
-
-      prospectRender();
-    }
-  }
-
-  if (progressWrap) progressWrap.style.display = 'none';
-  prospectScanning = false;
-  toast('✓ Prospect scan complete — ' + prospectGetVisible().length + ' targets found');
-}
-
-async function prospectScanDomain(domain, country) {
-  // Always return a record — even if scan finds nothing, domain appears in list
-  var base = { domain: domain, country: country, software: [], cve_hits: [], max_cvss: 0, priority: 'PENDING', live: false };
+  if (list) list.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center"><div class="spinner" style="width:28px;height:28px;border-width:2.5px;margin:0 auto 12px"></div><div style="margin-top:12px;color:var(--grey);font-size:13px">Backend scan triggered — scanning top 500 domains per country…</div><div style="color:var(--grey);font-size:11px;margin-top:6px;font-family:Space Mono,monospace">Results will appear below in ~2 minutes</div></div>';
 
   try {
-    var resp = await fetch(API + '/scan/passive?domain=' + encodeURIComponent(domain), {
-      method: 'GET',
-      headers: { 'Authorization': 'Bearer ' + sessionToken },
-      signal: AbortSignal.timeout(15000)
-    });
-    if (resp.ok) {
-      var data = await resp.json();
-      return {
-        domain:    domain,
-        country:   country,
-        software:  data.software  || [],
-        cve_hits:  data.cve_hits  || [],
-        max_cvss:  data.max_cvss  || 0,
-        priority:  data.priority  || 'LOW',
-        live:      true,
-      };
-    }
+    await api('/outreach/run-scan', { method: 'POST' });
+    toast('✓ Backend scan started — top 500/country across all regions');
+    // Poll for results after 90 seconds
+    setTimeout(function(){
+      prospectLoadFromBackend();
+      outreachLoad();
+    }, 90000);
+    // Also show whatever is in DB right now
+    await prospectLoadFromBackend();
   } catch(e) {
-    console.warn('Passive scan failed for ' + domain + ':', e.message);
+    toast('Scan trigger failed: ' + e.message, true);
+    if (list) list.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center;color:#C0392B">Error: ' + e.message + '</div>';
   }
 
-  // Mark as scanned but unreachable/no result
-  return Object.assign(base, { live: false });
+  prospectScanning = false;
+  if (btn) { btn.disabled = false; btn.textContent = '⟳ Run Now'; }
+}
+
+// Load prospects from backend DB grouped by country for Section 1
+async function prospectLoadFromBackend() {
+  var list = document.getElementById('prospect-list');
+  if (!list) return;
+
+  var selectedCountry = (document.getElementById('prospect-country') || {}).value || 'all';
+  var url = '/outreach/prospects?status=all&min_cvss=0&limit=200';
+  if (selectedCountry && selectedCountry !== 'all') url += '&country=' + selectedCountry;
+
+  try {
+    var data = await api(url);
+    var prospects = data.prospects || [];
+
+    if (!prospects.length) {
+      list.innerHTML = '<div class="db-empty" style="padding:60px;text-align:center">'
+        +'<div style="font-size:32px;margin-bottom:12px">📣</div>'
+        +'<div style="color:var(--white);font-size:15px;font-weight:600;margin-bottom:8px">No scan results yet</div>'
+        +'<div style="color:var(--grey);font-size:13px;max-width:420px;margin:0 auto 20px">Daily scan runs at <strong style="color:var(--lime)">08:00</strong>. Click <strong style="color:var(--lime)">Run Now</strong> to trigger immediately.</div>'
+        +'<button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Now</button></div>';
+      return;
+    }
+
+    // Update stats
+    var withCVE    = prospects.filter(function(p){ return (p.cves||[]).length > 0; });
+    var critical   = prospects.filter(function(p){ return p.max_cvss >= 9; });
+    var withWP     = prospects.filter(function(p){ return (p.software||[]).some(function(s){ return (s.product||'').includes('WordPress'); }); });
+    var el = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
+    el('pstat-total',    prospects.length);
+    el('pstat-cve',      withCVE.length);
+    el('pstat-critical', critical.length);
+    el('pstat-wp',       withWP.length);
+
+    // Group by country
+    var byCountry = {};
+    var FLAGS = {CZ:'🇨🇿',PL:'🇵🇱',SK:'🇸🇰',HU:'🇭🇺',RO:'🇷🇴',AT:'🇦🇹',DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',IT:'🇮🇹',ES:'🇪🇸',NL:'🇳🇱',SE:'🇸🇪',NO:'🇳🇴',FI:'🇫🇮',DK:'🇩🇰',CH:'🇨🇭',BE:'🇧🇪',PT:'🇵🇹',UA:'🇺🇦',RU:'🇷🇺'};
+    prospects.forEach(function(p){
+      if (!byCountry[p.country]) byCountry[p.country] = [];
+      byCountry[p.country].push(p);
+    });
+
+    var html = '';
+    Object.keys(byCountry).sort().forEach(function(country){
+      var arr = byCountry[country];
+      var flag = FLAGS[country] || '🌍';
+      var topCvss = Math.max.apply(null, arr.map(function(p){ return p.max_cvss||0; }));
+      var cvssColor = topCvss >= 9 ? '#C0392B' : topCvss >= 7 ? '#D4850A' : '#2980B9';
+
+      html += '<div style="margin-bottom:28px">'
+        +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)">'
+        +'<span style="font-size:20px">'+flag+'</span>'
+        +'<span style="font-family:Space Mono,monospace;font-size:13px;font-weight:700;color:var(--white)">'+country+'</span>'
+        +'<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--grey)">'+arr.length+' domains scanned</span>'
+        +'<span style="font-family:Space Mono,monospace;font-size:10px;color:'+cvssColor+';margin-left:auto">top CVSS: '+topCvss+'</span>'
+        +'</div>';
+
+      arr.forEach(function(p){
+        var cves   = Array.isArray(p.cves) ? p.cves : [];
+        var sw     = Array.isArray(p.software) ? p.software : [];
+        var cvss   = p.max_cvss || 0;
+        var priorityBorder = cvss>=9?'#C0392B':cvss>=7?'#D4850A':cvss>=4?'#2980B9':'#555';
+        var statusLabel = p.status === 'approved' ? '✓ approved' : p.status === 'sent' ? '✉ sent' : p.status === 'skipped' ? '— skipped' : '';
+
+        var cveInline = cves.slice(0,2).map(function(c){
+          var sc = (c.cvss||0)>=9?'#C0392B':(c.cvss||0)>=7?'#D4850A':'#3498DB';
+          return '<span style="font-family:Space Mono,monospace;font-size:9px;color:'+sc+';background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.15);padding:2px 7px;border-radius:4px">'+c.id+' '+c.cvss+'</span>';
+        }).join('');
+
+        var swInline = sw.slice(0,3).map(function(s){
+          return '<span style="font-size:10px;color:var(--grey)">'+s.product+' '+s.version+'</span>';
+        }).join(' · ');
+
+        html += '<div style="background:var(--card);border:1px solid rgba(255,255,255,.06);border-left:3px solid '+priorityBorder+';border-radius:8px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:flex-start;gap:16px">'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+          +'<span style="font-family:Space Mono,monospace;font-size:13px;color:var(--white);font-weight:700">'+p.domain+'</span>'
+          +(cvss>0?'<span style="font-family:Space Mono,monospace;font-size:10px;font-weight:700;color:'+priorityBorder+'">CVSS '+cvss+'</span>':'')
+          +(statusLabel?'<span style="font-size:10px;color:var(--lime);margin-left:4px">'+statusLabel+'</span>':'')
+          +'</div>'
+          +(cveInline?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">'+cveInline+'</div>':'')
+          +(swInline?'<div style="margin-top:2px">'+swInline+'</div>':'')
+          +'</div>'
+          +'<button onclick="outreachApproveFromProspect(\''+p.id+'\')" style="flex-shrink:0;background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:5px 12px;border-radius:6px;cursor:pointer">✓ Approve</button>'
+          +'</div>';
+      });
+      html += '</div>';
+    });
+
+    list.innerHTML = html;
+  } catch(e) {
+    console.warn('prospectLoadFromBackend:', e.message);
+  }
+}
+
+async function outreachApproveFromProspect(id) {
+  try {
+    await api('/outreach/prospects/' + id + '/approve', { method: 'POST' });
+    toast('✓ Approved for outreach');
+    prospectLoadFromBackend();
+    outreachLoad();
+  } catch(e) { toast('Error: ' + e.message, true); }
 }
 
 
@@ -4091,6 +4302,8 @@ var outreachProspects = [];
 var outreachFilter    = 'pending';
 
 async function outreachLoad() {
+  // Also populate Section 1 (Threat Discovery) from backend on every load
+  prospectLoadFromBackend();
   try {
     var data = await api('/outreach/prospects?status=' + outreachFilter + '&min_cvss=7');
     outreachProspects = data.prospects || [];
@@ -5368,6 +5581,83 @@ async function adminLoad() {
   adminLoadDomains(1);
   adminLoadProspects();
   adminLoadLLMStats();
+  adminLoadEmailTemplates();
+}
+
+// ── AI Email Template Editor ──────────────────────────────────────────────────
+
+var _emailTemplates = {};
+
+async function adminLoadEmailTemplates() {
+  try {
+    var d = await api('/outreach/templates');
+    _emailTemplates = d.templates || {};
+    adminLoadCountryTemplate();
+  } catch(e) {
+    // Silently fail — templates section just won't pre-populate
+    console.warn('adminLoadEmailTemplates:', e.message);
+  }
+}
+
+function adminLoadCountryTemplate() {
+  var country = (document.getElementById('tpl-country') || {}).value || 'CZ';
+  var tpl = _emailTemplates[country];
+  var promptEl = document.getElementById('tpl-prompt');
+  var langEl   = document.getElementById('tpl-language');
+  if (promptEl) promptEl.value = tpl ? tpl.prompt  : '';
+  if (langEl)   langEl.value   = tpl ? tpl.language : '';
+  var result = document.getElementById('tpl-test-result');
+  if (result) result.style.display = 'none';
+}
+
+async function adminSaveEmailTemplate() {
+  var country  = (document.getElementById('tpl-country')  || {}).value || '';
+  var prompt   = (document.getElementById('tpl-prompt')   || {}).value || '';
+  var language = (document.getElementById('tpl-language') || {}).value || 'en';
+  if (!country || !prompt.trim()) { toast('Select a country and enter a prompt', true); return; }
+  try {
+    await api('/outreach/templates/' + country, {
+      method: 'PUT',
+      body: JSON.stringify({ prompt: prompt, language: language }),
+    });
+    _emailTemplates[country] = { country, prompt, language, custom: true };
+    var status = document.getElementById('tpl-save-status');
+    if (status) { status.style.display = 'block'; setTimeout(function(){ status.style.display='none'; }, 2500); }
+    toast('✓ Template saved for ' + country);
+  } catch(e) { toast('Save failed: ' + e.message, true); }
+}
+
+async function adminResetEmailTemplate() {
+  var country = (document.getElementById('tpl-country') || {}).value || '';
+  if (!country) return;
+  if (!confirm('Reset ' + country + ' template to default English?')) return;
+  try {
+    var d = await api('/outreach/templates/' + country, { method: 'DELETE' });
+    delete _emailTemplates[country];
+    var promptEl = document.getElementById('tpl-prompt');
+    if (promptEl && d.prompt) promptEl.value = d.prompt;
+    toast('✓ Reset to default');
+  } catch(e) { toast('Reset failed: ' + e.message, true); }
+}
+
+async function adminTestEmailTemplate() {
+  var prompt = (document.getElementById('tpl-prompt')       || {}).value || '';
+  var domain = (document.getElementById('tpl-test-domain')  || {}).value || 'example.com';
+  var btn    = document.getElementById('tpl-test-btn');
+  var result = document.getElementById('tpl-test-result');
+  if (!prompt.trim()) { toast('Enter a prompt template first', true); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '⚡ Generating…'; }
+  if (result) { result.style.display = 'block'; result.textContent = 'Generating…'; }
+  try {
+    var d = await api('/outreach/templates/test', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: prompt, domain: domain }),
+    });
+    if (result) result.textContent = d.email || '(empty response)';
+  } catch(e) {
+    if (result) result.textContent = 'Error: ' + e.message;
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate Test Email'; }
 }
 
 async function adminLoadLLMStats() {
@@ -5508,7 +5798,8 @@ async function adminLoadStats() {
         breach:'Breach', typosquat:'Typosquat', response_time:'Response Time',
         email_security:'Email Sec', whois:'WHOIS', urlhaus:'URLhaus',
         spamhaus:'Spamhaus', safebrowsing:'Safe Browsing', virustotal:'VirusTotal',
-        cve:'CVE Scan', sast:'SAST', sca:'SCA', dast:'DAST', iac:'IaC', ip_intel:'IP Intel'
+        cve:'CVE Scan', sast:'SAST', sca:'SCA', dast:'DAST', iac:'IaC', ip_intel:'IP Intel',
+        paranoidlab:'Dark Web Leaks'
       };
       var html = '';
       Object.keys(data.check_breakdown).sort().forEach(function(name) {

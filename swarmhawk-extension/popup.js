@@ -6,6 +6,7 @@ const CHECK_LABELS = {
   cve: 'CVE / Software', headers: 'Security Headers', mx: 'Mail Records',
   blacklist: 'Blacklist Check', breach: 'Data Breach', whois: 'WHOIS / Domain Age',
   subdomain_takeover: 'Subdomain Takeover', ai_summary: 'AI Analysis',
+  paranoidlab: 'Dark Web Leaks',
 };
 
 let currentDomain = null;
@@ -106,9 +107,15 @@ function showResult(data) {
   const label = score >= 70 ? 'HIGH RISK' : score >= 30 ? 'MEDIUM RISK' : 'LOW RISK';
 
   const orderMap = { critical: 0, warning: 1, ok: 2, error: 3 };
-  const sorted = [...checks].sort((a, b) => (orderMap[a.status] ?? 9) - (orderMap[b.status] ?? 9));
+  // Always pin paranoidlab to the visible list regardless of status
+  const paranoidlabCheck = checks.find(c => c.check === 'paranoidlab');
+  const otherChecks = checks.filter(c => c.check !== 'paranoidlab');
+  const sorted = [
+    ...(paranoidlabCheck ? [paranoidlabCheck] : []),
+    ...otherChecks.sort((a, b) => (orderMap[a.status] ?? 9) - (orderMap[b.status] ?? 9)),
+  ];
 
-  const checkRows = sorted.slice(0, 10).map(c => {
+  const checkRows = sorted.slice(0, 12).map(c => {
     const dotClass = c.status === 'critical' ? 'dot-critical' : c.status === 'warning' ? 'dot-warning' : 'dot-ok';
     const statusClass = `status-${c.status}`;
     const label = CHECK_LABELS[c.check] || c.check.replace(/_/g, ' ');
