@@ -3065,7 +3065,7 @@ function renderReportPage(data, domain, isSample) {
             </div>
             <div style="display:flex;gap:8px">
               <button class="btn-scan-all" onclick="adminSaveReportEmailTemplate()">💾 Save</button>
-              <button onclick="adminResetReportEmailTemplate()" style="background:transparent;border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">↩ Reset</button>
+              <button onclick="adminResetReportEmailTemplate(this)" style="background:transparent;border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">↩ Reset</button>
             </div>
           </div>
 
@@ -6010,8 +6010,21 @@ async function adminSaveReportEmailTemplate() {
   } catch(e) { toast('Save failed: ' + e.message, true); }
 }
 
-async function adminResetReportEmailTemplate() {
-  if (!confirm('Reset to default email template?')) return;
+var _retResetPending = false;
+var _retResetTimer = null;
+async function adminResetReportEmailTemplate(btn) {
+  if (!_retResetPending) {
+    _retResetPending = true;
+    if (btn) { btn.textContent = '⚠ Confirm Reset?'; btn.style.background = 'rgba(192,57,43,.15)'; }
+    _retResetTimer = setTimeout(function() {
+      _retResetPending = false;
+      if (btn) { btn.textContent = '↩ Reset'; btn.style.background = ''; }
+    }, 3000);
+    return;
+  }
+  clearTimeout(_retResetTimer);
+  _retResetPending = false;
+  if (btn) { btn.textContent = '↩ Reset'; btn.style.background = ''; }
   try {
     var d = await api('/admin/report-email-template', { method: 'DELETE' });
     var tpl = d.template || {};
