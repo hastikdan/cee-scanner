@@ -417,7 +417,9 @@ h1 span{color:var(--lime)}
 
 /* Stat row */
 .db-stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
-.db-stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px}
+.db-stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .18s,background .18s;text-decoration:none;color:inherit}
+.db-stat-card:hover{border-color:rgba(203,255,0,.35);background:rgba(203,255,0,.03)}
+.db-stat-card.active-filter{border-color:var(--lime);background:rgba(203,255,0,.06)}
 .db-stat-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .db-stat-val{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--white);line-height:1}
 .db-stat-lbl{font-size:11px;color:var(--grey);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
@@ -2441,23 +2443,23 @@ function renderReportPage(data, domain, isSample) {
 
         <!-- Stat cards -->
         <div class="db-stat-row" id="db-stat-row">
-          <div class="db-stat-card">
+          <div class="db-stat-card" id="stat-card-critical" onclick="dbShowDomainsWithFilter('critical')" title="View critical domains">
             <div class="db-stat-icon" style="background:rgba(192,57,43,.1);color:#C0392B">🚨</div>
             <div><div class="db-stat-val" id="stat-critical">—</div><div class="db-stat-lbl">Critical Findings</div></div>
           </div>
-          <div class="db-stat-card">
+          <div class="db-stat-card" id="stat-card-warning" onclick="dbShowDomainsWithFilter('warning')" title="View domains with warnings">
             <div class="db-stat-icon" style="background:rgba(212,133,10,.1);color:#D4850A">⚠️</div>
             <div><div class="db-stat-val" id="stat-warnings">—</div><div class="db-stat-lbl">Warnings</div></div>
           </div>
-          <div class="db-stat-card">
+          <div class="db-stat-card" id="stat-card-clean" onclick="dbShowDomainsWithFilter('clean')" title="View clean domains">
             <div class="db-stat-icon" style="background:rgba(26,122,74,.1);color:#1A7A4A">✓</div>
             <div><div class="db-stat-val" id="stat-clean">—</div><div class="db-stat-lbl">Clean Domains</div></div>
           </div>
-          <div class="db-stat-card">
+          <div class="db-stat-card" id="stat-card-all" onclick="dbShowDomainsWithFilter('all')" title="View all domains">
             <div class="db-stat-icon" style="background:rgba(203,255,0,.1);color:var(--lime)">🌐</div>
             <div><div class="db-stat-val" id="stat-domains">—</div><div class="db-stat-lbl">Domains Monitored</div></div>
           </div>
-          <div class="db-stat-card">
+          <div class="db-stat-card" style="cursor:default" title="Average risk score across all domains">
             <div class="db-stat-icon" style="background:rgba(107,114,128,.1);color:var(--grey)">📊</div>
             <div><div class="db-stat-val" id="stat-avg-score">—</div><div class="db-stat-lbl">Avg Risk Score</div></div>
           </div>
@@ -2509,8 +2511,14 @@ function renderReportPage(data, domain, isSample) {
             <h2 class="db-title">My Domains</h2>
             <p style="color:var(--grey);font-size:13px;margin-top:4px">All monitored domains and their current security status</p>
           </div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <input class="db-search" id="domain-search" type="text" placeholder="Filter domains…" oninput="dbFilterDomains(this.value)">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="db-filter-row" id="domain-risk-filters">
+              <button class="db-filter active" id="drf-all"      onclick="dbSetDomainRiskFilter('all',this)">All</button>
+              <button class="db-filter"        id="drf-critical" onclick="dbSetDomainRiskFilter('critical',this)" style="color:#C0392B">🚨 Critical</button>
+              <button class="db-filter"        id="drf-warning"  onclick="dbSetDomainRiskFilter('warning',this)"  style="color:#D4850A">⚠ Warnings</button>
+              <button class="db-filter"        id="drf-clean"    onclick="dbSetDomainRiskFilter('clean',this)"    style="color:#1A7A4A">✓ Clean</button>
+            </div>
+            <input class="db-search" id="domain-search" type="text" placeholder="Search domains…" oninput="dbFilterDomains(this.value)">
             <button class="btn-scan-all" id="db-add-domain-btn" onclick="dbAddDomainPrompt()">+ Add Domain</button>
           </div>
         </div>
@@ -3268,9 +3276,45 @@ function dbRenderOverview() {
 
 // ── DOMAINS TABLE ───────────────────────────────────────
 
+var dbDomainRiskFilter = 'all';
+
+function dbSetDomainRiskFilter(level, btn) {
+  dbDomainRiskFilter = level;
+  document.querySelectorAll('#domain-risk-filters .db-filter').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  // Sync active highlight on overview stat cards
+  ['critical','warning','clean','all'].forEach(function(k){
+    var card = document.getElementById('stat-card-'+k);
+    if (card) card.classList.toggle('active-filter', k === level);
+  });
+  dbRenderDomainsTable(document.getElementById('domain-search').value);
+}
+
+function dbShowDomainsWithFilter(level) {
+  var domainsTabBtn = document.querySelector('.db-tab[onclick*="\'domains\'"]');
+  dbShowTab('domains', domainsTabBtn);
+  // Clear text search so filter shows all matching risk-level domains
+  var searchEl = document.getElementById('domain-search');
+  if (searchEl) searchEl.value = '';
+  // Apply risk filter
+  var pill = document.getElementById('drf-' + level);
+  dbSetDomainRiskFilter(level, pill);
+  // Scroll table into view
+  setTimeout(function(){
+    var el = document.getElementById('db-domains-table');
+    if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 200);
+}
+
 function dbRenderDomainsTable(filter) {
   filter = (filter || '').toLowerCase();
-  var list = filter ? dbDomains.filter(function(d){ return d.domain.indexOf(filter) > -1; }) : dbDomains;
+  var list = dbDomains;
+  // Apply risk level filter
+  if (dbDomainRiskFilter === 'critical') list = list.filter(function(d){ return (d.risk_score||0) >= 60; });
+  else if (dbDomainRiskFilter === 'warning')  list = list.filter(function(d){ return (d.risk_score||0) >= 30 && (d.risk_score||0) < 60; });
+  else if (dbDomainRiskFilter === 'clean')    list = list.filter(function(d){ return (d.risk_score||0) < 30; });
+  // Apply text search on top
+  if (filter) list = list.filter(function(d){ return d.domain.indexOf(filter) > -1; });
   var el = document.getElementById('db-domains-table');
 
   if (!list.length) {
