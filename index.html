@@ -1366,7 +1366,6 @@ async function loadDomains() {
       dbDomains = domains;
       dbRenderOverview();
       dbRenderDomainsTable();
-      dbRenderThreats();
     }
     if (!domains.some(d=>d.status==='scanning')){clearInterval(pollTimer);pollTimer=null;}
   } catch(e){console.error('Load failed:',e);}
@@ -2472,7 +2471,6 @@ function renderReportPage(data, domain, isSample) {
     <div class="db-tabs">
       <button class="db-tab active" onclick="dbShowTab('overview',this)">📊 Overview</button>
       <button class="db-tab" onclick="dbShowTab('domains',this)">🌐 Domains</button>
-      <button class="db-tab" onclick="dbShowTab('threats',this)">⚡ Threats & Intel</button>
       <button class="db-tab" onclick="dbShowTab('account',this);dbLoadAccount()">👤 Account</button>
       <button class="db-tab" id="marketing-tab-btn" onclick="dbShowTab('marketing',this)" style="display:none">📣 Marketing</button>
       <button class="db-tab" id="admin-tab-btn" onclick="dbShowTabAdmin('admin',this)" style="display:none">⚙️ Admin</button>
@@ -2660,59 +2658,31 @@ function renderReportPage(data, domain, isSample) {
           </div>
         </div>
 
+        <!-- ── AI INTELLIGENCE BRIEFING ────────────────────────── -->
+        <div style="margin-top:40px;border-top:1px solid var(--border);padding-top:36px">
+          <div class="db-header" style="margin-bottom:16px">
+            <div>
+              <div class="db-section-label" style="margin-bottom:4px">🤖 AI Threat Briefing</div>
+              <p style="color:var(--grey);font-size:12px;margin:0">AI-generated intelligence summary across all your monitored domains</p>
+            </div>
+            <button class="btn-scan-all" id="intel-refresh-btn" onclick="dbLoadIntel(true)">↻ AI Briefing</button>
+          </div>
+          <div class="db-card intel-card" id="intel-briefing">
+            <div class="db-card-head">
+              <span class="db-card-title">Briefing</span>
+              <span id="intel-timestamp" style="font-size:11px;color:var(--grey)"></span>
+            </div>
+            <div id="intel-content" class="intel-content">
+              <div class="db-empty" style="padding:40px;text-align:center">Click ↻ AI Briefing to generate your personalised threat briefing</div>
+            </div>
+          </div>
+          <div class="intel-grid" id="intel-grid" style="margin-top:20px"></div>
+        </div>
+
       </div>
     </div>
 
     <!-- ── TAB: REPORTS ──────────────────────────────────────── -->
-    <!-- ── TAB: THREATS & INTEL ─────────────────────────────── -->
-    <div class="db-page" id="db-threats">
-      <div class="db-inner">
-        <div class="db-header">
-          <div>
-            <h2 class="db-title">Threats & Intelligence</h2>
-            <p style="color:var(--grey);font-size:13px;margin-top:4px">Active findings across your domains + AI threat briefing</p>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <div class="db-filter-row">
-              <button class="db-filter active" onclick="dbFilterThreats('all',this)">All</button>
-              <button class="db-filter" onclick="dbFilterThreats('critical',this)">Critical</button>
-              <button class="db-filter" onclick="dbFilterThreats('warning',this)">Warnings</button>
-            </div>
-            <button class="btn-scan-all" id="intel-refresh-btn" onclick="dbLoadIntel(true)">↻ AI Briefing</button>
-          </div>
-        </div>
-
-        <!-- Priority fix list -->
-        <div class="db-card" style="margin-bottom:20px">
-          <div class="db-card-head"><span class="db-card-title">⚡ Priority Actions — Fix These First</span></div>
-          <div id="threats-priority" class="threats-priority">
-            <div class="db-empty">Loading threats…</div>
-          </div>
-        </div>
-
-        <!-- All findings table -->
-        <div class="db-card" style="margin-bottom:20px">
-          <div class="db-card-head"><span class="db-card-title">All Findings</span></div>
-          <div id="threats-all" class="threats-all">
-            <div class="db-empty">Loading…</div>
-          </div>
-        </div>
-
-        <!-- AI Intelligence Briefing -->
-        <div class="db-card intel-card" id="intel-briefing">
-          <div class="db-card-head">
-            <span class="db-card-title">🤖 AI Threat Briefing</span>
-            <span id="intel-timestamp" style="font-size:11px;color:var(--grey)"></span>
-          </div>
-          <div id="intel-content" class="intel-content">
-            <div class="db-empty" style="padding:40px;text-align:center">Click ↻ AI Briefing to generate your personalised threat briefing</div>
-          </div>
-        </div>
-
-        <!-- Category cards -->
-        <div class="intel-grid" id="intel-grid" style="margin-top:20px"></div>
-      </div>
-    </div>
 
     <div class="db-page" id="db-marketing">
       <div class="db-inner">
@@ -3289,11 +3259,10 @@ function dbShowTab(tab, btn) {
     });
   }
   // legacy redirects
-  if (tab === 'intel') tab = 'threats';
+  if (tab === 'intel' || tab === 'threats') tab = 'domains';
   if (tab === 'competitors' || tab === 'supply-chain' || tab === 'nis2') tab = 'domains';
   if (tab === 'prospects' || tab === 'outreach') tab = 'marketing';
   document.getElementById('db-'+tab).classList.add('active');
-  if (tab === 'threats' && !dbIntelLoaded) dbLoadIntel(false);
   if (tab === 'domains') { compLoad(); nis2Load(); }
   if (tab === 'marketing') outreachLoad();
 }
@@ -3304,7 +3273,6 @@ async function dbLoadAll() {
     dbDomains = data.domains || data || [];
     dbRenderOverview();
     dbRenderDomainsTable();
-    dbRenderThreats();
   } catch(e) {
     console.error('dbLoadAll:', e);
   }
@@ -3465,18 +3433,27 @@ function dbRenderDomainsTable(filter) {
       nextScan = '<span style="color:var(--lime);font-family:Space Mono,monospace;font-size:11px">'
         + nextDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) + '</span>';
     }
-    return '<tr>' +
-      '<td class="domain-cell">'+d.domain+'</td>' +
+    var checks = d.checks || d.latest_checks || [];
+    var hasFindings = checks.some(function(c){ return c.status==='critical'||c.status==='warning'; });
+    var threatBadge = hasFindings ? '' : '';
+    return '<tr style="cursor:pointer" onclick="dbToggleDomainThreats(\''+d.id+'\')" id="drow-'+d.id+'">' +
+      '<td class="domain-cell" style="display:flex;align-items:center;gap:8px">' +
+        '<span id="drow-chev-'+d.id+'" style="font-size:10px;color:var(--grey);transition:transform .2s;display:inline-block">▶</span>' +
+        d.domain +
+      '</td>' +
       '<td><span class="db-stat-val" style="color:'+c+';font-size:18px">'+s+'</span></td>' +
       '<td>'+status+'</td>' +
       '<td>'+ts+'</td>' +
       '<td>'+nextScan+'</td>' +
       '<td style="font-size:11px;color:var(--grey)">'+(d.country||'EU')+'</td>' +
-      '<td style="display:flex;gap:6px;flex-wrap:wrap">' +
+      '<td style="display:flex;gap:6px;flex-wrap:wrap" onclick="event.stopPropagation()">' +
         '<button class="db-btn-sm" onclick="dbOpenDomainReport(\''+d.id+'\',\''+d.domain+'\')">View Report</button>' +
         '<button class="db-btn-sm" onclick="dbRescanDomain(\''+d.id+'\',\''+d.domain+'\')">Re-scan</button>' +
       '</td>' +
-      '</tr>';
+      '</tr>' +
+      '<tr id="ddetail-'+d.id+'" style="display:none"><td colspan="7" style="padding:0">' +
+        '<div id="ddetail-body-'+d.id+'" style="padding:16px 20px;background:rgba(255,255,255,.02);border-top:1px solid var(--border)"></div>' +
+      '</td></tr>';
   }).join('');
 
   el.innerHTML = '<table class="db-table"><thead><tr>' +
@@ -3486,6 +3463,92 @@ function dbRenderDomainsTable(filter) {
 
 function dbFilterDomains(val) {
   dbRenderDomainsTable(val);
+}
+
+var _domainDetailOpen = {};
+
+function dbToggleDomainThreats(domainId) {
+  var detailRow = document.getElementById('ddetail-' + domainId);
+  var chev = document.getElementById('drow-chev-' + domainId);
+  if (!detailRow) return;
+  var isOpen = _domainDetailOpen[domainId];
+  _domainDetailOpen[domainId] = !isOpen;
+  detailRow.style.display = isOpen ? 'none' : '';
+  if (chev) chev.style.transform = isOpen ? '' : 'rotate(90deg)';
+  if (!isOpen) {
+    var body = document.getElementById('ddetail-body-' + domainId);
+    if (body) dbRenderSingleDomainThreats(domainId, body);
+  }
+}
+
+function dbRenderSingleDomainThreats(domainId, container) {
+  var d = dbDomains.find(function(x){ return x.id == domainId; });
+  if (!d) { container.innerHTML = '<div class="db-empty">Domain not found</div>'; return; }
+  var checks = d.checks || d.latest_checks || [];
+  var findings = checks.filter(function(c){ return c.status==='critical'||c.status==='warning'; });
+
+  if (!findings.length) {
+    container.innerHTML = '<div class="db-empty" style="padding:16px">✓ No critical or warning findings for this domain</div>';
+    return;
+  }
+
+  findings.sort(function(a,b){ return (a.status==='critical'?0:1)-(b.status==='critical'?0:1); });
+
+  var critCount = findings.filter(function(c){ return c.status==='critical'; }).length;
+  var warnCount = findings.filter(function(c){ return c.status==='warning'; }).length;
+  var doneCount = findings.filter(function(c){ return _paIsDone(domainId, c.check||c.title); }).length;
+
+  var html = '<div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
+  html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:var(--white);font-weight:700">⚡ Priority Actions</span>';
+  if (critCount) html += '<span style="background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:Space Mono,monospace;font-size:9px;padding:2px 7px;border-radius:10px">'+critCount+' CRITICAL</span>';
+  if (warnCount) html += '<span style="background:rgba(212,133,10,.12);border:1px solid rgba(212,133,10,.25);color:#D4850A;font-family:Space Mono,monospace;font-size:9px;padding:2px 7px;border-radius:10px">'+warnCount+' WARNING</span>';
+  html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;margin-left:auto">'+doneCount+'/'+findings.length+' resolved</span>';
+  html += '</div>';
+
+  findings.forEach(function(c) {
+    var checkKey = c.check || c.title || '';
+    var done = _paIsDone(domainId, checkKey);
+    var isCrit = c.status === 'critical';
+    var statusCol = isCrit ? '#C0392B' : '#D4850A';
+    var choices = FIX_CHOICES[checkKey] || [CHECK_RECOMMENDATIONS[checkKey] || 'Review and remediate this finding.'];
+    var rowBg = done ? 'rgba(46,204,113,.03)' : isCrit ? 'rgba(192,57,43,.04)' : 'rgba(212,133,10,.03)';
+    var rowBorder = done ? 'rgba(46,204,113,.1)' : isCrit ? 'rgba(192,57,43,.12)' : 'rgba(212,133,10,.1)';
+
+    html += '<div style="background:'+rowBg+';border:1px solid '+rowBorder+';border-radius:8px;padding:14px 16px;margin-bottom:8px;'+(done?'opacity:.55':'')+'transition:opacity .2s">';
+    html += '<div style="display:flex;align-items:flex-start;gap:12px">';
+    html += '<button onclick="paMarkInline(\''+domainId+'\',\''+checkKey.replace(/'/g,"\\'")+'\')" title="'+(done?'Mark as not done':'Mark as resolved')+'" style="flex-shrink:0;width:20px;height:20px;border-radius:4px;border:1px solid '+(done?'#2ECC71':'rgba(255,255,255,.2)')+';background:'+(done?'rgba(46,204,113,.2)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;color:#2ECC71;font-size:12px">'+(done?'✓':'')+'</button>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
+    html += '<span style="font-size:13px;font-weight:700;color:'+(done?'#555':'var(--white)')+';'+(done?'text-decoration:line-through':'')+'">'+c.title+'</span>';
+    html += '<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;color:'+statusCol+';background:rgba('+(isCrit?'192,57,43':'212,133,10')+',.1);padding:2px 7px;border-radius:4px">'+c.status.toUpperCase()+'</span>';
+    html += '</div>';
+    if (c.detail) html += '<div style="font-size:11px;color:#777;margin-bottom:10px;line-height:1.5">'+(c.detail||'').substring(0,160)+(c.detail.length>160?'…':'')+'</div>';
+
+    html += '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:10px">';
+    html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Fix options</div>';
+    choices.forEach(function(step, si) {
+      var stepKey = checkKey + '_step_' + si;
+      var stepDone = _paIsDone(domainId, stepKey);
+      html += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">';
+      html += '<button onclick="paMarkInline(\''+domainId+'\',\''+stepKey.replace(/'/g,"\\'")+'\')" style="flex-shrink:0;width:16px;height:16px;border-radius:3px;border:1px solid '+(stepDone?'#2ECC71':'rgba(255,255,255,.15)')+';background:'+(stepDone?'rgba(46,204,113,.15)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;color:#2ECC71;font-size:10px">'+(stepDone?'✓':'')+'</button>';
+      html += '<span style="font-size:11px;color:'+(stepDone?'#555':'#aaa')+';line-height:1.5;flex:1;'+(stepDone?'text-decoration:line-through':'')+'">'+step+'</span>';
+      html += '<button onclick="paCopyFix(\''+step.replace(/'/g,"\\'").replace(/"/g,'&quot;')+'\',this)" style="flex-shrink:0;background:transparent;border:1px solid rgba(255,255,255,.08);color:#555;font-family:Space Mono,monospace;font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;white-space:nowrap">📋 Copy</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '</div></div></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function paMarkInline(domainId, checkKey) {
+  try {
+    if (_paIsDone(domainId, checkKey)) localStorage.removeItem(_paKey(domainId, checkKey));
+    else localStorage.setItem(_paKey(domainId, checkKey), '1');
+  } catch(e){}
+  var body = document.getElementById('ddetail-body-' + domainId);
+  if (body) dbRenderSingleDomainThreats(domainId, body);
 }
 
 function dbAddDomainPrompt() {
@@ -3641,14 +3704,11 @@ function _paKey(domainId, checkKey) { return 'pa_done_' + domainId + '_' + check
 function _paIsDone(domainId, checkKey) { try { return !!localStorage.getItem(_paKey(domainId, checkKey)); } catch(e){ return false; } }
 function paMark(domainId, checkKey, el) {
   try {
-    if (_paIsDone(domainId, checkKey)) {
-      localStorage.removeItem(_paKey(domainId, checkKey));
-    } else {
-      localStorage.setItem(_paKey(domainId, checkKey), '1');
-    }
+    if (_paIsDone(domainId, checkKey)) localStorage.removeItem(_paKey(domainId, checkKey));
+    else localStorage.setItem(_paKey(domainId, checkKey), '1');
   } catch(e){}
-  // Re-render so the row style updates
-  dbRenderThreats();
+  var body = document.getElementById('ddetail-body-' + domainId);
+  if (body) dbRenderSingleDomainThreats(domainId, body);
 }
 function paCopyFix(text, btn) {
   navigator.clipboard.writeText(text).then(function(){
