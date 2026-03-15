@@ -1681,6 +1681,12 @@ function openNis2Autopilot() {
   }, 400);
 }
 
+// Navigate to Domains tab, then trigger the full NIS2 report there (called from Overview cards)
+function nis2GoToReport(domainId, domainName) {
+  openNis2Autopilot();
+  setTimeout(function(){ nis2RunAutopilot(domainId, domainName); }, 600);
+}
+
 // ── NIS2 tab: load all domains ────────────────────────────────────────────
 async function nis2Load() {
   var grid = document.getElementById('nis2-domains-grid');
@@ -2542,17 +2548,6 @@ function renderReportPage(data, domain, isSample) {
           </div>
         </div>
 
-        <!-- NIS2 highlight banner -->
-        <div id="overview-nis2-banner" style="background:linear-gradient(135deg,rgba(203,255,0,.06),rgba(203,255,0,.02));border:1px solid rgba(203,255,0,.15);border-radius:10px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:14px;flex:1">
-            <div style="font-size:28px">🛡</div>
-            <div>
-              <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">NIS2 Compliance Autopilot</div>
-              <div id="overview-nis2-status" style="font-size:14px;color:var(--white)">Loading NIS2 status across your domains…</div>
-            </div>
-          </div>
-          <button onclick="openNis2Autopilot()" style="background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:9px 18px;border:none;border-radius:6px;cursor:pointer;letter-spacing:1px;white-space:nowrap">Open NIS2 Autopilot →</button>
-        </div>
 
         <div class="db-two-col">
           <!-- Domain list summary -->
@@ -2581,19 +2576,9 @@ function renderReportPage(data, domain, isSample) {
         <!-- NIS2 Article 21 full overview (all domains) -->
         <div id="overview-nis2-full" style="margin-top:20px;display:none">
           <div class="db-card-head" style="margin-bottom:14px">
-            <span class="db-card-title">🛡 NIS2 Article 21 — Compliance Autopilot</span>
-            <button class="db-card-link" onclick="openNis2Autopilot()">Open full autopilot →</button>
+            <span class="db-card-title">🛡 NIS2 — Compliance Overview</span>
           </div>
           <div id="overview-nis2-full-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
-        </div>
-
-        <!-- NIS2 domains needing attention -->
-        <div id="overview-nis2-section" style="margin-top:20px;display:none">
-          <div class="db-card-head" style="margin-bottom:12px">
-            <span class="db-card-title">⚠ NIS2 — Domains Needing Attention</span>
-            <button class="db-card-link" onclick="dbShowTab('domains',null)">Full report →</button>
-          </div>
-          <div id="overview-nis2-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
         </div>
 
       </div>
@@ -3380,66 +3365,13 @@ function dbRenderOverview() {
     }).join('');
   }
 
-  // NIS2 overview banner — async load compliance for scanned domains
+  // NIS2 — Compliance Overview: load Article 21 scorecard for all scanned domains
   (async function() {
     var scannedDomains = dbDomains.filter(function(d){ return d.scanned_at; }).slice(0,5);
-    if (!scannedDomains.length) {
-      var el = document.getElementById('overview-nis2-status');
-      if (el) el.textContent = 'Add and scan domains to see NIS2 compliance status.';
-      return;
-    }
+    if (!scannedDomains.length) return;
     var results = await Promise.all(scannedDomains.map(function(dom){
       return api('/domains/'+dom.id+'/nis2').then(function(d){ return d; }).catch(function(){ return null; });
     }));
-    var valid = results.filter(Boolean);
-    var avgPct = valid.length ? Math.round(valid.reduce(function(s,r){ return s+(r.compliance_pct||0); },0)/valid.length) : null;
-    var nonCompliant = valid.filter(function(r){ return r.compliance_pct < 50; }).length;
-    var partial = valid.filter(function(r){ return r.compliance_pct >= 50 && r.compliance_pct < 80; }).length;
-    var compliant = valid.filter(function(r){ return r.compliance_pct >= 80; }).length;
-    var el = document.getElementById('overview-nis2-status');
-    if (el && avgPct !== null) {
-      var c = nis2Color(avgPct);
-      el.innerHTML = '<span style="font-weight:700;color:'+c+'">'+avgPct+'% avg compliance</span>'
-        +' across '+valid.length+' scanned domain'+(valid.length!==1?'s':'')
-        +' &nbsp;·&nbsp; <span style="color:#2ECC71">'+compliant+' compliant</span>'
-        +' · <span style="color:#D4850A">'+partial+' partial</span>'
-        +' · <span style="color:#C0392B">'+nonCompliant+' non-compliant</span>';
-    }
-
-    // Populate NIS2 needs-attention grid (domains < 80%)
-    var paired = results.map(function(r, i){ return {r:r, dom:scannedDomains[i]}; })
-      .filter(function(p){ return p.r && p.r.compliance_pct !== null && p.r.compliance_pct < 80; })
-      .sort(function(a,b){ return (a.r.compliance_pct||0)-(b.r.compliance_pct||0); });
-    var section = document.getElementById('overview-nis2-section');
-    var grid = document.getElementById('overview-nis2-grid');
-    if (section && grid && paired.length) {
-      section.style.display = 'block';
-      grid.innerHTML = paired.map(function(p) {
-        var r = p.r; var dom = p.dom;
-        var pct = r.compliance_pct || 0;
-        var col = nis2Color(pct);
-        var label = pct >= 50 ? '⚠ PARTIAL' : '✕ NON-COMPLIANT';
-        var labelCol = pct >= 50 ? '#D4850A' : '#C0392B';
-        var topGaps = (r.findings||[]).filter(function(f){ return !f.passed; })
-          .sort(function(a,b){ return b.weight-a.weight; }).slice(0,2);
-        var fixList = topGaps.map(function(f){
-          return '<div style="font-size:10px;color:#888;display:flex;gap:5px;margin-top:3px">'
-            +'<span style="color:'+labelCol+';flex-shrink:0">▸</span><span>'+(f.requirement||f.check)+'</span></div>';
-        }).join('');
-        return '<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer" onclick="dbShowTab(\'domains\',null)">'
-          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
-          +'<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--white);font-weight:700">'+(dom.domain||'')+'</span>'
-          +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+labelCol+';background:rgba('+( pct>=50?'212,133,10':'192,57,43')+',.1);padding:2px 8px;border-radius:4px">'+label+'</span>'
-          +'</div>'
-          +'<div style="background:rgba(255,255,255,.06);border-radius:3px;height:4px;margin-bottom:8px">'
-          +'<div style="background:'+col+';height:4px;border-radius:3px;width:'+pct+'%"></div></div>'
-          +'<div style="font-family:Space Mono,monospace;font-size:11px;color:'+col+'">'+(pct)+'% compliant</div>'
-          +fixList
-          +'</div>';
-      }).join('');
-    } else if (section) {
-      section.style.display = 'none'; // all compliant — hide section
-    }
 
     // ── NIS2 Article 21 full scorecard (all scanned domains) ──────────────
     var ARTICLE_LABELS = {
@@ -3524,9 +3456,9 @@ function dbRenderOverview() {
           +'<div style="margin-bottom:4px">'+articleHtml+'</div>'
           // Top gaps
           + gapsHtml
-          // Run Autopilot button
+          // Full report button — navigates to Domains tab then runs autopilot there
           +'<div style="margin-top:12px">'
-            +'<button onclick="event.stopPropagation();nis2RunAutopilot(\''+dom.id+'\',\''+dom.domain+'\')" style="width:100%;background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;font-weight:700;padding:7px 0;border-radius:5px;cursor:pointer;letter-spacing:1px">⚡ RUN NIS2 AUTOPILOT</button>'
+            +'<button onclick="event.stopPropagation();nis2GoToReport(\''+dom.id+'\',\''+dom.domain+'\')" style="width:100%;background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;font-weight:700;padding:7px 0;border-radius:5px;cursor:pointer;letter-spacing:1px">📋 VIEW FULL NIS2 REPORT →</button>'
           +'</div>'
         +'</div>';
       }).join('');
