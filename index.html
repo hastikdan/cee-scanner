@@ -3571,7 +3571,6 @@ function dbRenderDomainsTable(filter) {
       '<td style="font-size:11px;color:var(--grey)">'+(d.country||'EU')+'</td>' +
       '<td style="display:flex;gap:6px;flex-wrap:wrap" onclick="event.stopPropagation()">' +
         '<button class="db-btn-sm" onclick="dbOpenDomainReport(\''+d.id+'\',\''+d.domain+'\')">View Report</button>' +
-        '<button class="db-btn-sm" onclick="dbRescanDomain(\''+d.id+'\',\''+d.domain+'\')">Re-scan</button>' +
       '</td>' +
       '</tr>' +
       '<tr id="ddetail-'+d.id+'" style="display:none"><td colspan="7" style="padding:0">' +
@@ -3822,9 +3821,39 @@ async function dbScanAll() {
   setTimeout(dbLoadAll, 5000);
 }
 
-function dbOpenDomainReport(id, domain) {
+async function dbOpenDomainReport(id, domain) {
   var domainObj = dbDomains.find(function(d){ return d.id == id; }) || {id:id, domain:domain};
-  openReport(id, domain, domainObj.paid || domainObj.subscription_active || false);
+  var paid = domainObj.paid || domainObj.subscription_active || false;
+
+  // Show modal immediately with scanning state
+  document.getElementById('modal').style.display = 'flex';
+  document.getElementById('modal-domain').textContent = domain;
+  document.getElementById('modal-badge').innerHTML = paid ? '<span class="badge-paid">ANNUAL</span>' : '<span class="badge-free">FREE</span>';
+  document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:48px"><div class="spinner"></div><div style="margin-top:14px;color:var(--grey);font-size:13px">Scanning '+domain+'…</div></div>';
+
+  // Trigger rescan
+  try { await api('/domains/'+id+'/rescan', {method:'POST'}); } catch(e) { /* ignore */ }
+
+  // Poll until scan completes (max ~3 min)
+  var attempts = 0;
+  (async function poll() {
+    if (document.getElementById('modal').style.display === 'none') return; // user closed modal
+    try {
+      var data = await api('/domains/'+id+'/report');
+      if ((data.status === 'scanning' || data.status === 'pending') && attempts < 60) {
+        attempts++;
+        setTimeout(poll, 3000);
+        return;
+      }
+      if (!data.checks && !data.risk_score) {
+        document.getElementById('modal-body').innerHTML = '<div style="padding:24px;color:var(--grey);text-align:center">No scan data available yet — try again in a moment.</div>';
+        return;
+      }
+      renderReport(data, id, domain);
+    } catch(e) {
+      document.getElementById('modal-body').innerHTML = '<div style="padding:24px;color:var(--red)">Error: '+e.message+'</div>';
+    }
+  })();
 }
 
 // ── REPORTS HISTORY ─────────────────────────────────────
