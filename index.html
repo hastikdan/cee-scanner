@@ -3717,10 +3717,16 @@ async function dbDiscoverContacts(domainId) {
 
 async function dbSaveContact(domainId) {
   var input = document.getElementById('dcontact-input-'+domainId);
+  var btn = input ? input.parentElement.querySelector('button') : null;
   if (!input) return;
   var email = input.value.trim();
-  if (!email || !email.includes('@')) { input.style.borderColor = '#E74C3C'; return; }
+  if (!email || !email.includes('@')) {
+    input.style.borderColor = '#E74C3C';
+    toast('Enter a valid email address', true);
+    return;
+  }
   input.style.borderColor = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   try {
     await api('/domains/'+domainId+'/contact', {
       method: 'PATCH',
@@ -3730,8 +3736,12 @@ async function dbSaveContact(domainId) {
     if (d) d.primary_contact = email;
     input.style.borderColor = 'rgba(203,255,0,.4)';
     setTimeout(function(){ input.style.borderColor = ''; }, 1500);
+    toast('✓ Contact saved');
   } catch(e) {
     input.style.borderColor = '#E74C3C';
+    toast('Failed to save: ' + e.message, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   }
 }
 
