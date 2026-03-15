@@ -4857,7 +4857,7 @@ async function prospectRunScan() {
   // If already running on server, just attach to progress
   try {
     var existing = await api('/outreach/scan-progress');
-    if (existing.status === 'running' || existing.status === 'fetching') {
+    if (existing.status === 'running' || existing.status === 'fetching' || existing.status === 'already_running') {
       prospectScanning = true;
       _prospectAttachProgress();
       return;
@@ -4907,7 +4907,7 @@ function _prospectAttachProgress() {
       var p = await api('/outreach/scan-progress');
       _renderScanProgress(p);
 
-      if (p.status === 'done') {
+      if (p.status === 'done' || p.status === 'idle') {
         clearInterval(_scanPollTimer);
         _scanPollTimer = null;
         prospectScanning = false;
@@ -4917,7 +4917,9 @@ function _prospectAttachProgress() {
         // Load fresh results
         await prospectLoadFromBackend();
         await outreachLoad();
-        toast('✓ Scan complete — ' + (p.found || 0) + ' vulnerable domains found');
+        if (p.status === 'done') {
+          toast('✓ Scan complete — ' + (p.found || 0) + ' vulnerable domains found');
+        }
         // Hide panel after 8s
         setTimeout(function(){
           var panel = document.getElementById('prospect-scan-panel');
