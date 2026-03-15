@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwarmHawk Knowledge Base</title>
+<meta name="description" content="Complete guide to SwarmHawk — 22 security checks, risk scoring, dashboard, NIS2 compliance, API and MCP integration.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0d12;--card:#16151e;--border:rgba(255,255,255,.08);
+  --white:#f0eef8;--grey:#6b6880;--lime:#cbff00;--black:#0e0d12;
+  --red:#C0392B;--amber:#D4850A;--green:#2ECC71;--blue:#4285F4;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.6}
+
+/* ── Layout ── */
+.kb-layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--border);padding:28px 0}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+.sb-logo{font-family:'Space Mono',monospace;font-weight:700;font-size:13px;letter-spacing:2px;color:var(--white);padding:0 24px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sb-logo a{text-decoration:none;color:inherit}
+.sb-logo span{color:var(--lime)}
+.sb-logo .kb-badge{display:block;font-size:9px;color:var(--grey);letter-spacing:1px;margin-top:4px;font-weight:400}
+.sb-section{font-family:'Space Mono',monospace;font-size:9px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;padding:14px 24px 6px}
+.sb-link{display:block;padding:6px 24px;font-size:12px;color:var(--grey);text-decoration:none;border-left:2px solid transparent;transition:all .15s}
+.sb-link:hover{color:var(--white);border-left-color:rgba(203,255,0,.3)}
+.sb-link.active{color:var(--lime);border-left-color:var(--lime);background:rgba(203,255,0,.04)}
+.sb-updated{display:block;font-size:10px;color:rgba(203,255,0,.4);padding:20px 24px 0;border-top:1px solid var(--border);margin-top:12px}
+
+/* ── Content ── */
+.kb-content{padding:48px 64px 80px;max-width:860px}
+h1{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--white);margin-bottom:10px}
+h2{font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--white);margin:56px 0 16px;padding-bottom:10px;border-bottom:1px solid rgba(203,255,0,.1)}
+h3{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--white);margin:28px 0 8px;letter-spacing:.5px}
+p{color:var(--grey);line-height:1.8;margin-bottom:14px}
+a{color:var(--lime);text-decoration:none}
+a:hover{text-decoration:underline}
+ul,ol{color:var(--grey);padding-left:20px;margin-bottom:14px;line-height:1.9}
+li{margin-bottom:2px}
+strong{color:var(--white);font-weight:600}
+code{font-family:'Space Mono',monospace;font-size:11px;background:rgba(203,255,0,.07);color:var(--lime);padding:2px 6px;border-radius:4px}
+
+/* ── Tags ── */
+.kb-tag{display:inline-block;background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;padding:4px 12px;border-radius:20px;margin-bottom:24px;text-transform:uppercase}
+.tag-free{background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.25);color:var(--green)}
+.tag-paid{background:rgba(66,133,244,.1);border-color:rgba(66,133,244,.25);color:var(--blue)}
+.tag-new{background:rgba(203,255,0,.1);border-color:rgba(203,255,0,.25);color:var(--lime)}
+
+/* ── Check cards ── */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0 28px}
+.check-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;transition:border-color .15s}
+.check-card:hover{border-color:rgba(203,255,0,.2)}
+.check-card-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.check-icon{font-size:18px;flex-shrink:0}
+.check-name{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--white)}
+.check-tier{font-size:9px;font-family:'Space Mono',monospace;padding:2px 7px;border-radius:10px;margin-left:auto;flex-shrink:0}
+.tier-free{background:rgba(46,204,113,.1);color:var(--green);border:1px solid rgba(46,204,113,.2)}
+.tier-paid{background:rgba(66,133,244,.1);color:var(--blue);border:1px solid rgba(66,133,244,.2)}
+.check-desc{font-size:12px;color:var(--grey);line-height:1.6}
+.check-signal{font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05)}
+.sig-crit{color:#FF2D55}
+.sig-warn{color:#FF9500}
+.sig-ok{color:var(--green)}
+
+/* ── Info boxes ── */
+.info-box{background:rgba(203,255,0,.04);border:1px solid rgba(203,255,0,.12);border-radius:8px;padding:16px 20px;margin:16px 0}
+.info-box.warning{background:rgba(212,133,10,.05);border-color:rgba(212,133,10,.2)}
+.info-box.danger{background:rgba(192,57,43,.05);border-color:rgba(192,57,43,.2)}
+.info-box p{margin:0;font-size:13px;color:var(--grey)}
+.info-box strong{color:var(--white)}
+
+/* ── Score table ── */
+.score-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.score-label{font-family:'Space Mono',monospace;font-size:11px;min-width:80px;color:var(--white)}
+.score-bar{height:8px;border-radius:4px;flex:1}
+.score-range{font-size:11px;color:var(--grey);min-width:70px;text-align:right}
+
+/* ── Tables ── */
+table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:13px}
+th{text-align:left;padding:8px 12px;font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;text-transform:uppercase;background:rgba(203,255,0,.04);border-bottom:1px solid rgba(203,255,0,.1)}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--grey);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── Changelog ── */
+.changelog-entry{border-left:2px solid rgba(203,255,0,.2);padding-left:20px;margin-bottom:28px;position:relative}
+.changelog-entry::before{content:'';position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--lime)}
+.changelog-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;margin-bottom:4px}
+.changelog-version{font-size:13px;font-weight:600;color:var(--white);margin-bottom:8px}
+.changelog-list{list-style:none;padding:0}
+.changelog-list li{font-size:13px;color:var(--grey);margin-bottom:4px;padding-left:16px;position:relative}
+.changelog-list li::before{content:'→';position:absolute;left:0;color:rgba(203,255,0,.4)}
+
+/* ── Keyboard shortcuts ── */
+.shortcut-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.shortcut-keys{display:flex;gap:4px}
+kbd{font-family:'Space Mono',monospace;font-size:10px;background:#1e1d28;border:1px solid rgba(255,255,255,.15);border-bottom:2px solid rgba(255,255,255,.08);border-radius:4px;padding:3px 7px;color:var(--white)}
+.shortcut-desc{font-size:12px;color:var(--grey)}
+
+/* ── Risk score visual ── */
+.risk-demo{display:flex;gap:8px;margin:16px 0}
+.risk-block{flex:1;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:10px;font-weight:700}
+
+/* ── Mobile ── */
+@media(max-width:800px){
+  .kb-layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .kb-content{padding:32px 20px 60px}
+  .check-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="kb-layout">
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <a href="/">SWARM<span>HAWK</span></a>
+    <span class="kb-badge">KNOWLEDGE BASE</span>
+  </div>
+
+  <div class="sb-section">Getting Started</div>
+  <a class="sb-link active" href="#intro">What is SwarmHawk?</a>
+  <a class="sb-link" href="#quickstart">Quick Start</a>
+  <a class="sb-link" href="#free-vs-paid">Free vs Paid</a>
+
+  <div class="sb-section">Security Checks</div>
+  <a class="sb-link" href="#checks-overview">All 22 Checks</a>
+  <a class="sb-link" href="#checks-network">Network & Infra</a>
+  <a class="sb-link" href="#checks-threat">Threat Intelligence</a>
+  <a class="sb-link" href="#checks-appsec">Application Security</a>
+  <a class="sb-link" href="#checks-osint">OSINT & Identity</a>
+
+  <div class="sb-section">Results & Scoring</div>
+  <a class="sb-link" href="#risk-score">Risk Score</a>
+  <a class="sb-link" href="#statuses">Check Statuses</a>
+  <a class="sb-link" href="#ai-summary">AI Threat Summary</a>
+
+  <div class="sb-section">Dashboard</div>
+  <a class="sb-link" href="#dashboard-domains">Managing Domains</a>
+  <a class="sb-link" href="#dashboard-reports">Reports & PDF</a>
+  <a class="sb-link" href="#nis2">NIS2 / DORA</a>
+  <a class="sb-link" href="#outreach">Outreach (MSP)</a>
+
+  <div class="sb-section">Integrations</div>
+  <a class="sb-link" href="#api">REST API</a>
+  <a class="sb-link" href="#mcp">MCP (Claude/Cursor)</a>
+  <a class="sb-link" href="#chrome">Chrome Extension</a>
+
+  <div class="sb-section">Reference</div>
+  <a class="sb-link" href="#shortcuts">Keyboard Shortcuts</a>
+  <a class="sb-link" href="#faq">FAQ</a>
+  <a class="sb-link" href="#changelog">Changelog</a>
+
+  <span class="sb-updated">Last updated: March 2026</span>
+</nav>
+
+<!-- ── Main content ─────────────────────────────────────────────────────── -->
+<main class="kb-content">
+
+  <!-- INTRO -->
+  <div id="intro">
+    <span class="kb-tag">Knowledge Base</span>
+    <h1>SwarmHawk Documentation</h1>
+    <p>SwarmHawk is a domain security intelligence platform. Enter any domain and get a full threat picture in under 60 seconds — SSL health, DNS misconfigurations, email spoofing risks, open ports, CVEs, breach exposure, dark-web credentials, IaC file leaks, and more. Results are scored 0–100 and summarised by AI into plain-English remediation steps.</p>
+    <p>This knowledge base covers every feature, check, and integration. It is updated whenever a new feature ships.</p>
+  </div>
+
+  <!-- QUICK START -->
+  <h2 id="quickstart">Quick Start</h2>
+  <p>You can use SwarmHawk in three ways:</p>
+  <ol>
+    <li><strong>Public scanner</strong> — Go to <a href="/">swarmhawk.com</a>, type any domain, press Enter. No account needed. Returns a free preview (subset of checks).</li>
+    <li><strong>Dashboard</strong> — Log in, add your domains under <strong>Domains → Add Domain</strong>. SwarmHawk scans automatically and emails you monthly PDF reports.</li>
+    <li><strong>API / MCP</strong> — Use the REST API or MCP server to embed SwarmHawk into your own tools, scripts, or AI assistants (Claude, Cursor, etc.).</li>
+  </ol>
+  <div class="info-box">
+    <p><strong>Tip:</strong> The fastest way to assess a domain you don't own is the public scanner — no login, instant results. For ongoing monitoring of your own domains, use the dashboard.</p>
+  </div>
+
+  <!-- FREE VS PAID -->
+  <h2 id="free-vs-paid">Free vs Paid</h2>
+  <table>
+    <thead><tr><th>Feature</th><th>Free</th><th>Paid (€50/year)</th></tr></thead>
+    <tbody>
+      <tr><td>Number of checks visible</td><td>19 checks</td><td>All 22 checks</td></tr>
+      <tr><td>AI threat summary</td><td>—</td><td>✓</td></tr>
+      <tr><td>PDF report emailed</td><td>—</td><td>✓ monthly</td></tr>
+      <tr><td>NIS2/DORA compliance grid</td><td>—</td><td>✓</td></tr>
+      <tr><td>Dark-web credential monitoring</td><td>Preview</td><td>Full detail</td></tr>
+      <tr><td>Historical scan timeline</td><td>—</td><td>12 months</td></tr>
+      <tr><td>Multiple domains</td><td>1</td><td>Unlimited</td></tr>
+      <tr><td>IP Intelligence (ip_intel)</td><td>—</td><td>✓</td></tr>
+      <tr><td>API access</td><td>—</td><td>✓</td></tr>
+      <tr><td>Outreach / MSP features</td><td>—</td><td>MSP plan only</td></tr>
+    </tbody>
+  </table>
+  <p>A one-time <strong>$10 payment</strong> unlocks a single full 22-check report with AI summary, emailed as PDF — no subscription required.</p>
+
+  <!-- ALL 22 CHECKS -->
+  <h2 id="checks-overview">All 22 Security Checks</h2>
+  <p>Every scan runs 22 independent checks in parallel. Each check returns a <strong>status</strong> (ok / warning / critical / error) and a <strong>score_impact</strong> (0–25 penalty points). The final risk score is the sum of all penalties, capped at 100.</p>
+
+  <!-- NETWORK & INFRA -->
+  <h2 id="checks-network">Network &amp; Infrastructure</h2>
+  <div class="check-grid">
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🔒</span>
+        <span class="check-name">SSL / TLS</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Verifies the SSL certificate is valid, checks expiry date, and confirms the issuer. Detects expired, self-signed, or misconfigured certificates.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — expired or invalid cert (impact 15–20)<br>
+        <span class="sig-warn">● Warning</span> — expires within 30 days (impact 8)<br>
+        <span class="sig-ok">● OK</span> — valid, issuer confirmed
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">↪</span>
+        <span class="check-name">HTTPS Redirect</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Checks whether plain HTTP requests are redirected to HTTPS. A missing redirect means traffic can be intercepted in plaintext.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Warning</span> — site served over HTTP with no redirect (impact 10)<br>
+        <span class="sig-ok">● OK</span> — HTTP 301/302 to HTTPS
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🛡</span>
+        <span class="check-name">Security Headers</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Checks for HSTS, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, and server version disclosure.</div>
+      <div class="check-signal">
+        <span class="sig-warn">● Warning</span> — missing headers (impact 5–20 cumulative)<br>
+        <span class="sig-ok">● OK</span> — all four headers present
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🌐</span>
+        <span class="check-name">DNS</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Verifies domain resolves correctly and checks for basic DNS misconfigurations. Foundation check — if DNS fails, most other checks will also error.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — domain does not resolve (impact 20)<br>
+        <span class="sig-ok">● OK</span> — resolves cleanly
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">⚡</span>
+        <span class="check-name">Response Time</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Measures HTTPS response time. Slow responses indicate DDoS, overloaded servers, or misconfigured CDN. Also catches HTTP 5xx server errors.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — &gt;10s or HTTP 5xx (impact 10–15)<br>
+        <span class="sig-warn">● Warning</span> — 5–10s (impact 5)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">📡</span>
+        <span class="check-name">Shodan</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Queries Shodan for the domain's IP. Returns open ports, known CVEs, service banners (nginx version, OpenSSH, etc.), and risk tags. Uses the paid Shodan API for full results; falls back to free InternetDB if unavailable.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — CVEs detected or dangerous ports open (impact 20)<br>
+        <span class="sig-warn">● Warning</span> — &gt;10 open ports (impact 8)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🚪</span>
+        <span class="check-name">Open Ports</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Active socket scan of 12 high-risk ports with a 2-second timeout: FTP (21), SSH (22), Telnet (23), SMTP (25), MySQL (3306), Postgres (5432), Redis (6379), MongoDB (27017), RDP (3389), VNC (5900), HTTP-alt (8080/8443).</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — database ports or Telnet/RDP/VNC open (impact 20)<br>
+        <span class="sig-warn">● Warning</span> — SSH, FTP, or SMTP exposed (impact 8)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🔍</span>
+        <span class="check-name">IP Intelligence</span>
+        <span class="check-tier tier-paid">PAID</span>
+      </div>
+      <div class="check-desc">Resolves the domain to its IP, then queries ip-api.com for ISP, ASN, and flags: TOR exit node, known proxy/VPN, bulletproof hosting, or datacenter. Rate limited to 45 req/min on the free tier of ip-api.com.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — TOR exit node or known anonymizer (impact 20)<br>
+        <span class="sig-warn">● Warning</span> — bulletproof/high-abuse hosting (impact 8)
+      </div>
+    </div>
+
+  </div>
+
+  <!-- THREAT INTELLIGENCE -->
+  <h2 id="checks-threat">Threat Intelligence</h2>
+  <div class="check-grid">
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🦠</span>
+        <span class="check-name">URLhaus</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Checks abuse.ch URLhaus — a real-time malware URL database. Detects domains currently serving malware, ransomware droppers, or exploit kits. No API key needed.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — active malware URLs live (impact 25)<br>
+        <span class="sig-warn">● Warning</span> — historical malware, now offline (impact 10)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">📧</span>
+        <span class="check-name">Spamhaus DBL</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">DNS-based lookup against the Spamhaus Domain Block List. Identifies spam domains, phishing infrastructure, malware C&amp;C servers, and botnet controllers. Completely free — no API key needed.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — listed as spammer/phishing/malware/botnet (impact 20–25)<br>
+        <span class="sig-warn">● Warning</span> — abused legitimate domain (impact 10–12)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">💻</span>
+        <span class="check-name">Google Safe Browsing</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Checks if Chrome's Safe Browsing database has flagged this domain for malware, phishing, or unwanted software. Requires a free Google API key set via <code>GOOGLE_SAFEBROWSING_KEY</code>.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — actively flagged by Chrome (impact 25)<br>
+        <span class="sig-ok">● OK / Skipped</span> — clean or no API key set
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🧪</span>
+        <span class="check-name">VirusTotal</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Queries 70+ antivirus and threat intelligence engines via the VirusTotal API. Returns malicious/suspicious engine counts, reputation score, and category tags. Requires <code>VIRUSTOTAL_API_KEY</code>.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — 5+ engines: malicious (impact 25)<br>
+        <span class="sig-warn">● Warning</span> — 1–4 engines flagged (impact 6–12)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">💥</span>
+        <span class="check-name">Breach Exposure</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Queries HaveIBeenPwned for breaches linked to this domain. Identifies how many data breach databases the domain has appeared in and names the breach sources.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — domain found in 1+ breaches (impact 15)<br>
+        <span class="sig-ok">● OK</span> — not found in any breach database
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🐛</span>
+        <span class="check-name">CVE Scan</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Detects software versions from HTTP response headers and body (server, X-Powered-By, generator meta tags), then looks up known CVEs in the NVD database. Higher rate limits with <code>NVD_API_KEY</code>.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — known CVEs found in detected software (impact 15–25)<br>
+        <span class="sig-warn">● Warning</span> — outdated software, no known CVEs yet (impact 8)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🕵️</span>
+        <span class="check-name">Dark Web Leaks</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Scans dark-web leak databases and Telegram channels via ParanoidLab for credential dumps, infostealer logs, ransomware group mentions, and combo lists linked to the domain. Requires <code>PARANOIDLAB_API_KEY</code>.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — ransomware leak or infostealer logs (impact 20–25)<br>
+        <span class="sig-warn">● Warning</span> — Telegram mentions or credential records (impact 5–10)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🎭</span>
+        <span class="check-name">Typosquat</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Generates 200+ lookalike domain permutations (character swaps, omissions, doublings, homoglyphs, TLD variations, hyphen insertions) and checks DNS resolution for each. Detects active phishing infrastructure impersonating the target.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — 3+ typosquat domains registered (impact 10)<br>
+        <span class="sig-warn">● Warning</span> — 1–2 lookalike domains found (impact 5)
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION SECURITY -->
+  <h2 id="checks-appsec">Application Security</h2>
+  <div class="check-grid">
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">💻</span>
+        <span class="check-name">SAST — Source Exposure</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Probes for exposed source code and debug endpoints: <code>/.git/HEAD</code>, <code>/.git/config</code>, <code>/phpinfo.php</code>, <code>/?XDEBUG_SESSION_START=1</code>, <code>/server-status</code>, and config samples. A live <code>/.git/HEAD</code> means the entire source repository is downloadable.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — git repo or phpinfo exposed (impact 20–25)<br>
+        <span class="sig-warn">● Warning</span> — composer.json / package.json accessible (impact 10)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">📦</span>
+        <span class="check-name">SCA — Dependency CVEs</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Fetches exposed dependency manifests (<code>/package.json</code>, <code>/composer.json</code>, <code>/requirements.txt</code>, <code>/Gemfile.lock</code>) and scans for known-vulnerable library versions — log4j, lodash 4.17.20, axios 0.21.0, jQuery 1.x/2.x, and more.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — vulnerable dependency detected (impact 15)<br>
+        <span class="sig-warn">● Warning</span> — manifest accessible, no known CVEs (impact 8)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🌐</span>
+        <span class="check-name">DAST — App Testing</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Passive crawl of common sensitive paths: <code>/admin</code>, <code>/wp-admin</code>, <code>/phpmyadmin</code>, <code>/.env</code>, <code>/backup.zip</code>, <code>/debug</code>, <code>/console</code>, <code>/api/v1</code>. Detects unauthenticated admin panels and exposed credential files.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — .env with credentials or unauth admin panel (impact 20)<br>
+        <span class="sig-warn">● Warning</span> — admin login page exposed (impact 10)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">🏗</span>
+        <span class="check-name">IaC — Config Exposure</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Checks for exposed infrastructure-as-code and deployment files: <code>/.env</code>, <code>/docker-compose.yml</code>, <code>/Dockerfile</code>, <code>/terraform.tfstate</code>, <code>/k8s.yaml</code>, <code>/ansible.cfg</code>, <code>/deploy.sh</code>. Terraform state files contain plaintext secrets.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — .env or terraform.tfstate accessible (impact 25)<br>
+        <span class="sig-warn">● Warning</span> — Dockerfile or docker-compose exposed (impact 12)
+      </div>
+    </div>
+
+  </div>
+
+  <!-- OSINT & IDENTITY -->
+  <h2 id="checks-osint">OSINT &amp; Identity</h2>
+  <div class="check-grid">
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">📋</span>
+        <span class="check-name">WHOIS / RDAP</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Queries the RDAP protocol (rdap.org) for domain registration date, expiry, and registrar. Newly registered domains (&lt;30 days) are a strong phishing signal. Privacy-masked registrations on business domains are flagged.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — domain &lt;30 days old (impact 15)<br>
+        <span class="sig-warn">● Warning</span> — expires in &lt;30 days or privacy-masked (impact 5–8)
+      </div>
+    </div>
+
+    <div class="check-card">
+      <div class="check-card-head">
+        <span class="check-icon">✉️</span>
+        <span class="check-name">Email Security</span>
+        <span class="check-tier tier-free">FREE</span>
+      </div>
+      <div class="check-desc">Queries DNS TXT records for SPF (Sender Policy Framework) and DMARC. Missing SPF means anyone can send email as your domain. DMARC <code>p=none</code> means spoofed emails are still delivered — only monitored, not blocked.</div>
+      <div class="check-signal">
+        <span class="sig-crit">● Critical</span> — no SPF record (impact 12)<br>
+        <span class="sig-warn">● Warning</span> — no DMARC, or DMARC p=none (impact 6–8)
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RISK SCORE -->
+  <h2 id="risk-score">Risk Score</h2>
+  <p>The risk score is a number from <strong>0 (best) to 100 (worst)</strong>. It is calculated by summing the <code>score_impact</code> of every non-OK check result, capped at 100.</p>
+
+  <div class="risk-demo">
+    <div class="risk-block" style="background:rgba(46,204,113,.15);color:#30D158;border:1px solid rgba(46,204,113,.25)">0–29<br><span style="font-size:8px;font-weight:400">LOW</span></div>
+    <div class="risk-block" style="background:rgba(212,133,10,.15);color:#FF9500;border:1px solid rgba(212,133,10,.25)">30–59<br><span style="font-size:8px;font-weight:400">MEDIUM</span></div>
+    <div class="risk-block" style="background:rgba(192,57,43,.15);color:#FF2D55;border:1px solid rgba(192,57,43,.25)">60–100<br><span style="font-size:8px;font-weight:400">HIGH</span></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Range</th><th>Meaning</th><th>Typical finding</th></tr></thead>
+    <tbody>
+      <tr><td><strong style="color:#30D158">0–29</strong></td><td>Low risk</td><td>Minor header gaps, no critical issues</td></tr>
+      <tr><td><strong style="color:#FF9500">30–59</strong></td><td>Medium risk</td><td>Missing DMARC, typosquats, outdated software</td></tr>
+      <tr><td><strong style="color:#FF2D55">60–100</strong></td><td>High risk</td><td>Breaches, active malware, expired SSL, open DB ports</td></tr>
+    </tbody>
+  </table>
+
+  <p>A single critical finding (e.g. active malware in URLhaus, impact 25) can push a clean domain into medium risk territory. Use the <strong>AI Threat Summary</strong> to understand which findings matter most in your specific context.</p>
+
+  <!-- STATUSES -->
+  <h2 id="statuses">Check Statuses</h2>
+  <table>
+    <thead><tr><th>Status</th><th>Meaning</th><th>Score impact</th></tr></thead>
+    <tbody>
+      <tr><td><span style="color:#30D158">● ok</span></td><td>Check passed — no issues found</td><td>0</td></tr>
+      <tr><td><span style="color:#FF9500">● warning</span></td><td>Potential issue — review recommended</td><td>5–12</td></tr>
+      <tr><td><span style="color:#FF2D55">● critical</span></td><td>Confirmed risk — remediate promptly</td><td>10–25</td></tr>
+      <tr><td><span style="color:#8E8E93">● error</span></td><td>Check could not complete (timeout, API key missing)</td><td>5</td></tr>
+      <tr><td><span style="color:#4285F4">● locked</span></td><td>Upgrade required to see this result</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <!-- AI SUMMARY -->
+  <h2 id="ai-summary">AI Threat Summary</h2>
+  <p>Every paid scan includes an AI-generated threat briefing powered by Claude. It contains:</p>
+  <ol>
+    <li><strong>Executive summary</strong> — one paragraph, plain English, suitable for board or legal team</li>
+    <li><strong>Critical findings</strong> — the highest-risk issues with context on why they matter</li>
+    <li><strong>Threat scenarios</strong> — realistic attack paths an adversary could exploit</li>
+    <li><strong>Prioritised recommendations</strong> — ordered by effort/impact ratio, with estimated remediation time</li>
+    <li><strong>Intelligence notes</strong> — hosting provider, CDN, DDoS protection context</li>
+  </ol>
+  <div class="info-box">
+    <p><strong>Note:</strong> The AI summary is generated once per scan and cached. Re-scanning a domain generates a fresh summary reflecting the latest findings.</p>
+  </div>
+
+  <!-- DASHBOARD: DOMAINS -->
+  <h2 id="dashboard-domains">Managing Domains</h2>
+  <p>After logging in, go to the <strong>Domains</strong> tab to add, scan, and manage your domains.</p>
+  <table>
+    <thead><tr><th>Action</th><th>How to</th></tr></thead>
+    <tbody>
+      <tr><td>Add a domain</td><td>Domains → Add Domain → enter domain (without https://)</td></tr>
+      <tr><td>Run a scan now</td><td>Click the domain row → <strong>Run Now</strong> button</td></tr>
+      <tr><td>View history</td><td>Click the domain row → Timeline tab (12 months, paid)</td></tr>
+      <tr><td>Mark an issue resolved</td><td>Click the ✓ icon next to any finding in the report</td></tr>
+      <tr><td>Delete a domain</td><td>Domain row → ⋯ menu → Remove Domain</td></tr>
+    </tbody>
+  </table>
+  <p>Scans run automatically every <strong>24 hours</strong> at 08:00 UTC. You will be alerted by email if the risk score rises by more than 10 points since the last scan.</p>
+
+  <!-- REPORTS -->
+  <h2 id="dashboard-reports">Reports &amp; PDF Export</h2>
+  <p>Paid accounts receive a full PDF report by email every month. PDFs include:</p>
+  <ul>
+    <li>All 22 check results with status and detail text</li>
+    <li>Risk score trend over the past 3 months</li>
+    <li>AI threat summary</li>
+    <li>NIS2/DORA compliance evidence section</li>
+    <li>Remediation checklist (mark items complete to track progress)</li>
+  </ul>
+  <p>To generate a PDF on demand: Domain → View Report → <strong>Download PDF</strong>.</p>
+
+  <!-- NIS2 -->
+  <h2 id="nis2">NIS2 / DORA Compliance</h2>
+  <p>SwarmHawk maps each check to a specific NIS2 Article 21 obligation. The compliance grid (Dashboard → NIS2 tab) shows which requirements are covered, partially covered, or at risk.</p>
+  <table>
+    <thead><tr><th>NIS2 Article</th><th>Requirement</th><th>Covered by checks</th></tr></thead>
+    <tbody>
+      <tr><td>Art.21(2)(i)</td><td>Encryption &amp; TLS</td><td>ssl, headers, email_security</td></tr>
+      <tr><td>Art.21(2)(e)</td><td>Network &amp; info system security</td><td>open_ports, shodan, ip_intel, dast</td></tr>
+      <tr><td>Art.21(2)(b)</td><td>Incident handling &amp; threat detection</td><td>urlhaus, spamhaus, virustotal, safebrowsing</td></tr>
+      <tr><td>Art.21(2)(f)</td><td>Vulnerability handling</td><td>cve, typosquat</td></tr>
+      <tr><td>Art.21(2)(g)</td><td>Cyber hygiene &amp; data protection</td><td>darkweb, breach</td></tr>
+    </tbody>
+  </table>
+  <p>The monthly PDF report serves as documented evidence of regular security monitoring — accepted as audit evidence under NIS2 and DORA for SMEs and their supply chain partners.</p>
+
+  <!-- OUTREACH -->
+  <h2 id="outreach">Outreach (MSP / Reseller)</h2>
+  <p>The MSP plan adds a <strong>Prospects</strong> tab where you can scan potential clients, generate branded reports, and send outreach emails showing real security findings. Features:</p>
+  <ul>
+    <li>Bulk domain import via CSV</li>
+    <li>Branded PDF reports with your company name</li>
+    <li>One-click outreach email with AI-generated subject line and personalised findings</li>
+    <li>Track prospect status: new → contacted → converted</li>
+    <li>Competitive intelligence: compare prospect's security posture to industry benchmarks</li>
+  </ul>
+
+  <!-- API -->
+  <h2 id="api">REST API</h2>
+  <p>The SwarmHawk REST API lets you integrate domain scanning into your own tools. Full documentation: <a href="/docs.html" target="_blank">docs.html</a>.</p>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST /scan</code></td><td>Run a full 22-check scan on any domain</td></tr>
+      <tr><td><code>GET /domains/{id}/report</code></td><td>Fetch latest scan report for a domain</td></tr>
+      <tr><td><code>GET /domains/{id}/history</code></td><td>Risk score trend over time</td></tr>
+      <tr><td><code>GET /health</code></td><td>API health check</td></tr>
+    </tbody>
+  </table>
+  <p>Authentication: include your API key in the <code>Authorization: Bearer &lt;key&gt;</code> header. Keys are generated in <strong>Dashboard → Account → API Keys</strong>.</p>
+
+  <!-- MCP -->
+  <h2 id="mcp">MCP — Claude &amp; Cursor Integration</h2>
+  <p>SwarmHawk exposes an MCP (Model Context Protocol) server, letting you use it as a tool inside Claude Desktop, Claude.ai, Cursor, or any MCP-compatible AI assistant.</p>
+  <h3>Available MCP tools</h3>
+  <table>
+    <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>scan_domain</code></td><td>Full 22-check scan with risk score and all findings (~30s)</td></tr>
+      <tr><td><code>get_risk_score</code></td><td>Return just the numeric risk score for a domain</td></tr>
+      <tr><td><code>check_breach</code></td><td>HaveIBeenPwned breach lookup only</td></tr>
+      <tr><td><code>check_ssl</code></td><td>SSL certificate status only</td></tr>
+      <tr><td><code>check_darkweb</code></td><td>Dark-web credential leak search</td></tr>
+      <tr><td><code>get_report</code></td><td>Return cached latest report for a domain</td></tr>
+      <tr><td><code>list_domains</code></td><td>List all monitored domains</td></tr>
+    </tbody>
+  </table>
+  <p>Full setup guide and Claude Desktop config JSON: <a href="https://www.swarmhawk.com/mcp" target="_blank" rel="noopener">swarmhawk.com/mcp</a></p>
+
+  <!-- CHROME EXTENSION -->
+  <h2 id="chrome">Chrome Extension</h2>
+  <p>The SwarmHawk Chrome extension shows the risk score for any domain directly in your browser toolbar. Click the icon to see the full scan summary without leaving the current tab.</p>
+  <ul>
+    <li>Risk score badge on every domain you visit</li>
+    <li>One-click full scan trigger</li>
+    <li>Works with your dashboard account (login once)</li>
+    <li>Highlights findings relevant to the current page (e.g. SSL status, breach exposure)</li>
+  </ul>
+  <p>Install: <a href="https://chrome.google.com/webstore/detail/swarmhawk" target="_blank" rel="noopener">Chrome Web Store</a></p>
+
+  <!-- KEYBOARD SHORTCUTS -->
+  <h2 id="shortcuts">Keyboard Shortcuts</h2>
+  <div class="shortcut-row"><div class="shortcut-keys"><kbd>/</kbd></div><div class="shortcut-desc">Focus the domain search bar from anywhere on the page</div></div>
+  <div class="shortcut-row"><div class="shortcut-keys"><kbd>Enter</kbd></div><div class="shortcut-desc">Run scan (when search bar is focused)</div></div>
+  <div class="shortcut-row"><div class="shortcut-keys"><kbd>Esc</kbd></div><div class="shortcut-desc">Close scan result / modal</div></div>
+  <div class="shortcut-row"><div class="shortcut-keys"><kbd>D</kbd></div><div class="shortcut-desc">Jump to Dashboard tab</div></div>
+  <div class="shortcut-row"><div class="shortcut-keys"><kbd>S</kbd></div><div class="shortcut-desc">Jump to Scanner tab</div></div>
+  <div class="shortcut-row"><div class="shortcut-keys"><kbd>?</kbd></div><div class="shortcut-desc">Show keyboard shortcut reference</div></div>
+
+  <!-- FAQ -->
+  <h2 id="faq">Frequently Asked Questions</h2>
+
+  <h3>Is SwarmHawk legal to use on any domain?</h3>
+  <p>Yes. SwarmHawk uses only <strong>passive OSINT</strong> — it queries publicly available data sources (DNS, RDAP, public APIs, Shodan's existing index). It does not perform active exploitation, credential brute-forcing, or any technique that requires authorization. You can safely run it on any domain.</p>
+
+  <h3>How long does a scan take?</h3>
+  <p>A full 22-check scan typically completes in <strong>20–45 seconds</strong>. Checks run in parallel. The slowest checks are open port scanning (socket timeouts, ~24s worst case) and the AI summary generation (~10s). The result appears progressively as checks complete.</p>
+
+  <h3>What does "error" status mean?</h3>
+  <p>An <code>error</code> status means the check could not complete — usually a network timeout, a missing API key (VirusTotal, Safe Browsing), or a DNS resolution failure. It carries a small 5-point penalty but is not a confirmed security finding. Check the <code>detail</code> field for the exact reason.</p>
+
+  <h3>Why is my risk score high when the site looks fine?</h3>
+  <p>Risk score reflects security configuration, not visual appearance. Common causes of elevated scores: missing DMARC (email spoofing risk), missing security headers (browser-side protection gaps), typosquat domains registered by third parties, or historical breach exposure. Use the AI summary to understand which findings are most urgent for your context.</p>
+
+  <h3>Can I white-label or embed SwarmHawk?</h3>
+  <p>Yes — the API supports embedding scan results in your own dashboards or client portals. The MSP plan includes branded PDF report generation. Contact us for white-label enquiries.</p>
+
+  <h3>How often is the Shodan data refreshed?</h3>
+  <p>SwarmHawk queries the Shodan API live on each scan — results reflect Shodan's most recent crawl of that IP, typically within the past 1–7 days. The scan does not use cached Shodan data.</p>
+
+  <h3>What does "locked" mean on a check?</h3>
+  <p>Locked checks are available to paid subscribers only. The check ran and produced a result, but the result is hidden for free accounts. Upgrade to see all 22 check results.</p>
+
+  <!-- CHANGELOG -->
+  <h2 id="changelog">Changelog</h2>
+  <p>All new features, check additions, and significant fixes are listed here. Updated with every release.</p>
+
+  <div class="changelog-entry">
+    <div class="changelog-date">MARCH 2026</div>
+    <div class="changelog-version">22 checks — OSINT & attack surface expansion</div>
+    <ul class="changelog-list">
+      <li>Added <strong>WHOIS / RDAP</strong> — domain age, expiry, privacy registration detection</li>
+      <li>Added <strong>Email Security</strong> — SPF + DMARC policy enforcement check via DNS</li>
+      <li>Added <strong>IP Intelligence</strong> — TOR exit nodes, proxy/VPN, bulletproof hosting detection</li>
+      <li>Added <strong>Shodan</strong> — full paid API integration with service banner extraction; free InternetDB fallback</li>
+      <li>Added <strong>Open Ports</strong> — active socket scan of 12 high-risk ports</li>
+      <li>Added <strong>SAST</strong> — git repo exposure, phpinfo, Xdebug detection</li>
+      <li>Added <strong>SCA</strong> — exposed dependency manifests + known-vulnerable version detection</li>
+      <li>Added <strong>DAST</strong> — admin panel, .env credential, and debug endpoint exposure</li>
+      <li>Added <strong>IaC</strong> — Dockerfile, docker-compose, terraform.tfstate, k8s.yaml exposure</li>
+      <li>Total checks increased from 13 → 22</li>
+    </ul>
+  </div>
+
+  <div class="changelog-entry">
+    <div class="changelog-date">FEBRUARY 2026</div>
+    <div class="changelog-version">Dark-web intelligence &amp; CVE enrichment</div>
+    <ul class="changelog-list">
+      <li>Added <strong>Dark Web Leaks</strong> via ParanoidLab — ransomware, infostealers, Telegram channel monitoring</li>
+      <li>Added <strong>CVE Scan</strong> — software version detection + NVD CVE lookup</li>
+      <li>NIS2 compliance grid launched in dashboard</li>
+      <li>Monthly PDF report generation and email delivery</li>
+      <li>MCP server launched — Claude Desktop and Cursor integration</li>
+    </ul>
+  </div>
+
+  <div class="changelog-entry">
+    <div class="changelog-date">JANUARY 2026</div>
+    <div class="changelog-version">Threat intelligence tier</div>
+    <ul class="changelog-list">
+      <li>Added <strong>URLhaus</strong> — real-time malware URL detection (abuse.ch)</li>
+      <li>Added <strong>Spamhaus DBL</strong> — domain block list (DNS-based, free)</li>
+      <li>Added <strong>Google Safe Browsing</strong> — Chrome threat database</li>
+      <li>Added <strong>VirusTotal</strong> — 70+ engine aggregation</li>
+      <li>AI threat summary generation (Claude)</li>
+      <li>Live Threat Map launched</li>
+    </ul>
+  </div>
+
+  <div class="changelog-entry">
+    <div class="changelog-date">DECEMBER 2025</div>
+    <div class="changelog-version">Initial launch — 7 core checks</div>
+    <ul class="changelog-list">
+      <li>SSL/TLS validation</li>
+      <li>HTTP security headers</li>
+      <li>DNS configuration</li>
+      <li>HTTPS redirect enforcement</li>
+      <li>HaveIBeenPwned breach exposure</li>
+      <li>Typosquat domain monitoring</li>
+      <li>Response time / availability</li>
+    </ul>
+  </div>
+
+</main>
+</div>
+
+<script>
+// Highlight active sidebar link on scroll
+const sections = document.querySelectorAll('[id]');
+const links = document.querySelectorAll('.sb-link');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.sb-link[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, {rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
