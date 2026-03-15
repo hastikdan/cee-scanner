@@ -2578,10 +2578,19 @@ function renderReportPage(data, domain, isSample) {
           </div>
         </div>
 
+        <!-- NIS2 Article 21 full overview (all domains) -->
+        <div id="overview-nis2-full" style="margin-top:20px;display:none">
+          <div class="db-card-head" style="margin-bottom:14px">
+            <span class="db-card-title">🛡 NIS2 Article 21 — Compliance Autopilot</span>
+            <button class="db-card-link" onclick="openNis2Autopilot()">Open full autopilot →</button>
+          </div>
+          <div id="overview-nis2-full-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
+        </div>
+
         <!-- NIS2 domains needing attention -->
         <div id="overview-nis2-section" style="margin-top:20px;display:none">
           <div class="db-card-head" style="margin-bottom:12px">
-            <span class="db-card-title">🛡 NIS2 — Domains Needing Attention</span>
+            <span class="db-card-title">⚠ NIS2 — Domains Needing Attention</span>
             <button class="db-card-link" onclick="dbShowTab('domains',null)">Full report →</button>
           </div>
           <div id="overview-nis2-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
@@ -3424,6 +3433,97 @@ function dbRenderOverview() {
       }).join('');
     } else if (section) {
       section.style.display = 'none'; // all compliant — hide section
+    }
+
+    // ── NIS2 Article 21 full scorecard (all scanned domains) ──────────────
+    var ARTICLE_LABELS = {
+      'Art.21(2)(a)': 'Risk policies',
+      'Art.21(2)(b)': 'Incident handling',
+      'Art.21(2)(c)': 'Business continuity',
+      'Art.21(2)(d)': 'Supply chain',
+      'Art.21(2)(e)': 'Network security',
+      'Art.21(2)(f)': 'Vulnerability mgmt',
+      'Art.21(2)(g)': 'Cyber hygiene',
+    };
+    var fullSection = document.getElementById('overview-nis2-full');
+    var fullGrid    = document.getElementById('overview-nis2-full-grid');
+    var allPaired   = results.map(function(r,i){ return {r:r, dom:scannedDomains[i]}; }).filter(function(p){ return p.r; });
+    if (fullSection && fullGrid && allPaired.length) {
+      fullSection.style.display = 'block';
+      fullGrid.innerHTML = allPaired.map(function(p) {
+        var r = p.r; var dom = p.dom;
+        var pct = r.compliance_pct || 0;
+        var col = nis2Color(pct);
+        var ratingLabel = pct >= 80 ? '✓ COMPLIANT' : pct >= 50 ? '⚠ PARTIAL' : '✕ NON-COMPLIANT';
+        var ratingCol   = pct >= 80 ? '#2ECC71' : pct >= 50 ? '#D4850A' : '#C0392B';
+        var ratingBg    = pct >= 80 ? 'rgba(46,204,113,.1)' : pct >= 50 ? 'rgba(212,133,10,.1)' : 'rgba(192,57,43,.1)';
+
+        // Group findings by article
+        var byArticle = {};
+        (r.findings || []).forEach(function(f) {
+          if (!byArticle[f.article]) byArticle[f.article] = {pass:0, total:0};
+          byArticle[f.article].total++;
+          if (f.passed) byArticle[f.article].pass++;
+        });
+
+        var articleHtml = Object.keys(ARTICLE_LABELS).map(function(art) {
+          var label = ARTICLE_LABELS[art];
+          var ag = byArticle[art];
+          if (!ag) return '';
+          var artPct = Math.round(ag.pass / ag.total * 100);
+          var artCol = artPct >= 80 ? '#2ECC71' : artPct >= 50 ? '#D4850A' : '#C0392B';
+          return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">'
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div>'
+              +'<div style="background:rgba(255,255,255,.06);border-radius:2px;height:3px;margin-top:2px">'
+                +'<div style="background:'+artCol+';height:3px;border-radius:2px;width:'+artPct+'%"></div>'
+              +'</div>'
+            +'</div>'
+            +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+artCol+';white-space:nowrap;min-width:28px;text-align:right">'+artPct+'%</span>'
+          +'</div>';
+        }).join('');
+
+        // Top 3 failing requirements
+        var topGaps = (r.findings||[]).filter(function(f){ return !f.passed; })
+          .sort(function(a,b){ return b.weight - a.weight; }).slice(0,3);
+        var gapsHtml = topGaps.length
+          ? '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-top:10px">'
+            +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Top gaps</div>'
+            + topGaps.map(function(f){
+                return '<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">'
+                  +'<span style="color:'+ratingCol+';font-size:10px;flex-shrink:0;margin-top:1px">▸</span>'
+                  +'<span style="font-size:10px;color:#999;line-height:1.4">'+f.requirement+'</span>'
+                +'</div>';
+              }).join('')
+            +'</div>'
+          : '';
+
+        return '<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid '+col+';border-radius:8px;padding:16px 18px">'
+          // Header
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
+            +'<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--white);font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+dom.domain+'</span>'
+            +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+ratingCol+';background:'+ratingBg+';padding:3px 8px;border-radius:4px;white-space:nowrap">'+ratingLabel+'</span>'
+          +'</div>'
+          // Big % + bar
+          +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'
+            +'<span style="font-family:Space Mono,monospace;font-size:26px;font-weight:700;color:'+col+'">'+pct+'%</span>'
+            +'<div style="flex:1">'
+              +'<div style="background:rgba(255,255,255,.06);border-radius:3px;height:5px">'
+                +'<div style="background:'+col+';height:5px;border-radius:3px;width:'+pct+'%;transition:width .6s ease"></div>'
+              +'</div>'
+              +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;margin-top:4px">NIS2 Article 21 compliance</div>'
+            +'</div>'
+          +'</div>'
+          // Article 21 breakdown
+          +'<div style="margin-bottom:4px">'+articleHtml+'</div>'
+          // Top gaps
+          + gapsHtml
+          // Run Autopilot button
+          +'<div style="margin-top:12px">'
+            +'<button onclick="event.stopPropagation();nis2RunAutopilot(\''+dom.id+'\',\''+dom.domain+'\')" style="width:100%;background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;font-weight:700;padding:7px 0;border-radius:5px;cursor:pointer;letter-spacing:1px">⚡ RUN NIS2 AUTOPILOT</button>'
+          +'</div>'
+        +'</div>';
+      }).join('');
     }
   })();
 
