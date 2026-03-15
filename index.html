@@ -2476,8 +2476,8 @@ function renderReportPage(data, domain, isSample) {
       <button class="db-tab" id="admin-tab-btn" onclick="dbShowTabAdmin('admin',this)" style="display:none">⚙️ Admin</button>
     </div>
     <div class="db-nav-right">
-      <span id="db-user-name" onclick="dbShowTab('account',document.querySelector('.db-tab[onclick*=\"\'account\'\"]'));dbLoadAccount()" title="Go to Account settings" style="font-size:13px;color:var(--grey);cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--lime)'" onmouseout="this.style.color='var(--grey)'"></span>
-      <img id="db-avatar" class="user-avatar" onclick="dbShowTab('account',document.querySelector('.db-tab[onclick*=\"\'account\'\"]'));dbLoadAccount()" title="Go to Account settings" src="" alt="" style="display:none;cursor:pointer">
+      <span id="db-user-name" onclick="dbShowTab('account',null);dbLoadAccount()" title="Go to Account settings" style="font-size:13px;color:var(--grey);cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--lime)'" onmouseout="this.style.color='var(--grey)'"></span>
+      <img id="db-avatar" class="user-avatar" onclick="dbShowTab('account',null);dbLoadAccount()" title="Go to Account settings" src="" alt="" style="display:none;cursor:pointer">
       <button class="btn-sm" onclick="dbLogout()">Logout</button>
     </div>
   </div>
@@ -3624,7 +3624,80 @@ function dbRenderSingleDomainThreats(domainId, container) {
     html += '</div></div></div>';
   });
 
+  // ── Contact Discovery section ──────────────────────────────────────────────
+  html += '<div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px" id="dcontact-section-'+domainId+'">';
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">';
+  html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:var(--white);font-weight:700">✉ Outreach Contact</span>';
+  var cachedContacts = d.contact_emails ? (Array.isArray(d.contact_emails) ? d.contact_emails : (function(){try{return JSON.parse(d.contact_emails);}catch(e){return [];}}())) : [];
+  var primaryContact = d.primary_contact || (cachedContacts[0]||'');
+  if (cachedContacts.length) {
+    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555">'+cachedContacts.length+' found</span>';
+  }
+  html += '<button onclick="dbDiscoverContacts(\''+domainId+'\')" id="dcontact-btn-'+domainId+'" style="background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer;margin-left:auto">🔍 Discover contacts</button>';
+  html += '</div>';
+  html += '<div id="dcontact-body-'+domainId+'">';
+  if (primaryContact) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;white-space:nowrap">Primary contact</span>';
+    html += '<input id="dcontact-input-'+domainId+'" type="text" value="'+primaryContact+'" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:Space Mono,monospace;font-size:11px;padding:4px 10px;border-radius:5px;outline:none;flex:1;min-width:180px">';
+    html += '<button onclick="dbSaveContact(\''+domainId+'\')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer">Save</button>';
+    html += '</div>';
+  } else {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;white-space:nowrap">Primary contact</span>';
+    html += '<input id="dcontact-input-'+domainId+'" type="text" placeholder="email@domain.com" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:Space Mono,monospace;font-size:11px;padding:4px 10px;border-radius:5px;outline:none;flex:1;min-width:180px">';
+    html += '<button onclick="dbSaveContact(\''+domainId+'\')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer">Save</button>';
+    html += '</div>';
+    html += '<div style="font-family:Space Mono,monospace;font-size:10px;color:#555;margin-bottom:8px">No contacts discovered yet — click "Discover contacts" or enter manually above</div>';
+  }
+  if (cachedContacts.length > 1) {
+    html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">All discovered</div>';
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    cachedContacts.forEach(function(e){
+      var isPrimary = e === primaryContact;
+      html += '<span onclick="document.getElementById(\'dcontact-input-'+domainId+'\').value=\''+e+'\'" style="font-family:Space Mono,monospace;font-size:10px;padding:3px 9px;border-radius:12px;border:1px solid '+(isPrimary?'rgba(203,255,0,.3)':'rgba(255,255,255,.1)')+';color:'+(isPrimary?'var(--lime)':'#aaa')+';cursor:pointer;background:'+(isPrimary?'rgba(203,255,0,.06)':'transparent')+'" title="Click to use this address">'+e+'</span>';
+    });
+    html += '</div>';
+  }
+  html += '</div></div>';
+
   container.innerHTML = html;
+}
+
+async function dbDiscoverContacts(domainId) {
+  var btn  = document.getElementById('dcontact-btn-'+domainId);
+  var body = document.getElementById('dcontact-body-'+domainId);
+  if (btn) { btn.textContent = '⏳ Discovering…'; btn.disabled = true; }
+  try {
+    var data = await api('/domains/'+domainId+'/contacts/discover', { method: 'POST' });
+    var d = dbDomains.find(function(x){ return x.id == domainId; });
+    if (d) { d.primary_contact = data.primary_contact; d.contact_emails = data.contacts; }
+    var container = document.getElementById('ddetail-body-'+domainId);
+    if (container) dbRenderSingleDomainThreats(domainId, container);
+  } catch(e) {
+    if (body) body.innerHTML += '<div style="color:#E74C3C;font-size:11px;margin-top:6px">Discovery failed: '+e.message+'</div>';
+    if (btn) { btn.textContent = '🔍 Discover contacts'; btn.disabled = false; }
+  }
+}
+
+async function dbSaveContact(domainId) {
+  var input = document.getElementById('dcontact-input-'+domainId);
+  if (!input) return;
+  var email = input.value.trim();
+  if (!email || !email.includes('@')) { input.style.borderColor = '#E74C3C'; return; }
+  input.style.borderColor = '';
+  try {
+    await api('/domains/'+domainId+'/contact', {
+      method: 'PATCH',
+      body: JSON.stringify({ primary_contact: email })
+    });
+    var d = dbDomains.find(function(x){ return x.id == domainId; });
+    if (d) d.primary_contact = email;
+    input.style.borderColor = 'rgba(203,255,0,.4)';
+    setTimeout(function(){ input.style.borderColor = ''; }, 1500);
+  } catch(e) {
+    input.style.borderColor = '#E74C3C';
+  }
 }
 
 function paMarkInline(domainId, checkKey) {
@@ -4841,6 +4914,21 @@ function outreachRender() {
       return '<option value="'+c+'"'+sel+'>'+(FLAGS[c]||'')+'  '+c+'</option>';
     }).join('');
 
+    // Contact emails picker
+    var allContacts = Array.isArray(p.contact_emails) ? p.contact_emails :
+                      (p.contact_emails ? JSON.parse(p.contact_emails) : []);
+    if (p.contact_email && allContacts.indexOf(p.contact_email) === -1) allContacts.unshift(p.contact_email);
+    var contactOpts = allContacts.map(function(e){
+      return '<option value="'+e+'"'+(e===p.contact_email?' selected':'')+'>'+e+'</option>';
+    }).join('');
+    var contactHtml = '<div style="display:flex;align-items:center;gap:8px;margin:10px 0 8px;flex-wrap:wrap">' +
+      '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap">Send To</span>' +
+      (allContacts.length > 1
+        ? '<select id="ocontact-'+idx+'" onchange="outreachSetContact(\''+p.id+'\','+idx+',this)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer;flex:1;min-width:180px">'+contactOpts+'</select>'
+        : '<input id="ocontact-'+idx+'" type="text" value="'+(p.contact_email||'')+'" onblur="outreachSetContact(\''+p.id+'\','+idx+',this)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;flex:1;min-width:180px">') +
+      '<span style="font-size:10px;color:var(--grey);white-space:nowrap">'+(allContacts.length)+' found</span>' +
+    '</div>';
+
     var actionBtns = '';
     if (p.status !== 'sent') {
       actionBtns = '<button class="btn-regen-email" onclick="outreachRegenEmail(\''+p.id+'\','+idx+')">↻ Re-draft</button>' +
@@ -4869,6 +4957,7 @@ function outreachRender() {
         '<span style="font-size:12px;color:var(--grey);cursor:pointer" id="ochev-'+idx+'" onclick="outreachToggle('+idx+')">▼</span>' +
       '</div>' +
       '<div class="outreach-card-body" id="obody-' + idx + '">' +
+        contactHtml +
         // Country template selector
         '<div style="display:flex;align-items:center;gap:10px;margin:10px 0 12px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:6px;flex-wrap:wrap">' +
           '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap">Email Template</span>' +
@@ -4944,6 +5033,20 @@ async function outreachSkip(id, idx) {
     if (outreachProspects[idx]) outreachProspects[idx].status = 'skipped';
     outreachUpdateStats();
   } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function outreachSetContact(id, idx, el) {
+  var email = el.value.trim();
+  if (!email || !email.includes('@')) return;
+  try {
+    await api('/outreach/prospects/' + id + '/contact', {
+      method: 'PATCH',
+      body: JSON.stringify({ contact_email: email })
+    });
+    if (outreachProspects[idx]) outreachProspects[idx].contact_email = email;
+  } catch(e) {
+    console.warn('Failed to update contact email:', e);
+  }
 }
 
 async function outreachToggleApproval(id, idx, cb) {
