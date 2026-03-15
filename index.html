@@ -1179,7 +1179,7 @@ python3 swarmhawk_mcp.py --http</pre></div>
           <div class="ds-icon">🕸️</div>
           <div class="ds-content">
             <h4>Dark-Web Intelligence <span style="font-size:10px;background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;letter-spacing:1px;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:middle">NEW</span></h4>
-            <p>Queries the dark-web and Telegram threat channels for leaked credentials, ransomware mentions, infostealer logs, and forum chatter linked to your domain. Categorises findings by severity — ransomware group posts, credential dumps, and Telegram intelligence. Source: ParanoidLab threat intelligence API.</p>
+            <p>Queries the dark-web and Telegram threat channels for leaked credentials, ransomware mentions, infostealer logs, and forum chatter linked to your domain. Categorises findings by severity — ransomware group posts, credential dumps, and Telegram intelligence.</p>
             <div class="ds-tags"><span class="ds-tag">ransomware</span><span class="ds-tag">infostealers</span><span class="ds-tag">credential leaks</span><span class="ds-tag">Telegram</span><span class="ds-tag">dark web</span></div>
           </div>
         </div>
@@ -1583,7 +1583,7 @@ const CHECK_RECOMMENDATIONS = {
   dast:'Restrict or password-protect admin panels, API documentation, and monitoring endpoints.',
   iac:'Remove or block public access to exposed Terraform state, Kubernetes configs, and CI/CD pipeline files.',
   ip_intel:'Investigate the flagged IP addresses — check AbuseIPDB, request delisting from blocklists, and consider migrating to a reputable hosting provider.',
-  paranoidlab:'Reset all exposed credentials immediately, notify affected users, and enable dark-web monitoring alerts via ParanoidLab to detect future leaks.',
+  paranoidlab:'Reset all exposed credentials immediately, notify affected users, and enable dark-web monitoring alerts to detect future leaks.',
 };
 
 // ── NIS2 Autopilot helpers ────────────────────────────────────────────────
@@ -1990,11 +1990,11 @@ function renderReport(data,domainId,domainName) {
     });
     html+='</tbody></table></div>';
   }
-  // 2. Recommendations
-  html+=buildRecommendations(others);
-  // 3. Dark-web intelligence card (ParanoidLab)
+  // 2. Dark-web intelligence card
   const dwCheck = others.find(c=>c.check==='paranoidlab'||c.check==='darkweb');
   if(dwCheck) html += renderDarkWeb(dwCheck, domainId);
+  // 3. Recommendations
+  html+=buildRecommendations(others);
   // 4. AI Intelligence Report
   if(ai&&ai.detail){html+=`<div class="ai-section"><div class="ai-label">🧠 Intelligence Report</div><div>${renderAI(ai.detail)}</div></div>`;}
   if(data.locked_count>0){html+=`<div class="locked-banner"><h3>🔒 ${data.locked_count} checks locked</h3><p>Unlock the full report for <strong>$10 one-time</strong> or get annual monitoring for <strong>$50/year</strong>.</p><button class="btn-unlock" onclick="closeModal();checkout('${domainId}','${domainName}')">View Plans & Unlock →</button></div>`;}
@@ -2004,7 +2004,7 @@ function renderReport(data,domainId,domainName) {
 }
 
 
-// ── Dark-web / ParanoidLab card ───────────────────────────────────────────
+// ── Dark-web intelligence card ───────────────────────────────────────────
 function renderDarkWeb(c, domainId) {
   var isClean  = c.status === 'ok';
   var isError  = c.status === 'error';
@@ -2017,7 +2017,7 @@ function renderDarkWeb(c, domainId) {
     +'<div style="display:flex;align-items:center;gap:10px">'
     +'<span style="font-size:20px">🕸</span>'
     +'<div>'
-    +'<div style="font-family:Space Mono,monospace;font-size:10px;color:'+headerColor+';letter-spacing:2px;text-transform:uppercase">Dark-Web Intelligence · ParanoidLab</div>'
+    +'<div style="font-family:Space Mono,monospace;font-size:10px;color:'+headerColor+';letter-spacing:2px;text-transform:uppercase">Dark-Web Intelligence</div>'
     +'<div style="font-size:14px;font-weight:700;color:'+headerColor+';margin-top:2px">'+c.title+'</div>'
     +'</div></div>'
     +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+headerColor+';background:rgba(0,0,0,.2);padding:3px 9px;border-radius:10px;letter-spacing:1px">'+c.status.toUpperCase()+'</span>'
@@ -2036,7 +2036,7 @@ function renderDarkWeb(c, domainId) {
     +'</div>'
     +'</div>';
 
-  html += '<div style="padding:8px 18px;font-size:10px;color:#444">Powered by paranoidlab.com · credential dumps · dark-web sources · Telegram channels</div>';
+  html += '<div style="padding:8px 18px;font-size:10px;color:#444">credential dumps · dark-web sources · Telegram channels</div>';
   html += '</div>';
   return html;
 }
@@ -2044,7 +2044,7 @@ function renderDarkWeb(c, domainId) {
 async function paranoidlabLoadDetail(domainId) {
   var el = document.getElementById('pl-detail-' + domainId);
   if (!el) return;
-  el.innerHTML = '<div style="padding:14px 18px;color:var(--grey);font-size:12px"><div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div>Loading from ParanoidLab…</div>';
+  el.innerHTML = '<div style="padding:14px 18px;color:var(--grey);font-size:12px"><div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div>Loading dark-web data…</div>';
   try {
     var d = await api('/domains/' + domainId + '/paranoidlab');
 
