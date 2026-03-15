@@ -698,69 +698,127 @@ kbd{font-family:'Space Mono',monospace;font-size:10px;background:#1e1d28;border:
 
   <!-- CHANGELOG -->
   <h2 id="changelog">Changelog</h2>
-  <p>All new features, check additions, and significant fixes are listed here. Updated with every release.</p>
+  <p>Live feed from the <a href="https://github.com/hastikdan/swarmhawk" target="_blank" rel="noopener">GitHub repository</a>. Project started March 2026. Updated automatically with every commit.</p>
 
-  <div class="changelog-entry">
-    <div class="changelog-date">MARCH 2026</div>
-    <div class="changelog-version">22 checks — OSINT & attack surface expansion</div>
-    <ul class="changelog-list">
-      <li>Added <strong>WHOIS / RDAP</strong> — domain age, expiry, privacy registration detection</li>
-      <li>Added <strong>Email Security</strong> — SPF + DMARC policy enforcement check via DNS</li>
-      <li>Added <strong>IP Intelligence</strong> — TOR exit nodes, proxy/VPN, bulletproof hosting detection</li>
-      <li>Added <strong>Shodan</strong> — full paid API integration with service banner extraction; free InternetDB fallback</li>
-      <li>Added <strong>Open Ports</strong> — active socket scan of 12 high-risk ports</li>
-      <li>Added <strong>SAST</strong> — git repo exposure, phpinfo, Xdebug detection</li>
-      <li>Added <strong>SCA</strong> — exposed dependency manifests + known-vulnerable version detection</li>
-      <li>Added <strong>DAST</strong> — admin panel, .env credential, and debug endpoint exposure</li>
-      <li>Added <strong>IaC</strong> — Dockerfile, docker-compose, terraform.tfstate, k8s.yaml exposure</li>
-      <li>Total checks increased from 13 → 22</li>
-    </ul>
+  <div id="changelog-loading" style="color:var(--grey);font-size:13px;padding:16px 0;display:flex;align-items:center;gap:10px">
+    <div style="width:16px;height:16px;border:2px solid rgba(203,255,0,.2);border-top-color:var(--lime);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>
+    Loading commits from GitHub…
   </div>
-
-  <div class="changelog-entry">
-    <div class="changelog-date">FEBRUARY 2026</div>
-    <div class="changelog-version">Dark-web intelligence &amp; CVE enrichment</div>
-    <ul class="changelog-list">
-      <li>Added <strong>Dark Web Leaks</strong> via ParanoidLab — ransomware, infostealers, Telegram channel monitoring</li>
-      <li>Added <strong>CVE Scan</strong> — software version detection + NVD CVE lookup</li>
-      <li>NIS2 compliance grid launched in dashboard</li>
-      <li>Monthly PDF report generation and email delivery</li>
-      <li>MCP server launched — Claude Desktop and Cursor integration</li>
-    </ul>
-  </div>
-
-  <div class="changelog-entry">
-    <div class="changelog-date">JANUARY 2026</div>
-    <div class="changelog-version">Threat intelligence tier</div>
-    <ul class="changelog-list">
-      <li>Added <strong>URLhaus</strong> — real-time malware URL detection (abuse.ch)</li>
-      <li>Added <strong>Spamhaus DBL</strong> — domain block list (DNS-based, free)</li>
-      <li>Added <strong>Google Safe Browsing</strong> — Chrome threat database</li>
-      <li>Added <strong>VirusTotal</strong> — 70+ engine aggregation</li>
-      <li>AI threat summary generation (Claude)</li>
-      <li>Live Threat Map launched</li>
-    </ul>
-  </div>
-
-  <div class="changelog-entry">
-    <div class="changelog-date">DECEMBER 2025</div>
-    <div class="changelog-version">Initial launch — 7 core checks</div>
-    <ul class="changelog-list">
-      <li>SSL/TLS validation</li>
-      <li>HTTP security headers</li>
-      <li>DNS configuration</li>
-      <li>HTTPS redirect enforcement</li>
-      <li>HaveIBeenPwned breach exposure</li>
-      <li>Typosquat domain monitoring</li>
-      <li>Response time / availability</li>
-    </ul>
+  <div id="changelog-feed"></div>
+  <div id="changelog-error" style="display:none">
+    <div class="info-box" style="margin-top:12px">
+      <p>Could not load changelog — <a href="https://github.com/hastikdan/swarmhawk/commits/main" target="_blank" rel="noopener">view commits on GitHub →</a></p>
+    </div>
   </div>
 
 </main>
 </div>
 
+<style>
+@keyframes spin{to{transform:rotate(360deg)}}
+.cl-day{margin-bottom:24px}
+.cl-day-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.cl-day-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;text-transform:uppercase}
+.cl-day-line{flex:1;height:1px;background:rgba(203,255,0,.1)}
+.cl-commit{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:flex-start}
+.cl-commit:last-child{border-bottom:none}
+.cl-dot{width:8px;height:8px;border-radius:50%;background:rgba(203,255,0,.3);border:1px solid rgba(203,255,0,.5);flex-shrink:0;margin-top:5px}
+.cl-msg{flex:1}
+.cl-title{font-size:13px;color:var(--white);line-height:1.5;margin-bottom:2px}
+.cl-meta{font-size:11px;color:var(--grey);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cl-sha{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);text-decoration:none;opacity:.7}
+.cl-sha:hover{opacity:1}
+.cl-time{font-size:10px;color:var(--grey)}
+.cl-more{display:block;text-align:center;margin-top:12px;font-family:'Space Mono',monospace;font-size:11px;color:var(--grey);padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:6px;text-decoration:none;transition:all .15s}
+.cl-more:hover{color:var(--lime);border-color:rgba(203,255,0,.2);text-decoration:none}
+</style>
+
 <script>
-// Highlight active sidebar link on scroll
+// ── Changelog: live GitHub commits ──────────────────────────────────────────
+(function loadChangelog() {
+  const REPO = 'hastikdan/swarmhawk';
+  const PER_PAGE = 40;
+  const API = `https://api.github.com/repos/${REPO}/commits?per_page=${PER_PAGE}`;
+
+  fetch(API, {headers:{'Accept':'application/vnd.github.v3+json'}})
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(commits => {
+      document.getElementById('changelog-loading').style.display = 'none';
+      if (!commits.length) {
+        document.getElementById('changelog-error').style.display = 'block';
+        return;
+      }
+
+      // Group commits by calendar date
+      const byDay = {};
+      commits.forEach(c => {
+        const date = new Date(c.commit.author.date);
+        const key = date.toISOString().slice(0,10); // YYYY-MM-DD
+        if (!byDay[key]) byDay[key] = [];
+        byDay[key].push(c);
+      });
+
+      const feed = document.getElementById('changelog-feed');
+      Object.keys(byDay).sort((a,b) => b.localeCompare(a)).forEach(dateKey => {
+        const d = new Date(dateKey + 'T12:00:00Z');
+        const label = d.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+
+        let html = `<div class="cl-day">
+          <div class="cl-day-header">
+            <span class="cl-day-date">${label}</span>
+            <span class="cl-day-line"></span>
+          </div>`;
+
+        byDay[dateKey].forEach(c => {
+          const msg = c.commit.message.split('\n')[0]; // first line only
+          const sha = c.sha.slice(0,7);
+          const url = c.html_url;
+          const timeAgo = formatTimeAgo(new Date(c.commit.author.date));
+
+          html += `<div class="cl-commit">
+            <span class="cl-dot"></span>
+            <div class="cl-msg">
+              <div class="cl-title">${escHtml(msg)}</div>
+              <div class="cl-meta">
+                <a class="cl-sha" href="${url}" target="_blank" rel="noopener">${sha}</a>
+                <span class="cl-time">${timeAgo}</span>
+              </div>
+            </div>
+          </div>`;
+        });
+
+        html += '</div>';
+        feed.insertAdjacentHTML('beforeend', html);
+      });
+
+      feed.insertAdjacentHTML('beforeend',
+        `<a class="cl-more" href="https://github.com/${REPO}/commits/main" target="_blank" rel="noopener">
+          View full commit history on GitHub →
+        </a>`);
+    })
+    .catch(() => {
+      document.getElementById('changelog-loading').style.display = 'none';
+      document.getElementById('changelog-error').style.display = 'block';
+    });
+})();
+
+function formatTimeAgo(date) {
+  const sec = Math.floor((Date.now() - date) / 1000);
+  if (sec < 60) return 'just now';
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const days = Math.floor(hr / 24);
+  if (days < 30) return `${days}d ago`;
+  return date.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Scroll-spy sidebar ───────────────────────────────────────────────────────
 const sections = document.querySelectorAll('[id]');
 const links = document.querySelectorAll('.sb-link');
 const obs = new IntersectionObserver(entries => {
