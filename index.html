@@ -2796,6 +2796,9 @@ function renderReportPage(data, domain, isSample) {
           <button onclick="prospectClearSelection()" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">✕ Clear</button>
         </div>
 
+        <!-- Scan progress panel (shown while Run Now is active) -->
+        <div id="prospect-scan-panel" style="display:none"></div>
+
         <!-- Prospect cards grid -->
         <div id="prospect-list" class="prospect-list">
           <div class="db-empty" style="padding:60px;text-align:center">
@@ -4799,32 +4802,180 @@ function prospectAddDomain(domain) {
 
 // ── Prospect scanner: trigger backend daily-scan job ──────────────────────
 
+var _scanPollTimer = null;
+var _scanStartedAt = null;
+
+function _fmtTime(secs) {
+  if (!secs || secs < 0) return '…';
+  if (secs < 60) return secs + 's';
+  var m = Math.floor(secs / 60), s = secs % 60;
+  return m + 'm ' + (s < 10 ? '0' : '') + s + 's';
+}
+
+var FLAGS = {CZ:'🇨🇿',PL:'🇵🇱',SK:'🇸🇰',HU:'🇭🇺',RO:'🇷🇴',AT:'🇦🇹',DE:'🇩🇪',GB:'🇬🇧',
+             FR:'🇫🇷',IT:'🇮🇹',ES:'🇪🇸',NL:'🇳🇱',SE:'🇸🇪',NO:'🇳🇴',FI:'🇫🇮',DK:'🇩🇰',
+             CH:'🇨🇭',BE:'🇧🇪',PT:'🇵🇹',UA:'🇺🇦',RU:'🇷🇺',LT:'🇱🇹',LV:'🇱🇻',EE:'🇪🇪',
+             BG:'🇧🇬',HR:'🇭🇷',SI:'🇸🇮',RS:'🇷🇸',GR:'🇬🇷',TR:'🇹🇷',IL:'🇮🇱',AE:'🇦🇪',
+             SA:'🇸🇦',ZA:'🇿🇦',NG:'🇳🇬',EG:'🇪🇬',BR:'🇧🇷',AR:'🇦🇷',MX:'🇲🇽',CL:'🇨🇱',
+             JP:'🇯🇵',KR:'🇰🇷',CN:'🇨🇳',IN:'🇮🇳',AU:'🇦🇺',NZ:'🇳🇿',SG:'🇸🇬',ID:'🇮🇩',
+             MY:'🇲🇾',TH:'🇹🇭',VN:'🇻🇳',PH:'🇵🇭',CA:'🇨🇦',US:'🇺🇸'};
+
+function _renderScanProgress(p) {
+  var panel = document.getElementById('prospect-scan-panel');
+  if (!panel) return;
+
+  var total   = p.total   || 0;
+  var scanned = p.scanned || 0;
+  var found   = p.found   || 0;
+  var pct     = total > 0 ? Math.min(100, Math.round(scanned / total * 100)) : 0;
+  var elapsed = p.elapsed_s || 0;
+  var eta     = p.eta_s;
+  var isDone  = p.status === 'done';
+  var isFetch = p.status === 'fetching';
+
+  // Build per-country rows (top 20 by total, sorted by % done)
+  var cstats = p.country_stats || {};
+  var countries = Object.keys(cstats).sort(function(a, b) {
+    var pa = cstats[a].total > 0 ? cstats[a].scanned / cstats[a].total : 0;
+    var pb = cstats[b].total > 0 ? cstats[b].scanned / cstats[b].total : 0;
+    return pb - pa;
+  }).slice(0, 24);
+
+  var countryRows = countries.map(function(c) {
+    var cs   = cstats[c];
+    var cpct = cs.total > 0 ? Math.round(cs.scanned / cs.total * 100) : 0;
+    var col  = cpct >= 100 ? '#2ECC71' : cpct > 0 ? 'var(--lime)' : '#444';
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      +'<span style="font-size:14px;width:22px;text-align:center">'+(FLAGS[c]||'🌍')+'</span>'
+      +'<span style="font-family:Space Mono,monospace;font-size:10px;color:#aaa;width:28px">'+c+'</span>'
+      +'<div style="flex:1;background:rgba(255,255,255,.06);border-radius:3px;height:5px">'
+        +'<div style="background:'+col+';height:5px;border-radius:3px;width:'+cpct+'%;transition:width .4s ease"></div>'
+      +'</div>'
+      +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+col+';min-width:30px;text-align:right">'+cpct+'%</span>'
+      +'<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;min-width:42px;text-align:right">'+cs.scanned+'/'+cs.total+'</span>'
+      +(cs.found > 0 ? '<span style="font-family:Space Mono,monospace;font-size:9px;color:#E67E22;min-width:36px;text-align:right">⚠ '+cs.found+'</span>' : '<span style="min-width:36px"></span>')
+    +'</div>';
+  }).join('');
+
+  panel.innerHTML =
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px">'
+    // Header row
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +(isDone
+          ? '<span style="color:#2ECC71;font-size:18px">✓</span>'
+          : '<div class="spinner" style="width:16px;height:16px;border-width:2px;flex-shrink:0"></div>')
+      +'</div>'
+      +'<div style="flex:1">'
+        +'<div style="font-family:Space Mono,monospace;font-size:12px;color:var(--white);font-weight:700;margin-bottom:2px">'
+          +(isDone ? 'Scan complete' : isFetch ? 'Fetching domain lists…' : 'Scanning in progress')
+        +'</div>'
+        +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--grey)">'+(p.phase||'')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right">'
+        +'<div style="font-family:Space Mono,monospace;font-size:20px;font-weight:700;color:var(--lime)">'+pct+'%</div>'
+        +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#555">'+scanned.toLocaleString()+' / '+total.toLocaleString()+' domains</div>'
+      +'</div>'
+    +'</div>'
+    // Main progress bar
+    +'<div style="background:rgba(255,255,255,.06);border-radius:4px;height:8px;margin-bottom:10px;overflow:hidden">'
+      +'<div style="background:'+(isDone?'#2ECC71':'var(--lime)')+';height:8px;border-radius:4px;width:'+pct+'%;transition:width .5s ease'+(isDone?'':';animation:scanPulse 1.4s ease-in-out infinite')+'">'
+      +'</div>'
+    +'</div>'
+    // Stats row
+    +'<div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap">'
+      +'<span style="font-family:Space Mono,monospace;font-size:10px;color:#555">⏱ Elapsed: <span style="color:#aaa">'+_fmtTime(elapsed)+'</span></span>'
+      +(eta != null && !isDone ? '<span style="font-family:Space Mono,monospace;font-size:10px;color:#555">ETA: <span style="color:#aaa">~'+_fmtTime(eta)+'</span></span>' : '')
+      +'<span style="font-family:Space Mono,monospace;font-size:10px;color:#555">⚠ Vulnerabilities found: <span style="color:#E67E22;font-weight:700">'+found+'</span></span>'
+      +(Object.keys(cstats).length ? '<span style="font-family:Space Mono,monospace;font-size:10px;color:#555">Countries: <span style="color:#aaa">'+Object.keys(cstats).length+'</span></span>' : '')
+    +'</div>'
+    // Per-country breakdown
+    +(countryRows ? '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:14px">'
+      +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">Per-country progress</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0 24px">'
+        +countryRows
+      +'</div>'
+    +'</div>' : '')
+    +'</div>';
+}
+
 async function prospectRunScan() {
   if (prospectScanning) return;
-  prospectScanning = true;
-  var btn = document.querySelector('[onclick="prospectRunScan()"]');
-  if (btn) { btn.disabled = true; btn.textContent = '↻ Starting…'; }
 
-  var list = document.getElementById('prospect-list');
-  if (list) list.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center"><div class="spinner" style="width:28px;height:28px;border-width:2.5px;margin:0 auto 12px"></div><div style="margin-top:12px;color:var(--grey);font-size:13px">Backend scan triggered — scanning top 500 domains per country…</div><div style="color:var(--grey);font-size:11px;margin-top:6px;font-family:Space Mono,monospace">Results will appear below in ~2 minutes</div></div>';
+  // If already running on server, just attach to progress
+  try {
+    var existing = await api('/outreach/scan-progress');
+    if (existing.status === 'running' || existing.status === 'fetching') {
+      prospectScanning = true;
+      _prospectAttachProgress();
+      return;
+    }
+  } catch(e) {}
+
+  prospectScanning = true;
+  document.querySelectorAll('[onclick="prospectRunScan()"]').forEach(function(b){
+    b.disabled = true; b.textContent = '↻ Starting…';
+  });
+
+  // Show progress panel immediately
+  var panel = document.getElementById('prospect-scan-panel');
+  if (panel) {
+    panel.style.display = 'block';
+    panel.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px">'
+      +'<div style="display:flex;align-items:center;gap:10px"><div class="spinner" style="width:16px;height:16px;border-width:2px"></div>'
+      +'<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--white)">Triggering scan across '+Object.keys(COUNTRY_TLDS||{}).length+' countries…</span></div></div>';
+  }
 
   try {
     await api('/outreach/run-scan', { method: 'POST' });
-    toast('✓ Backend scan started — top 500/country across all regions');
-    // Poll for results after 90 seconds
-    setTimeout(function(){
-      prospectLoadFromBackend();
-      outreachLoad();
-    }, 90000);
-    // Also show whatever is in DB right now
-    await prospectLoadFromBackend();
+    _scanStartedAt = Date.now();
+    _prospectAttachProgress();
   } catch(e) {
     toast('Scan trigger failed: ' + e.message, true);
-    if (list) list.innerHTML = '<div class="db-empty" style="padding:40px;text-align:center;color:#C0392B">Error: ' + e.message + '</div>';
+    if (panel) panel.style.display = 'none';
+    prospectScanning = false;
+    document.querySelectorAll('[onclick="prospectRunScan()"]').forEach(function(b){
+      b.disabled = false; b.textContent = '⟳ Run Now';
+    });
   }
+}
 
-  prospectScanning = false;
-  if (btn) { btn.disabled = false; btn.textContent = '⟳ Run Now'; }
+function _prospectAttachProgress() {
+  // Show progress panel
+  var panel = document.getElementById('prospect-scan-panel');
+  if (panel) panel.style.display = 'block';
+
+  // Load existing DB results immediately so queue isn't empty
+  prospectLoadFromBackend();
+
+  // Poll every 2s
+  if (_scanPollTimer) clearInterval(_scanPollTimer);
+  _scanPollTimer = setInterval(async function() {
+    try {
+      var p = await api('/outreach/scan-progress');
+      _renderScanProgress(p);
+
+      if (p.status === 'done') {
+        clearInterval(_scanPollTimer);
+        _scanPollTimer = null;
+        prospectScanning = false;
+        document.querySelectorAll('[onclick="prospectRunScan()"]').forEach(function(b){
+          b.disabled = false; b.textContent = '⟳ Run Now';
+        });
+        // Load fresh results
+        await prospectLoadFromBackend();
+        await outreachLoad();
+        toast('✓ Scan complete — ' + (p.found || 0) + ' vulnerable domains found');
+        // Hide panel after 8s
+        setTimeout(function(){
+          var panel = document.getElementById('prospect-scan-panel');
+          if (panel) panel.style.display = 'none';
+        }, 8000);
+      }
+    } catch(e) {
+      // Don't stop polling on transient errors
+    }
+  }, 2000);
 }
 
 // Load prospects from backend DB grouped by country for Section 1
