@@ -692,6 +692,9 @@ h1 span{color:var(--lime)}
 .admin-btn-danger{font-size:10px;padding:4px 10px;background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.2);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
 .admin-btn-sm{font-size:10px;padding:4px 10px;background:rgba(255,255,255,.06);color:var(--grey);border:1px solid rgba(255,255,255,.1);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
 .admin-page-nav{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:var(--grey);font-family:'Space Mono',monospace}
+.admin-nav-btn{background:transparent;border:1px solid rgba(203,255,0,.12);color:rgba(203,255,0,.55);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.5px;padding:4px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.admin-nav-btn:hover{background:rgba(203,255,0,.08);border-color:rgba(203,255,0,.35);color:var(--lime)}
+.admin-nav-btn.active{background:rgba(203,255,0,.12);border-color:rgba(203,255,0,.4);color:var(--lime)}
 
 .auth-google-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:10px 16px;background:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;color:#3c4043;cursor:pointer;margin-bottom:14px;font-family:'DM Sans',sans-serif;transition:box-shadow .15s}
 .auth-google-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -2877,8 +2880,24 @@ function renderReportPage(data, domain, isSample) {
           <button class="btn-scan-all" onclick="adminLoad()">↻ Refresh</button>
         </div>
 
+        <!-- ── Admin Section Nav ── -->
+        <div id="admin-section-nav" style="position:sticky;top:56px;z-index:100;background:rgba(14,13,18,.97);backdrop-filter:blur(10px);border:1px solid rgba(203,255,0,.1);border-radius:10px;padding:8px 12px;margin-bottom:24px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+          <span style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(203,255,0,.4);letter-spacing:1px;text-transform:uppercase;margin-right:6px;white-space:nowrap">JUMP TO</span>
+          <button onclick="adminNavTo('admin-kpis-section')"          class="admin-nav-btn">📊 Overview</button>
+          <button onclick="adminNavTo('admin-scans-section')"         class="admin-nav-btn">🔄 Live Scans</button>
+          <button onclick="adminNavTo('admin-api-section')"           class="admin-nav-btn">🔑 API Keys</button>
+          <button onclick="adminNavTo('admin-risk-section')"          class="admin-nav-btn">🚨 Risk</button>
+          <button onclick="adminNavTo('admin-findings-section')"      class="admin-nav-btn">✅ Findings</button>
+          <button onclick="adminNavTo('admin-users-section')"         class="admin-nav-btn">👥 Users</button>
+          <button onclick="adminNavTo('admin-domains-section')"       class="admin-nav-btn">🌐 Domains</button>
+          <button onclick="adminNavTo('admin-prospect-section')"      class="admin-nav-btn">🎯 Prospects</button>
+          <button onclick="adminNavTo('admin-email-templates-section')" class="admin-nav-btn">✉ Email Tpl</button>
+          <button onclick="adminNavTo('llm-stats-section')"           class="admin-nav-btn">🧠 LLM Costs</button>
+          <button onclick="adminNavTo('admin-report-email-section')"  class="admin-nav-btn">📧 Report Email</button>
+        </div>
+
         <!-- Row 1: Core KPIs -->
-        <div class="admin-stat-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="admin-stat-grid" id="admin-kpis-section" style="grid-template-columns:repeat(4,1fr)">
           <div class="admin-stat"><span class="admin-stat-val" id="astat-users">—</span><span class="admin-stat-lbl">Total Users</span><span class="admin-stat-sub" id="astat-users-7d"></span></div>
           <div class="admin-stat"><span class="admin-stat-val" id="astat-domains">—</span><span class="admin-stat-lbl">Total Domains</span><span class="admin-stat-sub" id="astat-domains-7d"></span></div>
           <div class="admin-stat"><span class="admin-stat-val" id="astat-scans">—</span><span class="admin-stat-lbl">Total Scans</span><span class="admin-stat-sub" id="astat-scans-7d"></span></div>
@@ -2952,7 +2971,7 @@ function renderReportPage(data, domain, isSample) {
         </div>
 
         <!-- Developer API Stats -->
-        <div class="admin-section" style="margin-bottom:20px">
+        <div class="admin-section" id="admin-api-section" style="margin-bottom:20px">
           <div class="admin-section-title">🔑 Developer API Usage</div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
             <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-active">—</span><span class="admin-stat-lbl">Active Keys</span><span class="admin-stat-sub" id="astat-api-total"></span></div>
@@ -2968,7 +2987,7 @@ function renderReportPage(data, domain, isSample) {
         </div>
 
         <!-- Top risky + Recent scans side by side -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+        <div id="admin-risk-section" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
           <!-- Top risky domains -->
           <div class="admin-section" style="margin-bottom:0">
             <div class="admin-section-title">Top Risky Domains</div>
@@ -2992,13 +3011,13 @@ function renderReportPage(data, domain, isSample) {
         </div>
 
         <!-- Check findings breakdown -->
-        <div class="admin-section">
+        <div class="admin-section" id="admin-findings-section">
           <div class="admin-section-title">Check Findings Breakdown</div>
           <div id="admin-checks-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;padding:4px 0"></div>
         </div>
 
         <!-- Users table -->
-        <div class="admin-section">
+        <div class="admin-section" id="admin-users-section">
           <div class="admin-section-title">All Users</div>
           <div class="admin-table-wrap">
             <table class="admin-table">
@@ -3014,7 +3033,7 @@ function renderReportPage(data, domain, isSample) {
         </div>
 
         <!-- Domains table -->
-        <div class="admin-section">
+        <div class="admin-section" id="admin-domains-section">
           <div class="admin-section-title">All Domains</div>
           <div class="admin-table-wrap">
             <table class="admin-table">
@@ -3030,7 +3049,7 @@ function renderReportPage(data, domain, isSample) {
         </div>
 
         <!-- Prospect Intelligence section -->
-        <div class="admin-section">
+        <div class="admin-section" id="admin-prospect-section">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <div>
               <div class="admin-section-title" style="margin-bottom:2px">🎯 Prospect Intelligence</div>
@@ -6756,6 +6775,16 @@ function dbNavToUserPanel() {
 function dbShowTabAdmin(tab, btn) {
   dbShowTab(tab, btn);
   if (tab === 'admin') adminLoad();
+}
+
+function adminNavTo(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Highlight active nav button
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = [...document.querySelectorAll('.admin-nav-btn')].find(b => b.getAttribute('onclick')?.includes(sectionId));
+  if (btn) btn.classList.add('active');
 }
 
 async function adminLoad() {
