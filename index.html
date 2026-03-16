@@ -645,6 +645,55 @@ h1 span{color:var(--lime)}
 .outreach-empty{padding:60px;text-align:center;color:var(--grey)}
 .outreach-saving{font-size:11px;color:var(--lime);font-family:'Space Mono',monospace;margin-left:8px;opacity:0;transition:opacity .3s}
 .outreach-saving.show{opacity:1}
+/* ── WORKFLOW GUIDE ── */
+.wf-guide{display:flex;gap:0;margin-bottom:28px;border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+.wf-step{flex:1;padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);position:relative}
+.wf-step:last-child{border-right:none}
+.wf-step-num{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+.wf-step.wf-active .wf-step-num{background:rgba(203,255,0,.2);color:var(--lime)}
+.wf-step-icon{font-size:18px;margin-bottom:4px}
+.wf-step-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:.5px;line-height:1.3}
+.wf-step.wf-active .wf-step-label{color:var(--white)}
+.wf-step-btn{margin-top:8px;font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;border:1px solid rgba(203,255,0,.3);background:rgba(203,255,0,.08);color:var(--lime);cursor:pointer;white-space:nowrap}
+.wf-step-btn:hover{background:rgba(203,255,0,.15)}
+/* ── PIPELINE TABS ── */
+.pipeline-tabs{display:flex;gap:2px;margin-bottom:18px;background:rgba(255,255,255,.03);border-radius:8px;padding:4px}
+.pipeline-tab{flex:1;padding:8px 6px;text-align:center;border-radius:6px;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;color:var(--grey);border:none;background:transparent;transition:all .15s;white-space:nowrap}
+.pipeline-tab.active{background:rgba(203,255,0,.12);color:var(--lime);font-weight:700}
+.pipeline-tab:hover:not(.active){background:rgba(255,255,255,.04);color:var(--white)}
+.pipeline-tab .tab-count{display:inline-block;background:rgba(255,255,255,.1);border-radius:8px;padding:1px 6px;font-size:9px;margin-left:4px}
+.pipeline-tab.active .tab-count{background:rgba(203,255,0,.2);color:var(--lime)}
+/* ── BULK TOOLBAR ── */
+.bulk-toolbar{display:none;position:sticky;bottom:20px;z-index:100;background:#1C1B24;border:1px solid rgba(203,255,0,.3);border-radius:10px;padding:12px 18px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);margin:0 0 12px}
+.bulk-toolbar.visible{display:flex}
+.bulk-count{font-family:'Space Mono',monospace;font-size:13px;color:var(--lime);font-weight:700}
+.bulk-approve-btn{background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:12px;font-weight:700;padding:8px 18px;border-radius:6px;border:none;cursor:pointer}
+.bulk-approve-btn:hover{background:#b8e600}
+.bulk-skip-btn{background:rgba(255,255,255,.06);color:var(--grey);font-family:'Space Mono',monospace;font-size:12px;padding:8px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.1);cursor:pointer}
+.bulk-clear-btn{margin-left:auto;background:transparent;border:none;color:var(--grey);font-size:18px;cursor:pointer;line-height:1}
+/* ── OUTREACH ROW ── */
+.o-row{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:8px;cursor:pointer;transition:border-color .15s}
+.o-row:hover{border-color:rgba(255,255,255,.12)}
+.o-row.o-selected{border-color:rgba(203,255,0,.3);background:rgba(203,255,0,.03)}
+.o-row-check{margin-top:3px;accent-color:var(--lime);width:15px;height:15px;cursor:pointer;flex-shrink:0}
+.o-row-body{flex:1;min-width:0}
+.o-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.o-domain{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--white)}
+.o-cvss-badge{font-family:'Space Mono',monospace;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700}
+.o-cvss-crit{background:rgba(231,76,60,.2);color:#E74C3C}
+.o-cvss-high{background:rgba(230,126,34,.2);color:#E67E22}
+.o-cvss-med{background:rgba(241,196,15,.15);color:#F1C40F}
+.o-country-tag{font-size:10px;color:var(--grey);font-family:'Space Mono',monospace}
+.o-contact{font-size:11px;color:#6B8;font-family:'Space Mono',monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o-preview{font-size:11px;color:var(--grey);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:600px}
+.o-row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.o-approve-btn{background:rgba(26,122,74,.2);color:#2ECC71;border:1px solid rgba(26,122,74,.3);padding:5px 12px;border-radius:5px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;white-space:nowrap}
+.o-approve-btn:hover{background:rgba(26,122,74,.35)}
+.o-unapprove-btn{background:rgba(231,76,60,.1);color:#E74C3C;border:1px solid rgba(231,76,60,.25);padding:5px 12px;border-radius:5px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer}
+.o-skip-btn{background:rgba(255,255,255,.04);color:var(--grey);border:1px solid rgba(255,255,255,.08);padding:5px 10px;border-radius:5px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer}
+.o-expand-btn{background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--grey);padding:5px 8px;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Space Mono',monospace}
+.o-expand-body{display:none;padding:12px 0 4px}
+.o-expand-body.open{display:block}
 
 @keyframes scanPulse{0%,100%{opacity:1}50%{opacity:.4}}
 
@@ -2778,13 +2827,13 @@ function renderReportPage(data, domain, isSample) {
 
         <div class="db-header">
           <div>
-            <h2 class="db-title">📣 Marketing Intelligence</h2>
-            <p style="color:var(--grey);font-size:13px;margin-top:4px">Daily 08:00 scan · Most threatened domains · AI-drafted outreach</p>
+            <h2 class="db-title">📣 Marketing Outreach</h2>
+            <p style="color:var(--grey);font-size:13px;margin-top:4px">Semi-automated daily workflow · AI-drafted cold emails · Manual approval before sending</p>
           </div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <select id="prospect-country" class="prospect-select" onchange="prospectFilterCountry(this.value)">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="prospect-country" class="prospect-select" onchange="outreachSetCountry(this.value)" style="font-size:11px;padding:6px 10px">
               <option value="all">All Countries</option>
-              <option value="CZ">🇨🇿 Czech Republic</option>
+              <option value="CZ">🇨🇿 Czech</option>
               <option value="PL">🇵🇱 Poland</option>
               <option value="SK">🇸🇰 Slovakia</option>
               <option value="HU">🇭🇺 Hungary</option>
@@ -2792,39 +2841,46 @@ function renderReportPage(data, domain, isSample) {
               <option value="AT">🇦🇹 Austria</option>
               <option value="DE">🇩🇪 Germany</option>
             </select>
-            <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Now</button>
-            <button class="btn-send-all" onclick="outreachSendApproved()" id="outreach-send-btn">✉ Send Approved</button>
-            <button onclick="outreachSyncContacts(this)" title="Sync domain contacts → Marketing prospects" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:6px;cursor:pointer">⟳ Sync Contacts</button>
+            <button class="btn-scan-all" onclick="prospectRunScan()" title="Trigger daily scan now">⟳ Run Scan</button>
           </div>
         </div>
 
-        <!-- ── SECTION 1: THREAT DISCOVERY ── -->
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)">
-          ▸ Threat Discovery — Top CVE-Exposed Domains
+        <!-- ── DAILY WORKFLOW GUIDE ── -->
+        <div class="wf-guide" id="wf-guide">
+          <div class="wf-step" id="wf1">
+            <div class="wf-step-num">1</div>
+            <div class="wf-step-icon">🔍</div>
+            <div class="wf-step-label">Scan runs<br>daily 08:00</div>
+            <button class="wf-step-btn" onclick="prospectRunScan()">Run Now</button>
+          </div>
+          <div class="wf-step" id="wf2">
+            <div class="wf-step-num">2</div>
+            <div class="wf-step-icon">✍️</div>
+            <div class="wf-step-label">AI drafts<br>emails</div>
+            <button class="wf-step-btn" onclick="outreachDraftPending(this)" id="draft-pending-btn">Draft Emails</button>
+          </div>
+          <div class="wf-step" id="wf3">
+            <div class="wf-step-num">3</div>
+            <div class="wf-step-icon">👁</div>
+            <div class="wf-step-label">Review &amp;<br>approve</div>
+            <button class="wf-step-btn" onclick="outreachSetTab('pending')">Review</button>
+          </div>
+          <div class="wf-step" id="wf4">
+            <div class="wf-step-num">4</div>
+            <div class="wf-step-icon">📤</div>
+            <div class="wf-step-label">Send all<br>approved</div>
+            <button class="wf-step-btn" onclick="outreachSendApproved()" id="outreach-send-btn" style="background:rgba(203,255,0,.15);border-color:rgba(203,255,0,.5)">✉ Send</button>
+          </div>
+          <div class="wf-step" id="wf5">
+            <div class="wf-step-num">5</div>
+            <div class="wf-step-icon">📊</div>
+            <div class="wf-step-label">Track<br>results</div>
+            <button class="wf-step-btn" onclick="outreachSetTab('sent')">View Sent</button>
+          </div>
         </div>
 
-        <!-- Stats bar -->
-        <div class="prospect-stats-row" id="prospect-stats-row">
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-total">—</span>
-            <span class="prospect-stat-lbl">Domains Scanned</span>
-          </div>
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-cve" style="color:#C0392B">—</span>
-            <span class="prospect-stat-lbl">Have Live CVEs</span>
-          </div>
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-critical" style="color:#C0392B">—</span>
-            <span class="prospect-stat-lbl">Critical (CVSS ≥9)</span>
-          </div>
-          <div class="prospect-stat">
-            <span class="prospect-stat-val" id="pstat-wp" style="color:#D4850A">—</span>
-            <span class="prospect-stat-lbl">WordPress Exposed</span>
-          </div>
-        </div>
-
-        <!-- Scan progress bar (prospects) -->
-        <div id="prospect-scan-progress" style="display:none;margin-bottom:20px">
+        <!-- Scan progress bar -->
+        <div id="prospect-scan-progress" style="display:none;margin-bottom:16px">
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey);font-family:'Space Mono',monospace;margin-bottom:5px">
             <span id="prospect-scan-label">Scanning…</span>
             <span id="prospect-scan-pct">0%</span>
@@ -2832,74 +2888,87 @@ function renderReportPage(data, domain, isSample) {
           <div style="background:rgba(255,255,255,.06);border-radius:3px;height:4px">
             <div id="prospect-scan-bar" style="height:4px;background:var(--lime);border-radius:4px;width:0%;transition:width .3s ease"></div>
           </div>
+          <div id="prospect-scan-panel" style="margin-top:8px"></div>
         </div>
 
-        <!-- Schedule toolbar (appears when domains are checked) -->
-        <div id="prospect-schedule-bar" style="display:none;background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.2);border-radius:10px;padding:12px 18px;margin-bottom:16px;align-items:center;gap:12px;flex-wrap:wrap">
-          <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--lime)" id="prospect-sel-label">0 selected</span>
-          <div style="flex:1;min-width:160px">
-            <label style="font-size:10px;color:var(--grey);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px">Outreach Date</label>
-            <input type="date" id="prospect-schedule-date" style="background:var(--card);border:1px solid rgba(255,255,255,.15);color:var(--white);font-family:'Space Mono',monospace;font-size:12px;padding:6px 10px;border-radius:6px;outline:none;cursor:pointer">
+        <!-- ── PIPELINE STATS ── -->
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap" id="pipeline-stats-row">
+          <div style="flex:1;min-width:100px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:#E67E22" id="pstat-pending">—</div>
+            <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Pending</div>
           </div>
-          <button class="btn-scan-all" onclick="prospectScheduleSelected()" style="white-space:nowrap">📅 Approve for Outreach</button>
-          <button onclick="prospectClearSelection()" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">✕ Clear</button>
-        </div>
-
-        <!-- Scan progress panel (shown while Run Now is active) -->
-        <div id="prospect-scan-panel" style="display:none"></div>
-
-        <!-- Prospect cards grid -->
-        <div id="prospect-list" class="prospect-list">
-          <div class="db-empty" style="padding:60px;text-align:center">
-            <div style="font-size:32px;margin-bottom:12px">📣</div>
-            <div style="color:var(--white);font-size:15px;font-weight:600;margin-bottom:8px">Marketing Intelligence Ready</div>
-            <div style="color:var(--grey);font-size:13px;max-width:420px;margin:0 auto 20px">
-              Daily scan runs at <strong style="color:var(--lime)">08:00</strong> automatically. Click <strong style="color:var(--lime)">Run Now</strong> to scan immediately — domains ranked by CVE severity with AI cold-email drafts. Tick domains to approve for outreach.
-            </div>
-            <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Now</button>
+          <div style="flex:1;min-width:100px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:#2ECC71" id="pstat-approved">—</div>
+            <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Approved</div>
           </div>
-        </div>
-
-        <!-- ── SECTION 2: OUTREACH QUEUE ── -->
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)">
-          ▸ Outreach Queue — Approved &amp; Sent Emails
-        </div>
-
-        <!-- Filters + stats -->
-        <div class="outreach-toolbar">
-          <button class="outreach-filter-btn active" onclick="outreachSetFilter('pending',this)">Pending</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('approved',this)">Approved</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('sent',this)">Sent</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('skipped',this)">Skipped</button>
-          <button class="outreach-filter-btn" onclick="outreachSetFilter('all',this)">All</button>
-          <div class="outreach-stats-mini" id="outreach-stats-mini">
-            <span class="outreach-stat-mini">Pending <span id="ostat-pending">—</span></span>
-            <span class="outreach-stat-mini">Approved <span id="ostat-approved">—</span></span>
-            <span class="outreach-stat-mini">Sent <span id="ostat-sent">—</span></span>
+          <div style="flex:1;min-width:100px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:var(--white)" id="pstat-sent">—</div>
+            <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Sent</div>
+          </div>
+          <div style="flex:1;min-width:100px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:var(--grey)" id="pstat-skipped">—</div>
+            <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Skipped</div>
+          </div>
+          <div style="flex:1;min-width:100px;background:rgba(255,255,255,.03);border:1px solid rgba(203,255,0,.08);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:var(--lime)" id="pstat-total">—</div>
+            <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Total</div>
           </div>
         </div>
 
-        <!-- Outreach scan progress -->
-        <div id="outreach-scan-progress" style="display:none;margin-bottom:16px">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey);font-family:'Space Mono',monospace;margin-bottom:5px">
-            <span id="outreach-scan-label">Running daily scan…</span>
-            <span id="outreach-scan-pct"></span>
-          </div>
-          <div style="background:rgba(255,255,255,.06);border-radius:3px;height:3px">
-            <div id="outreach-scan-bar" style="height:3px;background:var(--lime);border-radius:3px;width:5%;animation:scanPulse 1.2s ease-in-out infinite"></div>
+        <!-- ── PIPELINE TABS ── -->
+        <div class="pipeline-tabs">
+          <button class="pipeline-tab active" id="ptab-pending"   onclick="outreachSetTab('pending')">⏳ Pending<span class="tab-count" id="tc-pending">—</span></button>
+          <button class="pipeline-tab"        id="ptab-approved"  onclick="outreachSetTab('approved')">✅ Approved<span class="tab-count" id="tc-approved">—</span></button>
+          <button class="pipeline-tab"        id="ptab-sent"      onclick="outreachSetTab('sent')">📤 Sent<span class="tab-count" id="tc-sent">—</span></button>
+          <button class="pipeline-tab"        id="ptab-skipped"   onclick="outreachSetTab('skipped')">⛔ Skipped<span class="tab-count" id="tc-skipped">—</span></button>
+          <button class="pipeline-tab"        id="ptab-all"       onclick="outreachSetTab('all')">All</button>
+        </div>
+
+        <!-- Quick actions row -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <button onclick="outreachSelectAll()" style="background:transparent;border:none;color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;padding:0;text-decoration:underline">Select All</button>
+          <span style="color:rgba(255,255,255,.1)">|</span>
+          <button onclick="outreachClearSelection()" style="background:transparent;border:none;color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;padding:0;text-decoration:underline">Clear</button>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button onclick="outreachSyncContacts(this)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer">⟳ Sync Contacts</button>
+            <button onclick="outreachSendDigest(this)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer">📧 Send Digest</button>
           </div>
         </div>
 
-        <!-- Outreach cards list -->
+        <!-- ── BULK TOOLBAR (sticky, appears on checkbox select) ── -->
+        <div class="bulk-toolbar" id="bulk-toolbar">
+          <span class="bulk-count" id="bulk-count">0 selected</span>
+          <button class="bulk-approve-btn" onclick="outreachBulkApprove()">✓ Approve Selected</button>
+          <button class="bulk-skip-btn"    onclick="outreachBulkSkip()">Skip Selected</button>
+          <button class="bulk-clear-btn"   onclick="outreachClearSelection()" title="Clear selection">✕</button>
+        </div>
+
+        <!-- ── PROSPECT LIST ── -->
         <div id="outreach-list" class="outreach-list">
           <div class="outreach-empty">
-            <div style="font-size:28px;margin-bottom:10px">📨</div>
-            <div style="color:var(--white);font-weight:600;margin-bottom:6px">No outreach queue yet</div>
-            <div style="font-size:13px;max-width:360px;margin:0 auto 18px">
-              Tick domains above and click <strong style="color:var(--lime)">Approve for Outreach</strong> — AI drafts the email, you review and send.
+            <div style="font-size:28px;margin-bottom:10px">📣</div>
+            <div style="color:var(--white);font-weight:600;margin-bottom:6px">No prospects yet</div>
+            <div style="font-size:13px;max-width:380px;margin:0 auto 18px;color:var(--grey)">
+              Daily scan runs automatically at <strong style="color:var(--lime)">08:00</strong>. Use <strong style="color:var(--lime)">Run Scan</strong> to start immediately.
             </div>
+            <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Scan Now</button>
           </div>
         </div>
+
+        <!-- Compat hidden elements for legacy JS -->
+        <div id="prospect-list" style="display:none"></div>
+        <div id="prospect-schedule-bar" style="display:none"></div>
+        <div id="prospect-scan-panel-compat" style="display:none"></div>
+        <span id="prospect-sel-label" style="display:none"></span>
+        <input type="date" id="prospect-schedule-date" style="display:none">
+        <span id="ostat-pending" style="display:none"></span>
+        <span id="ostat-approved" style="display:none"></span>
+        <span id="ostat-sent" style="display:none"></span>
+        <div id="outreach-stats-mini" style="display:none"></div>
+        <span id="pstat-cve" style="display:none"></span>
+        <span id="pstat-critical" style="display:none"></span>
+        <span id="pstat-wp" style="display:none"></span>
+        <div class="prospect-stats-row" id="prospect-stats-row" style="display:none"></div>
 
       </div>
     </div>
@@ -5390,12 +5459,34 @@ async function outreachApproveFromProspect(id) {
 // OUTREACH TAB
 // ═══════════════════════════════════════════════════════
 
-var outreachProspects = [];
-var outreachFilter    = 'pending';
+var outreachProspects  = [];
+var outreachFilter     = 'pending';
+var outreachCountry    = 'all';
 var _outreachTemplates = null;
+var _outreachSelected  = {};   // id → true for bulk select
 
+// ── Tab switching ────────────────────────────────────────
+function outreachSetTab(status) {
+  outreachFilter = status;
+  document.querySelectorAll('.pipeline-tab').forEach(function(b){ b.classList.remove('active'); });
+  var active = document.getElementById('ptab-' + status);
+  if (active) active.classList.add('active');
+  _outreachSelected = {};
+  outreachUpdateBulkToolbar();
+  outreachLoad();
+}
+
+// Legacy filter buttons (kept for backward compat, proxied to new tab system)
+function outreachSetFilter(f, btn) { outreachSetTab(f); }
+
+function outreachSetCountry(val) {
+  outreachCountry = val || 'all';
+  outreachLoad();
+}
+
+// ── Load + stats ─────────────────────────────────────────
 async function outreachLoad() {
-  // Auto re-attach to running scan if we navigated away
+  // Re-attach to running scan if navigated away
   if (!prospectScanning) {
     try {
       var prog = await api('/outreach/scan-progress');
@@ -5405,154 +5496,198 @@ async function outreachLoad() {
       }
     } catch(e) {}
   }
-  // Also populate Section 1 (Threat Discovery) from backend on every load
-  prospectLoadFromBackend();
-  // Pre-fetch country templates for re-draft feature
+  // Pre-fetch country templates
   if (!_outreachTemplates) {
     api('/outreach/templates').then(function(td){ _outreachTemplates = td.templates || {}; }).catch(function(){});
   }
+  // Fetch current tab's prospects
   try {
-    var data = await api('/outreach/prospects?status=' + outreachFilter);
+    var qs = '/outreach/prospects?status=' + outreachFilter + '&limit=300';
+    if (outreachCountry !== 'all') qs += '&country=' + outreachCountry;
+    var data = await api(qs);
     outreachProspects = data.prospects || [];
-    outreachUpdateStats();
     outreachRender();
   } catch(e) {
-    document.getElementById('outreach-list').innerHTML =
-      '<div class="outreach-empty">Failed to load: ' + e.message + '</div>';
+    var list = document.getElementById('outreach-list');
+    if (list) list.innerHTML = '<div class="outreach-empty">Failed to load: ' + e.message + '</div>';
   }
+  // Update stats (separate call to get all-status counts)
+  outreachUpdateStats();
 }
 
 async function outreachUpdateStats() {
   try {
-    var all = await api('/outreach/prospects?status=all');
+    var all = await api('/outreach/prospects?status=all&limit=2000');
     var rows = all.prospects || [];
-    var count = function(s){ return rows.filter(function(r){ return r.status===s; }).length; };
+    var cnt = function(s){ return rows.filter(function(r){ return r.status===s; }).length; };
     var el = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
-    el('ostat-pending',  count('pending'));
-    el('ostat-approved', count('approved'));
-    el('ostat-sent',     count('sent'));
+    var pending  = cnt('pending');
+    var approved = cnt('approved');
+    var sent     = cnt('sent');
+    var skipped  = cnt('skipped');
+    var total    = rows.length;
+    // Pipeline stats boxes
+    el('pstat-pending',  pending);
+    el('pstat-approved', approved);
+    el('pstat-sent',     sent);
+    el('pstat-skipped',  skipped);
+    el('pstat-total',    total);
+    // Tab counts
+    el('tc-pending',  pending);
+    el('tc-approved', approved);
+    el('tc-sent',     sent);
+    el('tc-skipped',  skipped);
+    // Legacy compat
+    el('ostat-pending',  pending);
+    el('ostat-approved', approved);
+    el('ostat-sent',     sent);
+    // Highlight Step 4 button if there are approved prospects waiting
+    var sendBtn = document.getElementById('outreach-send-btn');
+    if (sendBtn) {
+      sendBtn.textContent = approved > 0 ? '✉ Send (' + approved + ')' : '✉ Send';
+      sendBtn.style.background = approved > 0 ? 'rgba(203,255,0,.2)' : 'rgba(203,255,0,.1)';
+    }
+    // Highlight workflow step 2 if pending have no AI email (only heuristic)
+    var draftBtn = document.getElementById('draft-pending-btn');
+    if (draftBtn && pending > 0) {
+      draftBtn.textContent = 'Draft Emails (' + pending + ')';
+    }
   } catch(e) { console.warn('outreachUpdateStats:', e.message); }
 }
 
-function outreachSetFilter(f, btn) {
-  outreachFilter = f;
-  document.querySelectorAll('.outreach-filter-btn').forEach(function(b){ b.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
-  outreachLoad();
-}
-
+// ── Render list ──────────────────────────────────────────
 function outreachRender() {
   var list = document.getElementById('outreach-list');
   if (!list) return;
 
   if (!outreachProspects.length) {
-    var labels = { pending:'No pending prospects — run a scan first.',
-                   approved:'No approved emails yet.',
-                   sent:'No emails sent yet.',
-                   skipped:'Nothing skipped.',
-                   all:'No prospects in database — run a scan.' };
-    list.innerHTML = '<div class="outreach-empty">' + (labels[outreachFilter]||'Nothing here.') + '</div>';
+    var labels = {
+      pending:  'No pending prospects — run a scan or click "Draft Emails" to AI-draft existing ones.',
+      approved: 'No approved prospects — go to Pending tab and approve some.',
+      sent:     'No emails sent yet — approve prospects, then click Send.',
+      skipped:  'Nothing skipped.',
+      all:      'No prospects in database — run a scan first.'
+    };
+    list.innerHTML = '<div class="outreach-empty">'
+      + '<div style="font-size:28px;margin-bottom:10px">📭</div>'
+      + '<div style="color:var(--white);font-weight:600;margin-bottom:6px">'
+      + (outreachFilter === 'pending' ? 'Nothing to review yet' : labels[outreachFilter] || 'Nothing here.')
+      + '</div>'
+      + '<div style="color:var(--grey);font-size:13px;max-width:380px;margin:0 auto">'
+      + labels[outreachFilter] + '</div></div>';
     return;
   }
 
-  var COUNTRY_OPTS = ['CZ','PL','SK','HU','RO','AT','DE','GB','FR','IT','ES','NL','SE','NO','FI','DK','CH','BE','PT','UA'];
   var FLAGS = {CZ:'🇨🇿',PL:'🇵🇱',SK:'🇸🇰',HU:'🇭🇺',RO:'🇷🇴',AT:'🇦🇹',DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',IT:'🇮🇹',ES:'🇪🇸',NL:'🇳🇱',SE:'🇸🇪',NO:'🇳🇴',FI:'🇫🇮',DK:'🇩🇰',CH:'🇨🇭',BE:'🇧🇪',PT:'🇵🇹',UA:'🇺🇦'};
+  var COUNTRY_OPTS = Object.keys(FLAGS);
 
   list.innerHTML = outreachProspects.map(function(p, idx) {
-    var cves    = Array.isArray(p.cves) ? p.cves : [];
-    var top     = cves[0] || {};
-    var sw      = Array.isArray(p.software) ? p.software : [];
-    var statusClass = 'status-' + p.status;
-    var pillClass   = 'pill-' + p.status;
-    var statusLabel = { pending:'⏳ Pending', approved:'✓ Approved', sent:'✉ Sent', skipped:'— Skipped' }[p.status] || p.status;
-    var isApproved  = p.status === 'approved';
+    var cves = Array.isArray(p.cves) ? p.cves : [];
+    var top  = cves[0] || {};
+    var sw   = Array.isArray(p.software) ? p.software : [];
 
-    var cvssColor = p.max_cvss >= 9 ? '#E74C3C' : p.max_cvss >= 7 ? '#E67E22' : '#3498DB';
-    var cveInline = top.id ? '<span class="outreach-cve-inline">' + top.id + ' CVSS ' + top.cvss + '</span>' : '';
-    var swInline  = sw.map(function(s){ return s.product+' '+s.version; }).join(' · ');
+    var cvss = p.max_cvss || 0;
+    var cvssClass = cvss >= 9 ? 'o-cvss-crit' : cvss >= 7 ? 'o-cvss-high' : 'o-cvss-med';
+    var cvssLabel = cvss > 0 ? 'CVSS ' + cvss : '';
 
-    var emailBody = (p.email_body || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var swText  = sw.slice(0,2).map(function(s){ return s.product+' '+s.version; }).join(' · ');
+    var topCve  = top.id ? top.id + ' ' + top.cvss : '';
+    var preview = (p.email_body || '').replace(/^Subject:[^\n]*\n\n?/, '').split('\n')[0].slice(0,120);
 
-    // Country template selector options
-    var tplOpts = COUNTRY_OPTS.map(function(c){
-      var sel = c === (p.country||'CZ') ? ' selected' : '';
-      return '<option value="'+c+'"'+sel+'>'+(FLAGS[c]||'')+'  '+c+'</option>';
-    }).join('');
+    var flag    = FLAGS[p.country] || '';
+    var isSel   = !!_outreachSelected[p.id];
+    var isApproved = p.status === 'approved';
+    var isSent     = p.status === 'sent';
 
-    // Contact emails picker
-    var allContacts = Array.isArray(p.contact_emails) ? p.contact_emails :
-                      (p.contact_emails ? JSON.parse(p.contact_emails) : []);
+    // Contact picker
+    var allContacts = Array.isArray(p.contact_emails) ? p.contact_emails
+                    : (p.contact_emails ? (function(){ try{ return JSON.parse(p.contact_emails); }catch(e){ return []; } })() : []);
     if (p.contact_email && allContacts.indexOf(p.contact_email) === -1) allContacts.unshift(p.contact_email);
     var contactOpts = allContacts.map(function(e){
       return '<option value="'+e+'"'+(e===p.contact_email?' selected':'')+'>'+e+'</option>';
     }).join('');
-    var contactHtml = '<div style="display:flex;align-items:center;gap:8px;margin:10px 0 8px;flex-wrap:wrap">' +
-      '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap">Send To</span>' +
-      (allContacts.length > 1
-        ? '<select id="ocontact-'+idx+'" onchange="outreachSetContact(\''+p.id+'\','+idx+',this)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer;flex:1;min-width:180px">'+contactOpts+'</select>'
-        : '<input id="ocontact-'+idx+'" type="text" value="'+(p.contact_email||'')+'" onblur="outreachSetContact(\''+p.id+'\','+idx+',this)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;flex:1;min-width:180px">') +
-      '<span style="font-size:10px;color:var(--grey);white-space:nowrap">'+(allContacts.length)+' found</span>' +
-    '</div>';
 
-    var actionBtns = '';
-    if (p.status !== 'sent') {
-      actionBtns = '<button class="btn-regen-email" onclick="outreachRegenEmail(\''+p.id+'\','+idx+')">↻ Re-draft</button>' +
-        (p.status !== 'skipped' ? '<button class="btn-skip-prospect" onclick="outreachSkip(\''+p.id+'\','+idx+')">Skip</button>' : '');
+    // Template country selector
+    var tplOpts = COUNTRY_OPTS.map(function(c){
+      return '<option value="'+c+'"'+(c===(p.country||'CZ')?' selected':'')+'>'+(FLAGS[c]||'')+' '+c+'</option>';
+    }).join('');
+
+    // Row action buttons depending on status
+    var rowActions = '';
+    if (!isSent && p.status !== 'skipped') {
+      rowActions = isApproved
+        ? '<button class="o-unapprove-btn" onclick="event.stopPropagation();outreachUnapprove(\''+p.id+'\','+idx+')">✕ Unapprove</button>'
+        : '<button class="o-approve-btn" onclick="event.stopPropagation();outreachApprove(\''+p.id+'\','+idx+')">✓ Approve</button>';
+      rowActions += '<button class="o-skip-btn" onclick="event.stopPropagation();outreachSkip(\''+p.id+'\','+idx+')">Skip</button>';
     }
+    if (isSent) rowActions = '<span style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace">✉ Sent to '+p.sent_to+'</span>';
 
-    return '<div class="outreach-card ' + statusClass + '" id="ocard-' + idx + '">' +
-      '<div class="outreach-card-head">' +
-        // Approval checkbox — click doesn't expand/collapse
-        '<label onclick="event.stopPropagation()" title="'+(isApproved?'Click to unapprove':'Click to approve')+'" style="display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;padding:4px 8px 4px 0">' +
-          '<input type="checkbox" id="oapprove-'+idx+'" '+(isApproved?'checked':'')+
-            ' onchange="outreachToggleApproval(\''+p.id+'\','+idx+',this)"'+
-            ' style="width:16px;height:16px;accent-color:var(--lime);cursor:pointer">' +
-          '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:'+(isApproved?'var(--lime)':'var(--grey)')+';letter-spacing:1px;white-space:nowrap">'+(isApproved?'APPROVED':'APPROVE')+'</span>' +
-        '</label>' +
-        '<span style="font-size:12px;color:var(--grey);font-family:\'Space Mono\',monospace;min-width:24px">#'+(idx+1)+'</span>' +
-        '<span class="outreach-domain" style="cursor:pointer" onclick="outreachToggle('+idx+')">' + p.domain + '</span>' +
-        '<div class="outreach-meta" style="cursor:pointer" onclick="outreachToggle('+idx+')">' +
-          '<span style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace">' + swInline + '</span>' +
-          (p.max_cvss ? '<span style="font-size:12px;font-weight:700;color:'+cvssColor+';font-family:\'Space Mono\',monospace">CVSS '+p.max_cvss+'</span>' : '') +
-          cveInline +
-          '<span style="font-size:10px;color:var(--grey)">' + (p.country||'') + '</span>' +
-          '<span class="outreach-status-pill ' + pillClass + '">' + statusLabel + '</span>' +
-          (p.edited ? '<span style="font-size:10px;color:var(--lime);font-family:\'Space Mono\',monospace">edited</span>' : '') +
-        '</div>' +
-        '<span style="font-size:12px;color:var(--grey);cursor:pointer" id="ochev-'+idx+'" onclick="outreachToggle('+idx+')">▼</span>' +
-      '</div>' +
-      '<div class="outreach-card-body" id="obody-' + idx + '">' +
-        contactHtml +
-        // Country template selector
-        '<div style="display:flex;align-items:center;gap:10px;margin:10px 0 12px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:6px;flex-wrap:wrap">' +
-          '<span style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap">Email Template</span>' +
-          '<select id="otpl-'+idx+'" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer;flex:1;min-width:120px">'+tplOpts+'</select>' +
-          '<button onclick="outreachRegenEmail(\''+p.id+'\','+idx+')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer;white-space:nowrap">↻ Re-draft with template</button>' +
-          '<button onclick="dbShowTabAdmin(\'admin\',null);setTimeout(function(){var s=document.getElementById(\'tpl-country\');if(s)s.value=\''+p.country+'\';adminLoadCountryTemplate();},200)" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap">Edit template ↗</button>' +
-        '</div>' +
-        '<div style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace;margin-bottom:4px">✉ EMAIL DRAFT — edit freely before approving</div>' +
-        '<textarea class="outreach-email-editor" id="oemail-' + idx + '" ' +
-          'onblur="outreachSaveDraft(\'' + p.id + '\',' + idx + ')" ' +
-          'onkeydown="if((event.ctrlKey||event.metaKey)&&event.key===\'s\'){event.preventDefault();outreachSaveDraft(\''+p.id+'\','+idx+')}">' +
-          emailBody +
-        '</textarea>' +
-        '<div style="display:flex;align-items:center;margin-bottom:10px">' +
-          '<span style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace">Ctrl+S or click outside to save</span>' +
-          '<span class="outreach-saving" id="osaving-'+idx+'">✓ saved</span>' +
-        '</div>' +
-        (actionBtns ? '<div class="outreach-card-actions">' + actionBtns + '</div>' : '') +
-        (p.sent_at ? '<div style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace;margin-top:10px">Sent to '+p.sent_to+' on '+new Date(p.sent_at).toLocaleDateString()+'</div>' : '') +
-      '</div>' +
-    '</div>';
+    var emailBody = (p.email_body || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    return '<div class="o-row'+(isSel?' o-selected':'')+' status-'+p.status+'" id="ocard-'+idx+'" onclick="outreachToggle('+idx+')">'
+      // Checkbox for bulk — only on non-sent rows
+      + (!isSent ? '<input type="checkbox" class="o-row-check" '+(isSel?'checked':'')
+          +' onclick="event.stopPropagation()" onchange="outreachRowCheck(this,\''+p.id+'\','+idx+')">' : '<div style="width:15px"></div>')
+      // Main content
+      + '<div class="o-row-body">'
+        + '<div class="o-row-head">'
+          + '<span class="o-domain">'+p.domain+'</span>'
+          + (cvssLabel ? '<span class="o-cvss-badge '+cvssClass+'">'+cvssLabel+'</span>' : '')
+          + (topCve    ? '<span style="font-size:10px;color:#E74C3C;font-family:\'Space Mono\',monospace">'+topCve+'</span>' : '')
+          + (flag ? '<span class="o-country-tag">'+flag+' '+p.country+'</span>' : '')
+          + (p.edited ? '<span style="font-size:10px;color:var(--lime);font-family:\'Space Mono\',monospace">✎ edited</span>' : '')
+          + (isApproved ? '<span style="font-size:10px;color:#2ECC71;font-family:\'Space Mono\',monospace">✓ approved</span>' : '')
+          + (isSent ? '<span style="font-size:10px;color:var(--grey);font-family:\'Space Mono\',monospace">✉ sent</span>' : '')
+        + '</div>'
+        + (p.contact_email ? '<div class="o-contact">→ '+p.contact_email+'</div>' : '')
+        + (swText   ? '<div style="font-size:10px;color:var(--grey);margin-top:2px">'+swText+'</div>' : '')
+        + (preview  ? '<div class="o-preview">'+preview+'</div>' : '<div class="o-preview" style="color:#555;font-style:italic">No email draft yet — click "Draft Emails" in step 2</div>')
+      + '</div>'
+      // Actions
+      + '<div class="o-row-actions" onclick="event.stopPropagation()">'+rowActions+'<button class="o-expand-btn" onclick="outreachToggle('+idx+')">▾</button></div>'
+      // Expandable details (hidden by default)
+      + '<div class="o-expand-body" id="obody-'+idx+'" style="display:none;padding:14px 0 4px;border-top:1px solid rgba(255,255,255,.06);margin-top:10px;width:100%">'
+        // Contact picker row
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
+          + '<span style="font-size:9px;color:var(--grey);font-family:\'Space Mono\',monospace;text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap">Send To</span>'
+          + (allContacts.length > 1
+            ? '<select id="ocontact-'+idx+'" onchange="outreachSetContact(\''+p.id+'\','+idx+',this)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer;flex:1;min-width:200px">'+contactOpts+'</select>'
+            : '<input id="ocontact-'+idx+'" type="text" value="'+(p.contact_email||'')+'" onblur="outreachSetContact(\''+p.id+'\','+idx+',this)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;flex:1;min-width:200px">')
+          + '<span style="font-size:10px;color:var(--grey)">'+(allContacts.length)+' contact(s) found</span>'
+        + '</div>'
+        // Template selector
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:6px">'
+          + '<span style="font-size:9px;color:var(--grey);font-family:\'Space Mono\',monospace;text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap">Template</span>'
+          + '<select id="otpl-'+idx+'" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:4px 8px;border-radius:5px;outline:none;flex:1;min-width:100px">'+tplOpts+'</select>'
+          + '<button onclick="outreachRegenEmail(\''+p.id+'\','+idx+')" class="btn-regen-email">↻ Re-draft</button>'
+        + '</div>'
+        // Email editor
+        + '<div style="font-size:10px;color:var(--grey);font-family:\'Space Mono\',monospace;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase">✉ Email Draft — edit freely, Ctrl+S to save</div>'
+        + '<textarea class="outreach-email-editor" id="oemail-'+idx+'"'
+          + ' onblur="outreachSaveDraft(\''+p.id+'\','+idx+')"'
+          + ' onkeydown="if((event.ctrlKey||event.metaKey)&&event.key===\'s\'){event.preventDefault();outreachSaveDraft(\''+p.id+'\','+idx+')}">'
+          + emailBody
+        + '</textarea>'
+        + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">'
+          + '<span class="outreach-saving" id="osaving-'+idx+'">✓ saved</span>'
+          + (isSent ? '' : '<button class="btn-approve" onclick="outreachApprove(\''+p.id+'\','+idx+')">'+(isApproved?'✓ Approved':'✓ Approve &amp; Queue')+'</button>')
+          + (p.sent_at ? '<span style="font-size:11px;color:var(--grey);font-family:\'Space Mono\',monospace">Sent '+new Date(p.sent_at).toLocaleDateString()+'</span>' : '')
+        + '</div>'
+      + '</div>'
+    + '</div>';
   }).join('');
 }
 
 function outreachToggle(idx) {
   var body = document.getElementById('obody-'+idx);
-  var chev = document.getElementById('ochev-'+idx);
   if (!body) return;
-  var open = body.classList.toggle('open');
-  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+  var isOpen = body.style.display === 'block';
+  body.style.display = isOpen ? 'none' : 'block';
+  var card = document.getElementById('ocard-'+idx);
+  if (card) {
+    var btn = card.querySelector('.o-expand-btn');
+    if (btn) btn.textContent = isOpen ? '▾' : '▴';
+  }
 }
 
 async function outreachSaveDraft(id, idx) {
@@ -5724,6 +5859,114 @@ async function outreachSyncContacts(btn) {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '⟳ Sync Contacts'; }
   }
+}
+
+// ── Bulk select helpers ──────────────────────────────────
+function outreachRowCheck(cb, id, idx) {
+  if (cb.checked) { _outreachSelected[id] = idx; }
+  else { delete _outreachSelected[id]; }
+  var card = document.getElementById('ocard-'+idx);
+  if (card) { card.classList.toggle('o-selected', cb.checked); }
+  outreachUpdateBulkToolbar();
+}
+
+function outreachUpdateBulkToolbar() {
+  var ids  = Object.keys(_outreachSelected);
+  var bar  = document.getElementById('bulk-toolbar');
+  var cnt  = document.getElementById('bulk-count');
+  if (!bar) return;
+  if (ids.length > 0) {
+    bar.classList.add('visible');
+    if (cnt) cnt.textContent = ids.length + ' selected';
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function outreachClearSelection() {
+  _outreachSelected = {};
+  document.querySelectorAll('.o-row-check').forEach(function(cb){ cb.checked = false; });
+  document.querySelectorAll('.o-row.o-selected').forEach(function(r){ r.classList.remove('o-selected'); });
+  outreachUpdateBulkToolbar();
+}
+
+async function outreachBulkApprove() {
+  var ids = Object.keys(_outreachSelected);
+  if (!ids.length) return;
+  try {
+    await api('/outreach/prospects/bulk-approve', {
+      method: 'POST',
+      body: JSON.stringify({ ids: ids })
+    });
+    toast('✓ ' + ids.length + ' prospect(s) approved — ready to send');
+    _outreachSelected = {};
+    outreachUpdateBulkToolbar();
+    outreachLoad();
+  } catch(e) { toast('Bulk approve failed: ' + e.message, true); }
+}
+
+async function outreachBulkSkip() {
+  var ids = Object.keys(_outreachSelected);
+  if (!ids.length) return;
+  if (!confirm('Skip ' + ids.length + ' selected prospect(s)?')) return;
+  try {
+    for (var i = 0; i < ids.length; i++) {
+      await api('/outreach/prospects/' + ids[i] + '/skip', { method: 'POST' });
+    }
+    toast(ids.length + ' prospect(s) skipped');
+    _outreachSelected = {};
+    outreachUpdateBulkToolbar();
+    outreachLoad();
+  } catch(e) { toast('Skip failed: ' + e.message, true); }
+}
+
+// ── Draft AI emails for all pending ─────────────────────
+async function outreachDraftPending(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Drafting…'; }
+  try {
+    await api('/outreach/draft-pending', { method: 'POST' });
+    toast('✍️ AI email drafting started — this runs in the background (~1–3 min). Refresh after.');
+    // Poll once after 90s to refresh the list automatically
+    setTimeout(function(){
+      outreachLoad();
+      toast('✓ Draft job should be done — list refreshed');
+    }, 90000);
+  } catch(e) {
+    toast('Draft error: ' + e.message, true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Draft Emails';
+      setTimeout(function(){ btn.textContent = 'Draft Emails'; }, 500);
+    }
+  }
+}
+
+// ── Send admin digest manually ───────────────────────────
+async function outreachSendDigest(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Sending…'; }
+  try {
+    await api('/outreach/digest', { method: 'POST' });
+    toast('✓ Daily digest email sent to admin');
+  } catch(e) {
+    toast('Digest error: ' + e.message, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Digest'; }
+  }
+}
+
+// ── Select all visible ───────────────────────────────────
+function outreachSelectAll() {
+  outreachProspects.forEach(function(p, idx) {
+    if (p.status !== 'sent') {
+      _outreachSelected[p.id] = idx;
+      var cb = document.querySelector('#ocard-'+idx+' .o-row-check');
+      if (cb) cb.checked = true;
+      var card = document.getElementById('ocard-'+idx);
+      if (card) card.classList.add('o-selected');
+    }
+  });
+  outreachUpdateBulkToolbar();
 }
 
 // Load outreach data when tab is opened
