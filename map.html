@@ -602,16 +602,21 @@
     #side-panel { width: 100%; border-left: none; }
   }
 
-  footer {
-    text-align: center;
-    padding: 30px;
-    border-top: 1px solid var(--border);
-    color: var(--grey);
-    font-size: 12px;
-  }
-
-  footer a { color: var(--grey); text-decoration: none; }
-  footer a:hover { color: var(--white); }
+  .site-footer{background:var(--card);border-top:1px solid rgba(203,255,0,.08);padding:48px 24px 32px;margin-top:40px}
+  .site-footer-inner{max-width:1100px;margin:0 auto}
+  .site-footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+  .sf-brand{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:10px}
+  .sf-brand span{color:#C0392B}
+  .sf-tagline{font-size:12px;color:var(--grey);line-height:1.7;max-width:240px}
+  .sf-col-title{font-family:'Space Mono',monospace;font-size:9px;color:#cbff00;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+  .sf-links{display:flex;flex-direction:column;gap:8px}
+  .sf-links a{font-size:12px;color:var(--grey);text-decoration:none;transition:color .15s}
+  .sf-links a:hover{color:var(--white)}
+  .sf-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:1px solid rgba(255,255,255,.05)}
+  .sf-copy{font-size:11px;color:#3d3c4a;font-family:'Space Mono',monospace}
+  .sf-badges{display:flex;gap:8px}
+  .sf-badge{font-family:'Space Mono',monospace;font-size:9px;color:var(--grey);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:3px 8px;letter-spacing:1px}
+  @media(max-width:800px){.site-footer-grid{grid-template-columns:1fr 1fr}}
 
   @media (max-width: 600px) {
     .stats-bar { gap: 20px; }
@@ -704,14 +709,49 @@
   </div>
 </main>
 
-<footer>
-  <p style="margin-bottom:8px">
-    <a href="/">Home</a> &nbsp;·&nbsp;
-    <a href="/#features">Features</a> &nbsp;·&nbsp;
-    <a href="/#pricing">Pricing</a> &nbsp;·&nbsp;
-    <span>map.swarmhawk.com</span>
-  </p>
-  <p>Data aggregated from SwarmHawk passive scans. No personal data is collected or displayed.</p>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-grid">
+      <div>
+        <div class="sf-brand">SWARM<span>HAWK</span></div>
+        <div class="sf-tagline">Domain security intelligence for businesses that can't afford a breach. 22 checks · AI analysis · 72 countries.</div>
+      </div>
+      <div>
+        <div class="sf-col-title">Product</div>
+        <div class="sf-links">
+          <a href="/">Scanner</a>
+          <a href="/map.html">Live Threat Map</a>
+          <a href="/register.html">Register Domain</a>
+          <a href="/docs.html">API Documentation</a>
+          <a href="/mcp.html">MCP Setup Guide</a>
+        </div>
+      </div>
+      <div>
+        <div class="sf-col-title">Resources</div>
+        <div class="sf-links">
+          <a href="/kb.html">Knowledge Base</a>
+          <a href="https://github.com/hastikdan/swarmhawk" target="_blank" rel="noopener">GitHub</a>
+          <a href="/contact.html">Contact</a>
+        </div>
+      </div>
+      <div>
+        <div class="sf-col-title">Legal</div>
+        <div class="sf-links">
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/terms.html">Terms of Service</a>
+          <a href="/gdpr.html">GDPR</a>
+        </div>
+      </div>
+    </div>
+    <div class="sf-bottom">
+      <div class="sf-copy">© 2025 SwarmHawk · www.swarmhawk.com · Data aggregated from passive scans. No personal data displayed.</div>
+      <div class="sf-badges">
+        <span class="sf-badge">NIS2 READY</span>
+        <span class="sf-badge">DORA ALIGNED</span>
+        <span class="sf-badge">GDPR COMPLIANT</span>
+      </div>
+    </div>
+  </div>
 </footer>
 
 <!-- ── Side Panel ── -->
