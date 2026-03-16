@@ -1567,7 +1567,7 @@ const CHECK_RECOMMENDATIONS = {
   dns:'Review DNS records for misconfigurations — dangling CNAMEs, open zone transfers, or missing CAA records.',
   http_redirect:'Enforce a 301 HTTPS redirect from all HTTP URLs to prevent plaintext interception.',
   breach:'Force a password reset for all affected accounts and notify impacted users of the breach.',
-  typosquat:'Register typosquat variants via Namecheap or Porkbun (≈ €10–15/domain) to cut off phishing vectors. See affiliate purchase options below.',
+  typosquat:'Register typosquat variants via Namecheap or Porkbun (≈ €10–15/domain) to cut off phishing vectors.',
   email_security:'Enable SPF, DKIM, and DMARC records to authenticate email and prevent spoofing/phishing.',
   whois:'Enable domain privacy protection or verify that exposed registrant data is intentional.',
   urlhaus:'Submit a removal request at urlhaus.abuse.ch and investigate the reported malicious URLs.',
@@ -1932,7 +1932,41 @@ async function loadDeathPredictor(domainId) {
   }
 }
 
-function buildRecommendations(checks) {
+function buildTyposquatAffiliateBlock(c, domainName) {
+  // Parse detected domains from c.detail: "Examples: a.com, b.com" or "a.com, b.com"
+  const detailStr = (c.detail||'').replace(/^examples:\s*/i,'');
+  const domains = detailStr.split(/[,\n]/).map(s=>s.trim()).filter(Boolean);
+  const protected_domain = domainName || '';
+  let html = `<div style="margin-top:10px;padding:12px 14px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.25);border-radius:8px">`;
+  html += `<div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--red);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">⚠ Active Threats — Owned by Others</div>`;
+  if (domains.length) {
+    domains.forEach(d=>{
+      const url = `/register.html?domain=${encodeURIComponent(d)}&protected=${encodeURIComponent(protected_domain)}&threat=1`;
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)">`;
+      html += `<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--white)">${d}</span>`;
+      html += `<a href="${url}" target="_blank" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--red);text-decoration:none;border:1px solid rgba(192,57,43,0.4);padding:3px 10px;border-radius:4px;white-space:nowrap">🔍 View Options →</a>`;
+      html += `</div>`;
+    });
+  }
+  // Safe variants to register
+  const baseName = protected_domain.split('.')[0];
+  const safeVariants = ['.com','.net','.org','.eu','.co'].map(ext=>baseName+ext).filter(v=>v!==protected_domain&&!domains.includes(v));
+  if (safeVariants.length) {
+    html += `<div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin:10px 0 6px">🛡 Register Now to Protect Your Brand</div>`;
+    safeVariants.forEach(v=>{
+      const url = `/register.html?domain=${encodeURIComponent(v)}&protected=${encodeURIComponent(protected_domain)}`;
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)">`;
+      html += `<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--grey)">${v}</span>`;
+      html += `<a href="${url}" target="_blank" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);text-decoration:none;border:1px solid rgba(212,133,10,0.4);padding:3px 10px;border-radius:4px;white-space:nowrap">🛡 Register to Protect →</a>`;
+      html += `</div>`;
+    });
+  }
+  html += `<div style="margin-top:10px;font-size:11px;color:var(--grey)">Compare registrars — Namecheap, Porkbun, Dynadot &amp; more. Earn affiliate commissions on referrals.</div>`;
+  html += `</div>`;
+  return html;
+}
+
+function buildRecommendations(checks, domainName) {
   const failing = checks.filter(c=>c.status==='critical'||c.status==='warning');
   if (!failing.length) return '';
   const crits = failing.filter(c=>c.status==='critical');
@@ -1943,6 +1977,7 @@ function buildRecommendations(checks) {
     crits.forEach(c=>{
       const rec=CHECK_RECOMMENDATIONS[c.check]||(c.title||'Review and remediate this finding.');
       html+=`<li style="color:var(--white);font-size:12px;line-height:1.7;margin-bottom:4px"><span style="color:var(--red);font-weight:700">${CHECK_ICONS[c.check]||'•'} ${(CHECK_LABELS[c.check]||c.check).toUpperCase()}:</span> ${rec}</li>`;
+      if (c.check==='typosquat') html += buildTyposquatAffiliateBlock(c, domainName);
     });
     html+='</ul>';
   }
@@ -1951,6 +1986,7 @@ function buildRecommendations(checks) {
     warns.forEach(c=>{
       const rec=CHECK_RECOMMENDATIONS[c.check]||(c.title||'Review and address this finding.');
       html+=`<li style="color:var(--white);font-size:12px;line-height:1.7;margin-bottom:4px"><span style="color:var(--amber);font-weight:700">${CHECK_ICONS[c.check]||'•'} ${(CHECK_LABELS[c.check]||c.check).toUpperCase()}:</span> ${rec}</li>`;
+      if (c.check==='typosquat') html += buildTyposquatAffiliateBlock(c, domainName);
     });
     html+='</ul>';
   }
@@ -1991,7 +2027,7 @@ function renderReport(data,domainId,domainName) {
   const dwCheck = others.find(c=>c.check==='paranoidlab'||c.check==='darkweb');
   if(dwCheck) html += renderDarkWeb(dwCheck, domainId);
   // 3. Recommendations
-  html+=buildRecommendations(others);
+  html+=buildRecommendations(others, domainName);
   // 4. AI Intelligence Report
   if(ai&&ai.detail){html+=`<div class="ai-section"><div class="ai-label">🧠 Intelligence Report</div><div>${renderAI(ai.detail)}</div></div>`;}
   if(data.locked_count>0){html+=`<div class="locked-banner"><h3>🔒 ${data.locked_count} checks locked</h3><p>Unlock the full report for <strong>$10 one-time</strong> or get annual monitoring for <strong>$50/year</strong>.</p><button class="btn-unlock" onclick="closeModal();checkout('${domainId}','${domainName}')">View Plans & Unlock →</button></div>`;}
@@ -2439,7 +2475,7 @@ function renderReportPage(data, domain, isSample) {
   html += '</tbody></table>';
 
   // 2. Recommendations
-  html += buildRecommendations(others);
+  html += buildRecommendations(others, domain);
 
   // 3. AI Intelligence Report
   if (ai && ai.detail) {
