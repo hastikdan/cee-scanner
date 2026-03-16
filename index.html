@@ -2593,8 +2593,7 @@ function renderReportPage(data, domain, isSample) {
   <div class="db-nav">
     <a class="logo" href="#" onclick="closeDashboard()"><div class="logo-dot"></div>SWARMHAWK</a>
     <div class="db-tabs">
-      <button class="db-tab active" onclick="dbShowTab('overview',this)">📊 Overview</button>
-      <button class="db-tab" onclick="dbShowTab('domains',this)">🌐 Domains</button>
+      <button class="db-tab active" onclick="dbShowTab('domains',this)">🌐 Domains</button>
       <button class="db-tab" onclick="dbShowTab('account',this);dbLoadAccount()">👤 Account</button>
       <button class="db-tab" id="marketing-tab-btn" onclick="dbShowTab('marketing',this)" style="display:none">📣 Marketing</button>
       <button class="db-tab" id="admin-tab-btn" onclick="dbShowTabAdmin('admin',this)" style="display:none">⚙️ Admin</button>
@@ -2609,8 +2608,8 @@ function renderReportPage(data, domain, isSample) {
   <!-- Dashboard Body -->
   <div class="db-body">
 
-    <!-- ── TAB: OVERVIEW ─────────────────────────────────────── -->
-    <div class="db-page active" id="db-overview">
+    <!-- ── TAB: DOMAINS ──────────────────────────────────────── -->
+    <div class="db-page active" id="db-domains">
       <div class="db-inner">
         <div class="db-header">
           <div>
@@ -2624,7 +2623,7 @@ function renderReportPage(data, domain, isSample) {
         <div class="db-stat-row" id="db-stat-row">
           <div class="db-stat-card" id="stat-card-critical" onclick="dbShowDomainsWithFilter('critical')" title="View critical domains">
             <div class="db-stat-icon" style="background:rgba(192,57,43,.1);color:#C0392B">🚨</div>
-            <div><div class="db-stat-val" id="stat-critical">—</div><div class="db-stat-lbl">Critical Findings</div></div>
+            <div><div class="db-stat-val" id="stat-critical">—</div><div class="db-stat-lbl">Critical</div></div>
           </div>
           <div class="db-stat-card" id="stat-card-warning" onclick="dbShowDomainsWithFilter('warning')" title="View domains with warnings">
             <div class="db-stat-icon" style="background:rgba(212,133,10,.1);color:#D4850A">⚠️</div>
@@ -2632,93 +2631,27 @@ function renderReportPage(data, domain, isSample) {
           </div>
           <div class="db-stat-card" id="stat-card-clean" onclick="dbShowDomainsWithFilter('clean')" title="View clean domains">
             <div class="db-stat-icon" style="background:rgba(26,122,74,.1);color:#1A7A4A">✓</div>
-            <div><div class="db-stat-val" id="stat-clean">—</div><div class="db-stat-lbl">Clean Domains</div></div>
+            <div><div class="db-stat-val" id="stat-clean">—</div><div class="db-stat-lbl">Clean</div></div>
           </div>
           <div class="db-stat-card" id="stat-card-all" onclick="dbShowDomainsWithFilter('all')" title="View all domains">
             <div class="db-stat-icon" style="background:rgba(203,255,0,.1);color:var(--lime)">🌐</div>
-            <div><div class="db-stat-val" id="stat-domains">—</div><div class="db-stat-lbl">Domains Monitored</div></div>
+            <div><div class="db-stat-val" id="stat-domains">—</div><div class="db-stat-lbl">Monitored</div></div>
           </div>
           <div class="db-stat-card" style="cursor:default" title="Average risk score across all domains">
             <div class="db-stat-icon" style="background:rgba(107,114,128,.1);color:var(--grey)">📊</div>
-            <div><div class="db-stat-val" id="stat-avg-score">—</div><div class="db-stat-lbl">Avg Risk Score</div></div>
+            <div><div class="db-stat-val" id="stat-avg-score">—</div><div class="db-stat-lbl">Avg Score</div></div>
           </div>
         </div>
 
-        <!-- Risk score legend -->
-        <div style="margin-bottom:20px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:12px 16px">
-          <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">Risk Score — what it means</div>
-          <div style="display:flex;gap:0;flex-wrap:nowrap;overflow-x:auto">
-            <div style="flex:1;min-width:90px;border-right:1px solid var(--border);padding:8px 14px 8px 0;margin-right:14px">
-              <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#2ECC71;line-height:1">0–29</div>
-              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#2ECC71;letter-spacing:1px;text-transform:uppercase;margin:3px 0 4px">Low</div>
-              <div style="font-size:11px;color:#777;line-height:1.4">No critical issues. Minor gaps that should still be addressed.</div>
-            </div>
-            <div style="flex:1;min-width:90px;border-right:1px solid var(--border);padding:8px 14px 8px 0;margin-right:14px">
-              <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#D4850A;line-height:1">30–59</div>
-              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#D4850A;letter-spacing:1px;text-transform:uppercase;margin:3px 0 4px">Medium</div>
-              <div style="font-size:11px;color:#777;line-height:1.4">Exploitable weaknesses present. Fix within 30 days to stay NIS2 compliant.</div>
-            </div>
-            <div style="flex:1;min-width:90px;padding:8px 0">
-              <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#C0392B;line-height:1">60–100</div>
-              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#C0392B;letter-spacing:1px;text-transform:uppercase;margin:3px 0 4px">High</div>
-              <div style="font-size:11px;color:#777;line-height:1.4">Active risk. Likely breach vector or regulatory violation. Act immediately.</div>
-            </div>
+        <!-- Filters + search -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+          <div class="db-filter-row" id="domain-risk-filters">
+            <button class="db-filter active" id="drf-all"      onclick="dbSetDomainRiskFilter('all',this)">All</button>
+            <button class="db-filter"        id="drf-critical" onclick="dbSetDomainRiskFilter('critical',this)" style="color:#C0392B">🚨 Critical</button>
+            <button class="db-filter"        id="drf-warning"  onclick="dbSetDomainRiskFilter('warning',this)"  style="color:#D4850A">⚠ Warnings</button>
+            <button class="db-filter"        id="drf-clean"    onclick="dbSetDomainRiskFilter('clean',this)"    style="color:#1A7A4A">✓ Clean</button>
           </div>
-        </div>
-
-
-        <div class="db-two-col">
-          <!-- Domain list summary -->
-          <div class="db-card">
-            <div class="db-card-head">
-              <span class="db-card-title">Domains Needing Attention</span>
-              <button class="db-card-link" onclick="dbShowTab('domains',null)">View all →</button>
-            </div>
-            <div id="overview-domains-list" class="overview-domains-list">
-              <div class="db-empty">Loading domains…</div>
-            </div>
-          </div>
-
-          <!-- Recent alerts -->
-          <div class="db-card">
-            <div class="db-card-head">
-              <span class="db-card-title">Recent Alerts</span>
-              <button class="db-card-link" onclick="dbShowTab('domains',null)">View all →</button>
-            </div>
-            <div id="overview-alerts" class="overview-alerts">
-              <div class="db-empty">Loading alerts…</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- NIS2 Article 21 full overview (all domains) -->
-        <div id="overview-nis2-full" style="margin-top:20px;display:none">
-          <div class="db-card-head" style="margin-bottom:14px">
-            <span class="db-card-title">🛡 NIS2 — Compliance Overview</span>
-          </div>
-          <div id="overview-nis2-full-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── TAB: DOMAINS ──────────────────────────────────────── -->
-    <div class="db-page" id="db-domains">
-      <div class="db-inner">
-        <div class="db-header">
-          <div>
-            <h2 class="db-title">My Domains</h2>
-            <p style="color:var(--grey);font-size:13px;margin-top:4px">All monitored domains and their current security status</p>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <div class="db-filter-row" id="domain-risk-filters">
-              <button class="db-filter active" id="drf-all"      onclick="dbSetDomainRiskFilter('all',this)">All</button>
-              <button class="db-filter"        id="drf-critical" onclick="dbSetDomainRiskFilter('critical',this)" style="color:#C0392B">🚨 Critical</button>
-              <button class="db-filter"        id="drf-warning"  onclick="dbSetDomainRiskFilter('warning',this)"  style="color:#D4850A">⚠ Warnings</button>
-              <button class="db-filter"        id="drf-clean"    onclick="dbSetDomainRiskFilter('clean',this)"    style="color:#1A7A4A">✓ Clean</button>
-            </div>
-            <input class="db-search" id="domain-search" type="text" placeholder="Search domains…" oninput="dbFilterDomains(this.value)">
-          </div>
+          <input class="db-search" id="domain-search" type="text" placeholder="Search domains…" oninput="dbFilterDomains(this.value)">
         </div>
         <div id="db-add-bar" style="margin-bottom:20px">
           <div style="display:flex;gap:10px;align-items:center">
@@ -3527,7 +3460,7 @@ function dbShowTab(tab, btn) {
     });
   }
   // legacy redirects
-  if (tab === 'intel' || tab === 'threats') tab = 'domains';
+  if (tab === 'overview' || tab === 'intel' || tab === 'threats') tab = 'domains';
   if (tab === 'competitors' || tab === 'supply-chain' || tab === 'nis2') tab = 'domains';
   if (tab === 'prospects' || tab === 'outreach') tab = 'marketing';
   document.getElementById('db-'+tab).classList.add('active');
@@ -3541,12 +3474,14 @@ async function dbLoadAll() {
     dbDomains = data.domains || data || [];
     dbRenderOverview();
     dbRenderDomainsTable();
+    compLoad();
+    nis2Load();
   } catch(e) {
     console.error('dbLoadAll:', e);
   }
 }
 
-// ── OVERVIEW ────────────────────────────────────────────
+// ── STAT CARDS (rendered in Domains tab header) ─────────
 
 function dbRenderOverview() {
   var critical = 0, warnings = 0, clean = 0, totalScore = 0, scanned = 0;
@@ -3558,155 +3493,11 @@ function dbRenderOverview() {
     totalScore += s;
     scanned++;
   });
-
   document.getElementById('stat-critical').textContent = critical;
   document.getElementById('stat-warnings').textContent = warnings;
   document.getElementById('stat-clean').textContent = clean;
   document.getElementById('stat-domains').textContent = dbDomains.length;
   document.getElementById('stat-avg-score').textContent = scanned ? Math.round(totalScore/scanned) : '—';
-
-  // Domains needing attention — sort by risk desc
-  var sorted = dbDomains.slice().sort(function(a,b){ return (b.risk_score||0)-(a.risk_score||0); });
-  var attn = sorted.filter(function(d){ return (d.risk_score||0) >= 30; }).slice(0, 8);
-  var listEl = document.getElementById('overview-domains-list');
-  if (!attn.length) {
-    listEl.innerHTML = '<div class="db-empty">✓ All domains looking clean</div>';
-  } else {
-    listEl.innerHTML = attn.map(function(d) {
-      var s = d.risk_score || 0;
-      var c = s >= 60 ? '#C0392B' : s >= 30 ? '#D4850A' : '#1A7A4A';
-      return '<div class="ovd-row" onclick="dbOpenDomainReport(\''+d.id+'\',\''+d.domain+'\')">' +
-        '<span class="ovd-domain">'+d.domain+'</span>' +
-        '<span class="ovd-score" style="color:'+c+'">'+s+'</span>' +
-        '<span class="status-pill pill-'+(s>=60?'critical':'warning')+'">'+( s>=60?'HIGH':'MED')+'</span>' +
-        '</div>';
-    }).join('');
-  }
-
-  // NIS2 — Compliance Overview: load Article 21 scorecard for all scanned domains
-  (async function() {
-    var scannedDomains = dbDomains.filter(function(d){ return d.scanned_at; }).slice(0,5);
-    if (!scannedDomains.length) return;
-    var results = await Promise.all(scannedDomains.map(function(dom){
-      return api('/domains/'+dom.id+'/nis2').then(function(d){ return d; }).catch(function(){ return null; });
-    }));
-
-    // ── NIS2 Article 21 full scorecard (all scanned domains) ──────────────
-    var ARTICLE_LABELS = {
-      'Art.21(2)(a)': 'Risk policies',
-      'Art.21(2)(b)': 'Incident handling',
-      'Art.21(2)(c)': 'Business continuity',
-      'Art.21(2)(d)': 'Supply chain',
-      'Art.21(2)(e)': 'Network security',
-      'Art.21(2)(f)': 'Vulnerability mgmt',
-      'Art.21(2)(g)': 'Cyber hygiene',
-    };
-    var fullSection = document.getElementById('overview-nis2-full');
-    var fullGrid    = document.getElementById('overview-nis2-full-grid');
-    var allPaired   = results.map(function(r,i){ return {r:r, dom:scannedDomains[i]}; }).filter(function(p){ return p.r; });
-    if (fullSection && fullGrid && allPaired.length) {
-      fullSection.style.display = 'block';
-      fullGrid.innerHTML = allPaired.map(function(p) {
-        var r = p.r; var dom = p.dom;
-        var pct = r.compliance_pct || 0;
-        var col = nis2Color(pct);
-        var ratingLabel = pct >= 80 ? '✓ COMPLIANT' : pct >= 50 ? '⚠ PARTIAL' : '✕ NON-COMPLIANT';
-        var ratingCol   = pct >= 80 ? '#2ECC71' : pct >= 50 ? '#D4850A' : '#C0392B';
-        var ratingBg    = pct >= 80 ? 'rgba(46,204,113,.1)' : pct >= 50 ? 'rgba(212,133,10,.1)' : 'rgba(192,57,43,.1)';
-
-        // Group findings by article
-        var byArticle = {};
-        (r.findings || []).forEach(function(f) {
-          if (!byArticle[f.article]) byArticle[f.article] = {pass:0, total:0};
-          byArticle[f.article].total++;
-          if (f.passed) byArticle[f.article].pass++;
-        });
-
-        var articleHtml = Object.keys(ARTICLE_LABELS).map(function(art) {
-          var label = ARTICLE_LABELS[art];
-          var ag = byArticle[art];
-          if (!ag) return '';
-          var artPct = Math.round(ag.pass / ag.total * 100);
-          var artCol = artPct >= 80 ? '#2ECC71' : artPct >= 50 ? '#D4850A' : '#C0392B';
-          return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">'
-            +'<div style="flex:1;min-width:0">'
-              +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div>'
-              +'<div style="background:rgba(255,255,255,.06);border-radius:2px;height:3px;margin-top:2px">'
-                +'<div style="background:'+artCol+';height:3px;border-radius:2px;width:'+artPct+'%"></div>'
-              +'</div>'
-            +'</div>'
-            +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+artCol+';white-space:nowrap;min-width:28px;text-align:right">'+artPct+'%</span>'
-          +'</div>';
-        }).join('');
-
-        // Top 3 failing requirements
-        var topGaps = (r.findings||[]).filter(function(f){ return !f.passed; })
-          .sort(function(a,b){ return b.weight - a.weight; }).slice(0,3);
-        var gapsHtml = topGaps.length
-          ? '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-top:10px">'
-            +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Top gaps</div>'
-            + topGaps.map(function(f){
-                return '<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">'
-                  +'<span style="color:'+ratingCol+';font-size:10px;flex-shrink:0;margin-top:1px">▸</span>'
-                  +'<span style="font-size:10px;color:#999;line-height:1.4">'+f.requirement+'</span>'
-                +'</div>';
-              }).join('')
-            +'</div>'
-          : '';
-
-        return '<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid '+col+';border-radius:8px;padding:16px 18px">'
-          // Header
-          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
-            +'<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--white);font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+dom.domain+'</span>'
-            +'<span style="font-family:Space Mono,monospace;font-size:9px;color:'+ratingCol+';background:'+ratingBg+';padding:3px 8px;border-radius:4px;white-space:nowrap">'+ratingLabel+'</span>'
-          +'</div>'
-          // Big % + bar
-          +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'
-            +'<span style="font-family:Space Mono,monospace;font-size:26px;font-weight:700;color:'+col+'">'+pct+'%</span>'
-            +'<div style="flex:1">'
-              +'<div style="background:rgba(255,255,255,.06);border-radius:3px;height:5px">'
-                +'<div style="background:'+col+';height:5px;border-radius:3px;width:'+pct+'%;transition:width .6s ease"></div>'
-              +'</div>'
-              +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;margin-top:4px">NIS2 Article 21 compliance</div>'
-            +'</div>'
-          +'</div>'
-          // Article 21 breakdown
-          +'<div style="margin-bottom:4px">'+articleHtml+'</div>'
-          // Top gaps
-          + gapsHtml
-          // Full report button — navigates to Domains tab then runs autopilot there
-          +'<div style="margin-top:12px">'
-            +'<button onclick="event.stopPropagation();nis2GoToReport(\''+dom.id+'\',\''+dom.domain+'\')" style="width:100%;background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;font-weight:700;padding:7px 0;border-radius:5px;cursor:pointer;letter-spacing:1px">📋 VIEW FULL NIS2 REPORT →</button>'
-          +'</div>'
-        +'</div>';
-      }).join('');
-    }
-  })();
-
-  // Recent alerts — pull from checks across all domains
-  var alerts = [];
-  dbDomains.forEach(function(d) {
-    var checks = d.checks || d.latest_checks || [];
-    checks.forEach(function(c) {
-      if (c.status === 'critical' || c.status === 'warning') {
-        alerts.push({domain: d.domain, check: c, ts: d.scanned_at});
-      }
-    });
-  });
-  alerts.sort(function(a,b){ return new Date(b.ts||0) - new Date(a.ts||0); });
-  var alertEl = document.getElementById('overview-alerts');
-  if (!alerts.length) {
-    alertEl.innerHTML = '<div class="db-empty">No active alerts</div>';
-  } else {
-    alertEl.innerHTML = alerts.slice(0,8).map(function(a) {
-      var ts = a.ts ? new Date(a.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
-      return '<div class="alert-row">' +
-        '<div class="alert-dot '+a.check.status+'"></div>' +
-        '<div class="alert-text"><strong>'+a.domain+'</strong> '+a.check.title+'</div>' +
-        '<div class="alert-time">'+ts+'</div>' +
-        '</div>';
-    }).join('');
-  }
 }
 
 // ── DOMAINS TABLE ───────────────────────────────────────
