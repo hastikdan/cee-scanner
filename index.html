@@ -692,9 +692,9 @@ h1 span{color:var(--lime)}
 .admin-btn-danger{font-size:10px;padding:4px 10px;background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.2);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
 .admin-btn-sm{font-size:10px;padding:4px 10px;background:rgba(255,255,255,.06);color:var(--grey);border:1px solid rgba(255,255,255,.1);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
 .admin-page-nav{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:var(--grey);font-family:'Space Mono',monospace}
-.admin-nav-btn{background:transparent;border:1px solid rgba(203,255,0,.12);color:rgba(203,255,0,.55);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.5px;padding:4px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all .15s}
-.admin-nav-btn:hover{background:rgba(203,255,0,.08);border-color:rgba(203,255,0,.35);color:var(--lime)}
-.admin-nav-btn.active{background:rgba(203,255,0,.12);border-color:rgba(203,255,0,.4);color:var(--lime)}
+.admin-nav-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.5px;padding:8px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:all .15s;font-weight:700}
+.admin-nav-btn:hover{background:rgba(203,255,0,.12);border-color:rgba(203,255,0,.5);color:var(--lime)}
+.admin-nav-btn.active{background:rgba(203,255,0,.15);border-color:var(--lime);color:var(--lime)}
 
 .auth-google-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:10px 16px;background:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;color:#3c4043;cursor:pointer;margin-bottom:14px;font-family:'DM Sans',sans-serif;transition:box-shadow .15s}
 .auth-google-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -2917,19 +2917,18 @@ function renderReportPage(data, domain, isSample) {
         </div>
 
         <!-- ── Admin Section Nav ── -->
-        <div id="admin-section-nav" style="position:sticky;top:56px;z-index:100;background:rgba(14,13,18,.97);backdrop-filter:blur(10px);border:1px solid rgba(203,255,0,.1);border-radius:10px;padding:8px 12px;margin-bottom:24px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
-          <span style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(203,255,0,.4);letter-spacing:1px;text-transform:uppercase;margin-right:6px;white-space:nowrap">JUMP TO</span>
-          <button onclick="adminNavTo('admin-kpis-section')"          class="admin-nav-btn">📊 Overview</button>
-          <button onclick="adminNavTo('admin-scans-section')"         class="admin-nav-btn">🔄 Live Scans</button>
-          <button onclick="adminNavTo('admin-api-section')"           class="admin-nav-btn">🔑 API Keys</button>
-          <button onclick="adminNavTo('admin-risk-section')"          class="admin-nav-btn">🚨 Risk</button>
-          <button onclick="adminNavTo('admin-findings-section')"      class="admin-nav-btn">✅ Findings</button>
-          <button onclick="adminNavTo('admin-users-section')"         class="admin-nav-btn">👥 Users</button>
-          <button onclick="adminNavTo('admin-domains-section')"       class="admin-nav-btn">🌐 Domains</button>
-          <button onclick="adminNavTo('admin-prospect-section')"      class="admin-nav-btn">🎯 Prospects</button>
-          <button onclick="adminNavTo('admin-email-templates-section')" class="admin-nav-btn">✉ Email Tpl</button>
-          <button onclick="adminNavTo('llm-stats-section')"           class="admin-nav-btn">🧠 LLM Costs</button>
-          <button onclick="adminNavTo('admin-report-email-section')"  class="admin-nav-btn">📧 Report Email</button>
+        <div id="admin-section-nav" style="position:sticky;top:56px;z-index:100;background:#13121b;border:1px solid rgba(203,255,0,.25);border-radius:12px;padding:14px 16px;margin-bottom:28px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button onclick="adminNavTo('admin-kpis-section')"            class="admin-nav-btn">📊 Overview</button>
+          <button onclick="adminNavTo('admin-scans-section')"           class="admin-nav-btn">🔄 Live Scans</button>
+          <button onclick="adminNavTo('admin-api-section')"             class="admin-nav-btn">🔑 API Keys</button>
+          <button onclick="adminNavTo('admin-risk-section')"            class="admin-nav-btn">🚨 Risk</button>
+          <button onclick="adminNavTo('admin-findings-section')"        class="admin-nav-btn">✅ Findings</button>
+          <button onclick="adminNavTo('admin-users-section')"           class="admin-nav-btn">👥 Users</button>
+          <button onclick="adminNavTo('admin-domains-section')"         class="admin-nav-btn">🌐 Domains</button>
+          <button onclick="adminNavTo('admin-prospect-section')"        class="admin-nav-btn">🎯 Prospects</button>
+          <button onclick="adminNavTo('admin-email-templates-section')" class="admin-nav-btn">✉ Email</button>
+          <button onclick="adminNavTo('llm-stats-section')"             class="admin-nav-btn">🧠 LLM</button>
+          <button onclick="adminNavTo('admin-report-email-section')"    class="admin-nav-btn">📧 Reports</button>
         </div>
 
         <!-- Row 1: Core KPIs -->
