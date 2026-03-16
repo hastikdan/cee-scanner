@@ -720,7 +720,8 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 var markers = {};
 
-function riskColor(score) {
+function riskColor(score, scanned) {
+  if (!scanned) return '#4a4a6a';   // grey — not scanned yet
   if (score >= 70) return '#C0392B';
   if (score >= 30) return '#D4850A';
   return '#2ECC71';
@@ -732,7 +733,8 @@ function riskClass(score) {
   return 'risk-low';
 }
 
-function riskLabel(score) {
+function riskLabel(score, scanned) {
+  if (!scanned) return 'IN PIPELINE';
   if (score >= 70) return 'HIGH RISK';
   if (score >= 30) return 'MEDIUM';
   return 'LOW RISK';
@@ -745,19 +747,23 @@ function circleRadius(domainCount) {
 }
 
 function buildPopup(c) {
-  var score = Math.round(c.avg_risk || 0);
-  var color = riskColor(score);
-  var label = riskLabel(score);
-  var name  = COUNTRY_NAMES[c.country] || c.country;
-  var flag  = COUNTRY_FLAGS[c.country] || '🌐';
+  var score   = Math.round(c.avg_risk || 0);
+  var scanned = c.scanned || 0;
+  var color   = riskColor(score, scanned);
+  var label   = riskLabel(score, scanned);
+  var name    = COUNTRY_NAMES[c.country] || c.country;
+  var flag    = COUNTRY_FLAGS[c.country] || '🌐';
+  var scoreHtml = scanned
+    ? '<div class="pop-score" style="color:'+color+'">'+score+'</div>'
+    : '<div class="pop-score" style="color:'+color+';font-size:14px">Scanning soon</div>';
   return '<div style="min-width:190px">'
     + '<div class="pop-flag">'+flag+'</div>'
     + '<div class="pop-name">'+name+'</div>'
-    + '<div class="pop-score" style="color:'+color+'">'+score+'</div>'
+    + scoreHtml
     + '<div class="pop-label" style="background:'+color+'22;color:'+color+';border:1px solid '+color+'44">'+label+'</div>'
     + '<div class="pop-grid">'
     +   '<div class="pop-stat"><strong>'+(c.domains||0)+'</strong>Domains</div>'
-    +   '<div class="pop-stat"><strong>'+(c.scanned||0)+'</strong>Scanned</div>'
+    +   '<div class="pop-stat"><strong>'+(scanned)+'</strong>Scanned</div>'
     +   '<div class="pop-stat"><strong style="color:#C0392B">'+(c.high_risk_domains||0)+'</strong>High Risk</div>'
     +   '<div class="pop-stat"><strong style="color:#D4850A">'+(c.critical_findings||0)+'</strong>Criticals</div>'
     + '</div>'
@@ -773,10 +779,11 @@ function placeMarkers(countries) {
     var coords = COUNTRY_COORDS[c.country];
     if (!coords) return;
 
-    var score  = Math.round(c.avg_risk || 0);
-    var color  = riskColor(score);
-    var radius = circleRadius(c.domains || 1);
-    var isHigh = score >= 70;
+    var score   = Math.round(c.avg_risk || 0);
+    var scanned = c.scanned || 0;
+    var color   = riskColor(score, scanned);
+    var radius  = circleRadius(c.domains || 1);
+    var isHigh  = score >= 70 && scanned > 0;
 
     var circle = L.circleMarker(coords, {
       radius: radius,
@@ -831,17 +838,18 @@ function flyTo(code) {
 function renderTable(countries) {
   var rows = '';
   countries.forEach(function(c) {
-    var score = Math.round(c.avg_risk || 0);
-    var color = riskColor(score);
-    var name  = COUNTRY_NAMES[c.country] || c.country;
-    var flag  = COUNTRY_FLAGS[c.country] || '🌐';
-    var rc    = riskClass(score);
-    var rl    = riskLabel(score);
+    var score   = Math.round(c.avg_risk || 0);
+    var scanned = c.scanned || 0;
+    var color   = riskColor(score, scanned);
+    var name    = COUNTRY_NAMES[c.country] || c.country;
+    var flag    = COUNTRY_FLAGS[c.country] || '🌐';
+    var rl      = riskLabel(score, scanned);
+    var scoreDisplay = scanned ? score : '<span style="font-size:10px;color:#555">—</span>';
     rows += '<tr>'
       + '<td style="display:flex;align-items:center;gap:8px;font-size:14px">'+flag+' <span>'+name+'</span></td>'
       + '<td class="score-cell" style="color:'+color+'">'
-      +   score
-      +   '<span class="mini-bar-wrap"><div class="mini-bar" style="width:'+Math.min(score,100)+'%;background:'+color+'"></div></span>'
+      +   scoreDisplay
+      +   (scanned ? '<span class="mini-bar-wrap"><div class="mini-bar" style="width:'+Math.min(score,100)+'%;background:'+color+'"></div></span>' : '')
       + '</td>'
       + '<td>'+c.domains+'</td>'
       + '<td><span style="color:#C0392B;font-weight:600">'+(c.high_risk_domains||0)+'</span></td>'
@@ -903,15 +911,17 @@ setInterval(loadMapData, 5 * 60 * 1000);
 var panelOpen = false;
 
 function openPanel(countryCode, countryData) {
-  var flag = COUNTRY_FLAGS[countryCode] || '🌐';
-  var name = COUNTRY_NAMES[countryCode] || countryCode;
-  var score = Math.round((countryData && countryData.avg_risk) || 0);
-  var color = riskColor(score);
+  var flag    = COUNTRY_FLAGS[countryCode] || '🌐';
+  var name    = COUNTRY_NAMES[countryCode] || countryCode;
+  var score   = Math.round((countryData && countryData.avg_risk) || 0);
+  var scanned = (countryData && countryData.scanned) || 0;
+  var color   = riskColor(score, scanned);
+  var label   = riskLabel(score, scanned);
 
   document.getElementById('sp-flag').textContent = flag;
   document.getElementById('sp-name').textContent = name;
   document.getElementById('sp-meta').innerHTML =
-    '<span style="color:'+color+';font-weight:700">Risk '+score+'</span>'
+    '<span style="color:'+color+';font-weight:700">' + (scanned ? 'Risk ' + score : label) + '</span>'
     + (countryData ? ' &nbsp;·&nbsp; ' + countryData.domains + ' domains tracked' : '');
   document.getElementById('sp-body').innerHTML = '<div class="sp-loading">LOADING TOP DOMAINS…</div>';
 
@@ -932,8 +942,8 @@ function closePanel() {
 function renderPanelDomains(domains, countryName) {
   var body = document.getElementById('sp-body');
   if (!domains.length) {
-    body.innerHTML = '<div class="sp-empty">No Tranco data available for '
-      + countryName + '.<br><br>Data appears as domains are indexed in the Tranco top-1M list.</div>';
+    body.innerHTML = '<div class="sp-empty">No scan results yet for '
+      + countryName + '.<br><br>Domains are queued — results appear after the next daily scan at 08:00.</div>';
     return;
   }
   var html = '<div class="sp-section-label">Top ' + domains.length + ' Domains · Tranco Top-1M</div>';

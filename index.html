@@ -1567,7 +1567,7 @@ const CHECK_RECOMMENDATIONS = {
   dns:'Review DNS records for misconfigurations — dangling CNAMEs, open zone transfers, or missing CAA records.',
   http_redirect:'Enforce a 301 HTTPS redirect from all HTTP URLs to prevent plaintext interception.',
   breach:'Force a password reset for all affected accounts and notify impacted users of the breach.',
-  typosquat:'Register the top typosquat variants (≈ €10/domain) and set up brand monitoring alerts.',
+  typosquat:'Register typosquat variants via Namecheap or Porkbun (≈ €10–15/domain) to cut off phishing vectors. See affiliate purchase options below.',
   email_security:'Enable SPF, DKIM, and DMARC records to authenticate email and prevent spoofing/phishing.',
   whois:'Enable domain privacy protection or verify that exposed registrant data is intentional.',
   urlhaus:'Submit a removal request at urlhaus.abuse.ch and investigate the reported malicious URLs.',
@@ -2726,6 +2726,7 @@ function renderReportPage(data, domain, isSample) {
             </select>
             <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Now</button>
             <button class="btn-send-all" onclick="outreachSendApproved()" id="outreach-send-btn">✉ Send Approved</button>
+            <button onclick="outreachSyncContacts(this)" title="Sync domain contacts → Marketing prospects" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:6px;cursor:pointer">⟳ Sync Contacts</button>
           </div>
         </div>
 
@@ -3156,8 +3157,9 @@ function renderReportPage(data, domain, isSample) {
               <div class="admin-section-title" style="margin-bottom:2px">📧 PDF Report Email Template</div>
               <div style="font-size:12px;color:var(--grey)">Customise the subject and message sent when users email their PDF report</div>
             </div>
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn-scan-all" onclick="adminSaveReportEmailTemplate()">💾 Save</button>
+              <button onclick="adminSendTestReportEmail(this)" style="background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer" title="Send a preview email with placeholder data to your admin inbox">🧪 Send Test</button>
               <button onclick="adminResetReportEmailTemplate(this)" style="background:transparent;border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:'Space Mono',monospace;font-size:11px;padding:7px 14px;border-radius:6px;cursor:pointer">↩ Reset</button>
             </div>
           </div>
@@ -3691,56 +3693,103 @@ function dbRenderSingleDomainThreats(domainId, container) {
     html += '</div>';
     if (c.detail) html += '<div style="font-size:11px;color:#777;margin-bottom:10px;line-height:1.5">'+(c.detail||'').substring(0,160)+(c.detail.length>160?'…':'')+'</div>';
 
-    html += '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:10px">';
-    html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Fix options</div>';
-    choices.forEach(function(step, si) {
-      var stepKey = checkKey + '_step_' + si;
-      var stepDone = _paIsDone(domainId, stepKey);
-      html += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">';
-      html += '<button onclick="paMarkInline(\''+domainId+'\',\''+stepKey.replace(/'/g,"\\'")+'\')" style="flex-shrink:0;width:16px;height:16px;border-radius:3px;border:1px solid '+(stepDone?'#2ECC71':'rgba(255,255,255,.15)')+';background:'+(stepDone?'rgba(46,204,113,.15)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;color:#2ECC71;font-size:10px">'+(stepDone?'✓':'')+'</button>';
-      html += '<span style="font-size:11px;color:'+(stepDone?'#555':'#aaa')+';line-height:1.5;flex:1;'+(stepDone?'text-decoration:line-through':'')+'">'+step+'</span>';
-      html += '<button onclick="paCopyFix(\''+step.replace(/'/g,"\\'").replace(/"/g,'&quot;')+'\',this)" style="flex-shrink:0;background:transparent;border:1px solid rgba(255,255,255,.08);color:#555;font-family:Space Mono,monospace;font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;white-space:nowrap">📋 Copy</button>';
+    if (checkKey === 'typosquat') {
+      // ── Typosquat: show detected domains as "Register to Protect" buttons ──
+      var detailStr = (c.detail || '').replace(/^Examples:\s*/i, '');
+      var typodoms  = detailStr.match(/[\w][\w.-]*\.[a-z]{2,}/g) || [];
+      // Also generate the safe variants to proactively register (from user's own domain)
+      var userDomain = d.domain || '';
+      var uParts = userDomain.split('.');
+      var uName = uParts[0] || '';
+      var uTld  = uParts.slice(1).join('.') || '';
+      var safeVariants = [];
+      ['com','net','org','eu','co'].forEach(function(t){ if(t!==uTld) safeVariants.push(uName+'.'+t); });
+      if(uTld && uTld!=='com') safeVariants.push(uName+'.com');
+
+      html += '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:10px">';
+
+      if (typodoms.length) {
+        html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#C0392B;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">⚠ Active threats — owned by others</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">';
+        typodoms.forEach(function(td) {
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.18);border-radius:7px">';
+          html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:#e07070;flex:1">'+td+'</span>';
+          html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;white-space:nowrap">Registered by someone else</span>';
+          html += '<a href="/register.html?domain='+encodeURIComponent(td)+'&protected='+encodeURIComponent(userDomain)+'&threat=1" target="_blank" style="font-family:Space Mono,monospace;font-size:9px;background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.3);color:#e07070;text-decoration:none;padding:4px 10px;border-radius:5px;white-space:nowrap">🔍 View Options →</a>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#cbff00;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🛡 Register now to protect your brand</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:6px">';
+      safeVariants.slice(0,4).forEach(function(sv) {
+        html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(203,255,0,.04);border:1px solid rgba(203,255,0,.12);border-radius:7px">';
+        html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:#cbff00;flex:1">'+sv+'</span>';
+        html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;white-space:nowrap">≈ €10–15/yr</span>';
+        html += '<a href="/register.html?domain='+encodeURIComponent(sv)+'&protected='+encodeURIComponent(userDomain) +'" target="_blank" style="font-family:Space Mono,monospace;font-size:10px;font-weight:700;background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.3);color:#cbff00;text-decoration:none;padding:5px 14px;border-radius:5px;white-space:nowrap">🛡 Register to Protect →</a>';
+        html += '</div>';
+      });
       html += '</div>';
-    });
-    html += '</div>';
+      html += '</div>';
+    } else {
+      html += '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:10px">';
+      html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Fix options</div>';
+      choices.forEach(function(step, si) {
+        var stepKey = checkKey + '_step_' + si;
+        var stepDone = _paIsDone(domainId, stepKey);
+        html += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">';
+        html += '<button onclick="paMarkInline(\''+domainId+'\',\''+stepKey.replace(/'/g,"\\'")+'\')" style="flex-shrink:0;width:16px;height:16px;border-radius:3px;border:1px solid '+(stepDone?'#2ECC71':'rgba(255,255,255,.15)')+';background:'+(stepDone?'rgba(46,204,113,.15)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;color:#2ECC71;font-size:10px">'+(stepDone?'✓':'')+'</button>';
+        html += '<span style="font-size:11px;color:'+(stepDone?'#555':'#aaa')+';line-height:1.5;flex:1;'+(stepDone?'text-decoration:line-through':'')+'">'+step+'</span>';
+        html += '<button onclick="paCopyFix(\''+step.replace(/'/g,"\\'").replace(/"/g,'&quot;')+'\',this)" style="flex-shrink:0;background:transparent;border:1px solid rgba(255,255,255,.08);color:#555;font-family:Space Mono,monospace;font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;white-space:nowrap">📋 Copy</button>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
     html += '</div></div></div>';
   });
 
-  // ── Contact Discovery section ──────────────────────────────────────────────
+  // ── Contact Management section ─────────────────────────────────────────────
   html += '<div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px" id="dcontact-section-'+domainId+'">';
   html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">';
-  html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:var(--white);font-weight:700">✉ Outreach Contact</span>';
+  html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:var(--white);font-weight:700">✉ Outreach Contacts</span>';
   var cachedContacts = d.contact_emails ? (Array.isArray(d.contact_emails) ? d.contact_emails : (function(){try{return JSON.parse(d.contact_emails);}catch(e){return [];}}())) : [];
   var primaryContact = d.primary_contact || (cachedContacts[0]||'');
+  // Ensure primary is in list
+  if (primaryContact && cachedContacts.indexOf(primaryContact) === -1) cachedContacts.unshift(primaryContact);
   if (cachedContacts.length) {
-    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555">'+cachedContacts.length+' found</span>';
+    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555">'+cachedContacts.length+' contact'+(cachedContacts.length>1?'s':'')+'</span>';
+    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:rgba(203,255,0,.5)" title="Primary contact synced to Marketing tab">⟳ Synced to Marketing</span>';
   }
-  html += '<button onclick="dbDiscoverContacts(\''+domainId+'\')" id="dcontact-btn-'+domainId+'" style="background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer;margin-left:auto">🔍 Discover contacts</button>';
+  html += '<button onclick="dbDiscoverContacts(\''+domainId+'\')" id="dcontact-btn-'+domainId+'" style="background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.15);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer;margin-left:auto">🔍 Auto-discover</button>';
   html += '</div>';
   html += '<div id="dcontact-body-'+domainId+'">';
-  if (primaryContact) {
-    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
-    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;white-space:nowrap">Primary contact</span>';
-    html += '<input id="dcontact-input-'+domainId+'" type="text" value="'+primaryContact+'" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:Space Mono,monospace;font-size:11px;padding:4px 10px;border-radius:5px;outline:none;flex:1;min-width:180px">';
-    html += '<button onclick="dbSaveContact(\''+domainId+'\')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer">Save</button>';
-    html += '</div>';
-  } else {
-    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
-    html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;white-space:nowrap">Primary contact</span>';
-    html += '<input id="dcontact-input-'+domainId+'" type="text" placeholder="email@domain.com" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:Space Mono,monospace;font-size:11px;padding:4px 10px;border-radius:5px;outline:none;flex:1;min-width:180px">';
-    html += '<button onclick="dbSaveContact(\''+domainId+'\')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer">Save</button>';
-    html += '</div>';
-    html += '<div style="font-family:Space Mono,monospace;font-size:10px;color:#555;margin-bottom:8px">No contacts discovered yet — click "Discover contacts" or enter manually above</div>';
-  }
-  if (cachedContacts.length > 1) {
-    html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">All discovered</div>';
-    html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+
+  // Contact chips list
+  if (cachedContacts.length) {
+    html += '<div id="dcontact-chips-'+domainId+'" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">';
     cachedContacts.forEach(function(e){
       var isPrimary = e === primaryContact;
-      html += '<span onclick="document.getElementById(\'dcontact-input-'+domainId+'\').value=\''+e+'\'" style="font-family:Space Mono,monospace;font-size:10px;padding:3px 9px;border-radius:12px;border:1px solid '+(isPrimary?'rgba(203,255,0,.3)':'rgba(255,255,255,.1)')+';color:'+(isPrimary?'var(--lime)':'#aaa')+';cursor:pointer;background:'+(isPrimary?'rgba(203,255,0,.06)':'transparent')+'" title="Click to use this address">'+e+'</span>';
+      html += '<div style="display:flex;align-items:center;gap:8px" data-email="'+e+'">';
+      if (isPrimary) {
+        html += '<span style="font-family:Space Mono,monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(203,255,0,.1);color:var(--lime);border:1px solid rgba(203,255,0,.3);white-space:nowrap">★ PRIMARY</span>';
+      } else {
+        html += '<span onclick="dbSetPrimaryContact(\''+domainId+'\',\''+e+'\')" style="font-family:Space Mono,monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:transparent;color:#555;border:1px solid rgba(255,255,255,.08);cursor:pointer;white-space:nowrap" title="Set as primary contact">set primary</span>';
+      }
+      html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:'+(isPrimary?'var(--white)':'#999')+'">'+e+'</span>';
+      html += '<span onclick="dbRemoveContact(\''+domainId+'\',\''+e+'\')" style="margin-left:auto;font-size:13px;color:#555;cursor:pointer;padding:2px 6px;border-radius:3px;line-height:1" title="Remove">×</span>';
+      html += '</div>';
     });
     html += '</div>';
+  } else {
+    html += '<div style="font-family:Space Mono,monospace;font-size:10px;color:#555;margin-bottom:10px">No contacts yet — auto-discover or add manually below</div>';
   }
+
+  // Add new contact row
+  html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+  html += '<input id="dcontact-input-'+domainId+'" type="email" placeholder="Add email address…" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:Space Mono,monospace;font-size:11px;padding:5px 10px;border-radius:5px;outline:none;flex:1;min-width:200px" onkeydown="if(event.key===\'Enter\')dbAddContact(\''+domainId+'\')">';
+  html += '<button onclick="dbAddContact(\''+domainId+'\')" id="dcontact-addbtn-'+domainId+'" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:Space Mono,monospace;font-size:10px;padding:5px 14px;border-radius:5px;cursor:pointer;white-space:nowrap">+ Add</button>';
+  html += '</div>';
   html += '</div></div>';
 
   container.innerHTML = html;
@@ -3756,15 +3805,16 @@ async function dbDiscoverContacts(domainId) {
     if (d) { d.primary_contact = data.primary_contact; d.contact_emails = data.contacts; }
     var container = document.getElementById('ddetail-body-'+domainId);
     if (container) dbRenderSingleDomainThreats(domainId, container);
+    toast('✓ Found ' + (data.contacts||[]).length + ' contact(s)');
   } catch(e) {
     if (body) body.innerHTML += '<div style="color:#E74C3C;font-size:11px;margin-top:6px">Discovery failed: '+e.message+'</div>';
-    if (btn) { btn.textContent = '🔍 Discover contacts'; btn.disabled = false; }
+    if (btn) { btn.textContent = '🔍 Auto-discover'; btn.disabled = false; }
   }
 }
 
-async function dbSaveContact(domainId) {
+async function dbAddContact(domainId) {
   var input = document.getElementById('dcontact-input-'+domainId);
-  var btn = input ? input.parentElement.querySelector('button') : null;
+  var btn   = document.getElementById('dcontact-addbtn-'+domainId);
   if (!input) return;
   var email = input.value.trim();
   if (!email || !email.includes('@')) {
@@ -3773,22 +3823,56 @@ async function dbSaveContact(domainId) {
     return;
   }
   input.style.borderColor = '';
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
   try {
-    await api('/domains/'+domainId+'/contact', {
+    var data = await api('/domains/'+domainId+'/contacts/add', {
+      method: 'POST',
+      body: JSON.stringify({ email: email })
+    });
+    var d = dbDomains.find(function(x){ return x.id == domainId; });
+    if (d) { d.primary_contact = data.primary_contact; d.contact_emails = data.contacts; }
+    input.value = '';
+    var container = document.getElementById('ddetail-body-'+domainId);
+    if (container) dbRenderSingleDomainThreats(domainId, container);
+    toast(data.status === 'exists' ? 'Already in list' : '✓ Contact added');
+  } catch(e) {
+    input.style.borderColor = '#E74C3C';
+    toast('Failed: ' + e.message, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '+ Add'; }
+  }
+}
+
+async function dbSetPrimaryContact(domainId, email) {
+  email = (email||'').trim();
+  if (!email || !email.includes('@')) { toast('Enter a valid email', true); return; }
+  try {
+    var data = await api('/domains/'+domainId+'/contact', {
       method: 'PATCH',
       body: JSON.stringify({ primary_contact: email })
     });
     var d = dbDomains.find(function(x){ return x.id == domainId; });
-    if (d) d.primary_contact = email;
-    input.style.borderColor = 'rgba(203,255,0,.4)';
-    setTimeout(function(){ input.style.borderColor = ''; }, 1500);
-    toast('✓ Contact saved');
+    if (d) { d.primary_contact = data.primary_contact; d.contact_emails = data.contacts; }
+    var container = document.getElementById('ddetail-body-'+domainId);
+    if (container) dbRenderSingleDomainThreats(domainId, container);
+    toast('★ Primary contact set — synced to Marketing');
   } catch(e) {
-    input.style.borderColor = '#E74C3C';
-    toast('Failed to save: ' + e.message, true);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+    toast('Failed: ' + e.message, true);
+  }
+}
+
+async function dbRemoveContact(domainId, email) {
+  try {
+    var data = await api('/domains/'+domainId+'/contacts/'+encodeURIComponent(email), {
+      method: 'DELETE'
+    });
+    var d = dbDomains.find(function(x){ return x.id == domainId; });
+    if (d) { d.primary_contact = data.primary_contact; d.contact_emails = data.contacts; }
+    var container = document.getElementById('ddetail-body-'+domainId);
+    if (container) dbRenderSingleDomainThreats(domainId, container);
+    toast('Contact removed');
+  } catch(e) {
+    toast('Failed: ' + e.message, true);
   }
 }
 
@@ -3995,7 +4079,7 @@ var FIX_CHOICES = {
   dns:           ['Remove dangling CNAME records pointing to deprovisioned services', 'Add CAA record to restrict which CAs can issue certificates', 'Disable zone transfer (AXFR) on authoritative name servers'],
   http_redirect: ['Configure a 301 permanent redirect from http:// to https:// on your web server', 'Update all internal links to use HTTPS', 'Set HSTS preload to prevent future HTTP access'],
   breach:        ['Force a password reset for all accounts matching the breach', 'Notify affected users by email per GDPR Art.34', 'Enable multi-factor authentication (MFA) site-wide'],
-  typosquat:     ['Register the top 3 typosquat variants (.com, .net, local TLD)', 'Set up brand monitoring alerts (Google Alerts / mention.com)', 'Redirect registered lookalike domains to your main site'],
+  typosquat:     ['Register the top 3 typosquat variants via Namecheap or Porkbun (≈ €10–15/domain)', 'Set 301 redirect on registered lookalike domains → your main site', 'Enable brand monitoring alerts (Google Alerts, mention.com, or SwarmHawk re-scan)'],
   email_security:['Add SPF record: v=spf1 include:_spf.yourmailprovider.com ~all', 'Generate and publish DKIM key pair via your email provider', 'Set DMARC policy: v=DMARC1; p=quarantine; rua=mailto:dmarc@yourdomain'],
   whois:         ['Enable domain privacy / WHOIS redaction via your registrar', 'Verify that exposed registrant data is intentional and up to date', 'Lock the domain to prevent unauthorised transfers'],
   urlhaus:       ['Submit removal request at urlhaus.abuse.ch/removal', 'Scan site with Sucuri SiteCheck or Wordfence for injected scripts', 'Review and clean recently modified files on the server'],
@@ -4094,6 +4178,129 @@ function dbRenderThreats() {
           html += '</div>';
         });
         html += '</div>'; // fix choices
+
+        // ── Typosquat affiliate block ────────────────────────────────────────
+        if (checkKey === 'typosquat' && (c.status === 'critical' || c.status === 'warning')) {
+          // Parse domains from detail string: "Examples: a.com, b.com and 3 more" or "a.com, b.com"
+          var detailStr = (c.detail || '').replace(/^Examples:\s*/i, '');
+          var domainMatches = detailStr.match(/[\w.-]+\.[a-z]{2,}/g) || [];
+          // Also extract from title: "8 typosquat domains registered"
+          var countMatch = (c.title || '').match(/(\d+)/);
+          var totalCount = countMatch ? parseInt(countMatch[1]) : domainMatches.length;
+
+          // Top registrars with affiliate data
+          var REGISTRARS = [
+            {
+              name: 'Namecheap',
+              logo: '🟠',
+              commission: '20–35%',
+              perDomain: '€3–5',
+              note: 'Best overall — free WHOIS privacy + free SSL',
+              color: '#e55c00',
+              searchUrl: function(d){ return 'https://www.namecheap.com/domains/registration/results/?domain='+encodeURIComponent(d); },
+              affiliateNote: 'Join: namecheap.com/affiliates (Impact.com)',
+            },
+            {
+              name: 'Porkbun',
+              logo: '🐷',
+              commission: '10–25%',
+              perDomain: '€2–4',
+              note: 'Lowest prices, free WHOIS privacy included',
+              color: '#e74c8b',
+              searchUrl: function(d){ return 'https://porkbun.com/checkout/registerDomain?domain='+encodeURIComponent(d); },
+              affiliateNote: 'Join: porkbun.com/affiliate',
+            },
+            {
+              name: 'Dynadot',
+              logo: '🔵',
+              commission: '10–20%',
+              perDomain: '€2–3',
+              note: 'Solid EU-friendly registrar, bulk discounts',
+              color: '#2e86c1',
+              searchUrl: function(d){ return 'https://www.dynadot.com/domain/search.html?domain='+encodeURIComponent(d); },
+              affiliateNote: 'Join: dynadot.com/affiliates',
+            },
+          ];
+
+          var avgCommission = 4; // € per domain average across registrars
+          var estimatedEarnings = (domainMatches.length || 1) * avgCommission;
+
+          html += '<div style="margin-top:14px;background:linear-gradient(135deg,rgba(203,255,0,.03),rgba(203,255,0,.07));border:1px solid rgba(203,255,0,.15);border-radius:10px;overflow:hidden">';
+
+          // Header
+          html += '<div style="padding:12px 16px;border-bottom:1px solid rgba(203,255,0,.1);display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
+          html += '<span style="font-family:Space Mono,monospace;font-size:10px;font-weight:700;color:#cbff00;letter-spacing:1px">💰 REGISTER TO PROTECT — Affiliate Opportunity</span>';
+          html += '<span style="font-family:Space Mono,monospace;font-size:9px;background:rgba(203,255,0,.1);color:#cbff00;border:1px solid rgba(203,255,0,.2);padding:2px 8px;border-radius:10px;margin-left:auto">Earn ≈ €'+estimatedEarnings+' on this scan</span>';
+          html += '</div>';
+
+          // Detected domains to register
+          if (domainMatches.length) {
+            html += '<div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)">';
+            html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Typosquat domains to buy & park (detected active)</div>';
+            html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+            domainMatches.forEach(function(dom) {
+              html += '<div style="display:flex;align-items:center;gap:6px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.2);border-radius:6px;padding:5px 10px">';
+              html += '<span style="font-family:Space Mono,monospace;font-size:10px;color:#e07070">'+dom+'</span>';
+              html += '<a href="'+REGISTRARS[0].searchUrl(dom)+'" target="_blank" rel="noopener" style="font-family:Space Mono,monospace;font-size:9px;color:#cbff00;text-decoration:none;border:1px solid rgba(203,255,0,.2);padding:2px 7px;border-radius:4px;background:rgba(203,255,0,.06);white-space:nowrap">Buy →</a>';
+              html += '</div>';
+            });
+            if (totalCount > domainMatches.length) {
+              html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;align-self:center">+'+(totalCount - domainMatches.length)+' more…</span>';
+            }
+            html += '</div></div>';
+          }
+
+          // Registrar cards
+          html += '<div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)">';
+          html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Best registrars with affiliate programs</div>';
+          html += '<div style="display:flex;flex-direction:column;gap:8px">';
+          REGISTRARS.forEach(function(r) {
+            var searchDom = domainMatches[0] || (c.domain || g.domain || '');
+            html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;flex-wrap:wrap">';
+            html += '<span style="font-size:16px">'+r.logo+'</span>';
+            html += '<div style="flex:1;min-width:140px">';
+            html += '<div style="font-family:Space Mono,monospace;font-size:11px;font-weight:700;color:var(--white)">'+r.name+'</div>';
+            html += '<div style="font-size:10px;color:#777;margin-top:1px">'+r.note+'</div>';
+            html += '</div>';
+            html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">';
+            html += '<span style="font-family:Space Mono,monospace;font-size:10px;color:#cbff00">'+r.perDomain+' / domain</span>';
+            html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555">Commission: '+r.commission+'</span>';
+            html += '</div>';
+            if (searchDom) {
+              html += '<a href="'+r.searchUrl(searchDom)+'" target="_blank" rel="noopener" style="font-family:Space Mono,monospace;font-size:9px;background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:#cbff00;text-decoration:none;padding:5px 12px;border-radius:5px;white-space:nowrap">Search domains →</a>';
+            }
+            html += '</div>';
+          });
+          html += '</div></div>';
+
+          // Revenue model
+          html += '<div style="padding:12px 16px">';
+          html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">💡 SwarmHawk Revenue Potential (affiliate)</div>';
+          var tiers = [
+            {users:'100 active users', act:'10%', doms:3, earn:'€120–180/mo'},
+            {users:'1,000 active users', act:'10%', doms:3, earn:'€1,200–1,800/mo'},
+            {users:'5,000 active users', act:'10%', doms:3, earn:'€6,000–9,000/mo'},
+          ];
+          html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:10px">';
+          tiers.forEach(function(t) {
+            html += '<div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:10px 12px">';
+            html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;margin-bottom:4px">'+t.users+'</div>';
+            html += '<div style="font-family:Space Mono,monospace;font-size:14px;font-weight:700;color:#cbff00">'+t.earn+'</div>';
+            html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#555;margin-top:3px">'+t.act+' act · '+t.doms+' domains avg</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+          html += '<div style="font-size:10px;color:#555;line-height:1.6">';
+          html += '🔗 <strong style="color:#888">How to set up:</strong> Join Namecheap Affiliates (Impact.com), Porkbun Affiliate, and Dynadot Affiliates. ';
+          html += 'Replace the "Buy →" links above with your affiliate tracking URLs. ';
+          html += 'Every user who clicks and registers a domain earns you 10–35% commission. ';
+          html += 'Average €3–5 per .com domain, €8–15 per country TLD.<br>';
+          html += '📌 <strong style="color:#888">Best model:</strong> Pre-fill domain search with the exact typosquat detected — highest conversion rate vs generic registrar homepage.';
+          html += '</div>';
+          html += '</div>'; // padding div
+          html += '</div>'; // affiliate block
+        }
+        // ── end typosquat affiliate block ────────────────────────────────────
 
         html += '</div></div></div>'; // flex, inner div, row
       });
@@ -5420,6 +5627,19 @@ async function outreachSendApproved() {
   }
 }
 
+async function outreachSyncContacts(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Syncing…'; }
+  try {
+    await api('/outreach/sync-contacts', { method: 'POST' });
+    toast('✓ Contact sync started — domain contacts propagating to Marketing');
+    setTimeout(function(){ outreachLoad(); }, 2000);
+  } catch(e) {
+    toast('Sync error: ' + e.message, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '⟳ Sync Contacts'; }
+  }
+}
+
 // Load outreach data when tab is opened
 var _outreachLoaded = false;
 
@@ -6722,6 +6942,26 @@ async function adminResetReportEmailTemplate(btn) {
     if (f) f.value = tpl.footer  || '';
     toast('✓ Reset to default template');
   } catch(e) { toast('Reset failed: ' + e.message, true); }
+}
+
+async function adminSendTestReportEmail(btn) {
+  var subject = (document.getElementById('ret-subject') || {}).value || '';
+  var body    = (document.getElementById('ret-body')    || {}).value || '';
+  var footer  = (document.getElementById('ret-footer')  || {}).value || '';
+  var to      = currentUser && currentUser.email ? currentUser.email : '';
+  if (!to) { toast('No admin email found — are you logged in?', true); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending…'; }
+  try {
+    await api('/admin/report-email-template/test', {
+      method: 'POST',
+      body: JSON.stringify({ to, subject, body, footer }),
+    });
+    toast('✓ Test preview sent to ' + to);
+  } catch(e) {
+    toast('Send failed: ' + e.message, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🧪 Send Test'; }
+  }
 }
 
 // ── AI Email Template Editor ──────────────────────────────────────────────────

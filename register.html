@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register to Protect · SwarmHawk</title>
+<meta name="description" content="Protect your brand by registering lookalike domains before attackers do. Compare top registrars instantly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0d12;--card:#16151e;--border:rgba(255,255,255,.08);
+  --white:#f0eef8;--grey:#6b6880;--lime:#cbff00;
+  --red:#C0392B;--amber:#D4850A;--green:#2ECC71;
+}
+body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-height:100vh}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--border);background:rgba(14,13,18,.95);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.logo{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;letter-spacing:2px;color:var(--lime);text-decoration:none}
+.logo span{color:var(--white)}
+.back-btn{font-family:'Space Mono',monospace;font-size:11px;color:var(--grey);text-decoration:none;border:1px solid var(--border);padding:6px 14px;border-radius:6px;transition:color .15s,border-color .15s}
+.back-btn:hover{color:var(--white);border-color:rgba(255,255,255,.2)}
+
+main{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+
+.hero{margin-bottom:36px}
+.hero-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:10px}
+.hero-title{font-size:26px;font-weight:700;color:var(--white);margin-bottom:8px;line-height:1.25}
+.hero-title .domain-highlight{color:var(--lime);font-family:'Space Mono',monospace}
+.hero-subtitle{font-size:14px;color:var(--grey);line-height:1.6}
+
+.threat-banner{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);border-radius:10px;padding:16px 20px;margin-bottom:28px;display:flex;gap:14px;align-items:flex-start}
+.threat-banner .icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.threat-banner h3{font-size:14px;font-weight:700;color:#e07070;margin-bottom:4px}
+.threat-banner p{font-size:12px;color:#999;line-height:1.6}
+
+.protect-banner{background:rgba(203,255,0,.05);border:1px solid rgba(203,255,0,.18);border-radius:10px;padding:16px 20px;margin-bottom:28px;display:flex;gap:14px;align-items:flex-start}
+.protect-banner .icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.protect-banner h3{font-size:14px;font-weight:700;color:var(--lime);margin-bottom:4px}
+.protect-banner p{font-size:12px;color:#999;line-height:1.6}
+
+.section-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:16px}
+
+.registrar-grid{display:flex;flex-direction:column;gap:14px;margin-bottom:40px}
+
+.reg-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.reg-card:hover{border-color:rgba(203,255,0,.25)}
+.reg-card.featured{border-color:rgba(203,255,0,.3);box-shadow:0 0 0 1px rgba(203,255,0,.08)}
+
+.reg-head{display:flex;align-items:center;gap:16px;padding:18px 20px;cursor:pointer}
+.reg-logo{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.reg-info{flex:1;min-width:0}
+.reg-name{font-size:16px;font-weight:700;color:var(--white);margin-bottom:2px;display:flex;align-items:center;gap:8px}
+.reg-badge{font-family:'Space Mono',monospace;font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
+.badge-best{background:rgba(203,255,0,.12);color:var(--lime);border:1px solid rgba(203,255,0,.25)}
+.badge-cheap{background:rgba(46,204,113,.1);color:#2ECC71;border:1px solid rgba(46,204,113,.2)}
+.badge-eu{background:rgba(66,133,244,.1);color:#4285F4;border:1px solid rgba(66,133,244,.2)}
+.badge-popular{background:rgba(212,133,10,.1);color:#D4850A;border:1px solid rgba(212,133,10,.2)}
+.reg-tagline{font-size:12px;color:var(--grey)}
+.reg-price{text-align:right;flex-shrink:0}
+.reg-price-num{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--lime)}
+.reg-price-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--grey)}
+
+.reg-body{padding:0 20px 20px;border-top:1px solid rgba(255,255,255,.05)}
+.reg-features{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.feat-pill{font-size:11px;color:#aaa;background:rgba(255,255,255,.04);border:1px solid var(--border);padding:4px 10px;border-radius:20px}
+.feat-pill.good{color:#2ECC71;background:rgba(46,204,113,.06);border-color:rgba(46,204,113,.15)}
+.reg-commission{font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);margin-bottom:14px;background:rgba(0,0,0,.2);padding:8px 12px;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+.reg-commission span{color:var(--lime);font-weight:700}
+.reg-cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn-register{display:inline-flex;align-items:center;gap:6px;background:var(--lime);color:#000;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;padding:11px 22px;border-radius:7px;text-decoration:none;letter-spacing:.5px;transition:opacity .15s}
+.btn-register:hover{opacity:.85}
+.btn-check{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:10px 18px;border-radius:7px;text-decoration:none;border:1px solid var(--border);transition:border-color .15s,color .15s}
+.btn-check:hover{border-color:rgba(255,255,255,.25);color:var(--lime)}
+
+.why-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:32px}
+.why-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:14px}
+.why-item{display:flex;gap:10px;align-items:flex-start}
+.why-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.why-text h4{font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px}
+.why-text p{font-size:11px;color:var(--grey);line-height:1.5}
+
+.steps-section{margin-bottom:40px}
+.steps{display:flex;flex-direction:column;gap:10px;counter-reset:step}
+.step{display:flex;gap:14px;align-items:flex-start;counter-increment:step}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text h4{font-size:13px;font-weight:600;color:var(--white);margin-bottom:2px}
+.step-text p{font-size:11px;color:var(--grey);line-height:1.5}
+
+.redirect-note{background:rgba(66,133,244,.06);border:1px solid rgba(66,133,244,.15);border-radius:8px;padding:14px 18px;font-size:12px;color:#aaa;line-height:1.7;margin-bottom:32px}
+.redirect-note strong{color:#7ab3f0}
+
+.compare-table{width:100%;border-collapse:collapse;margin-bottom:32px;font-size:12px}
+.compare-table th{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--grey);text-align:left;padding:10px 14px;border-bottom:1px solid var(--border)}
+.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);color:#ccc}
+.compare-table td.good{color:#2ECC71}
+.compare-table td.neutral{color:var(--grey)}
+.compare-table td.reg-col{font-family:'Space Mono',monospace;font-weight:700;color:var(--white)}
+.compare-table tr:hover td{background:rgba(255,255,255,.02)}
+
+footer{border-top:1px solid var(--border);padding:24px 32px;text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--grey)}
+footer a{color:var(--grey);text-decoration:none}footer a:hover{color:var(--lime)}
+
+@media(max-width:600px){
+  header{padding:14px 16px}
+  main{padding:24px 16px 60px}
+  .hero-title{font-size:20px}
+  .reg-head{flex-wrap:wrap}
+  .reg-price{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">●SWARM<span>HAWK</span></a>
+  <a class="back-btn" href="javascript:history.back()">← Back to Dashboard</a>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-label">Brand Protection · Domain Registration</div>
+    <h1 class="hero-title" id="hero-title">Register <span class="domain-highlight" id="hero-domain">…</span> to protect your brand</h1>
+    <p class="hero-subtitle" id="hero-subtitle">Compare top registrars and lock down this domain before it's used for phishing or brandjacking.</p>
+  </div>
+
+  <div id="threat-info"></div>
+
+  <div class="why-section" style="margin-bottom:28px">
+    <div class="section-title">Why register this domain?</div>
+    <div class="why-grid">
+      <div class="why-item"><div class="why-icon">🎣</div><div class="why-text"><h4>Phishing prevention</h4><p>Attackers use lookalike domains to trick your customers into entering credentials on fake login pages.</p></div></div>
+      <div class="why-item"><div class="why-icon">📧</div><div class="why-text"><h4>Email fraud</h4><p>Typosquat domains send spoofed invoices or support emails that appear to come from your company.</p></div></div>
+      <div class="why-item"><div class="why-icon">🏷</div><div class="why-text"><h4>Brand reputation</h4><p>Even parked typosquat domains erode trust and can rank in search results for your brand name.</p></div></div>
+      <div class="why-item"><div class="why-icon">⚖️</div><div class="why-text"><h4>NIS2 compliance</h4><p>NIS2 Art.21 requires entities to actively monitor and mitigate brand-impersonation threat vectors.</p></div></div>
+    </div>
+  </div>
+
+  <div class="section-title">Choose your registrar</div>
+  <div class="registrar-grid" id="registrar-grid">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="section-title">Full comparison</div>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Registrar</th>
+        <th>.com price/yr</th>
+        <th>WHOIS privacy</th>
+        <th>Auto-renew</th>
+        <th>EU data centre</th>
+        <th>Bulk discount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="reg-col">Namecheap</td><td>≈ €10</td><td class="good">Free</td><td class="good">✓</td><td class="neutral">US-based</td><td class="good">Yes (5+)</td></tr>
+      <tr><td class="reg-col">Porkbun</td><td>≈ €9</td><td class="good">Free</td><td class="good">✓</td><td class="neutral">US-based</td><td class="neutral">No</td></tr>
+      <tr><td class="reg-col">Dynadot</td><td>≈ €10</td><td class="good">Free</td><td class="good">✓</td><td class="neutral">US-based</td><td class="good">Yes (10+)</td></tr>
+      <tr><td class="reg-col">IONOS</td><td>≈ €12</td><td class="good">Free</td><td class="good">✓</td><td class="good">EU (DE)</td><td class="good">Yes</td></tr>
+      <tr><td class="reg-col">Hover</td><td>≈ €14</td><td class="good">Free</td><td class="good">✓</td><td class="neutral">CA-based</td><td class="neutral">No</td></tr>
+      <tr><td class="reg-col">GoDaddy</td><td>≈ €12</td><td>Paid add-on</td><td class="good">✓</td><td class="neutral">US-based</td><td class="good">Yes</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">After you register — set up the redirect</div>
+  <div class="steps-section">
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text"><h4>Register the domain</h4><p>Use any registrar below. Enable auto-renew immediately so it never accidentally lapses.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><h4>Enable WHOIS privacy</h4><p>Hide your contact details so attackers can't use your registration info for social engineering.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><h4>Set a 301 redirect</h4><p>In the DNS/forwarding settings, redirect <em id="redirect-from">the domain</em> → your real site. This also captures any misdirected traffic.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text"><h4>Add to SwarmHawk monitoring</h4><p>Add the registered typosquat to your domain list with re-scan enabled — so you're alerted if someone tries to transfer it.</p></div></div>
+    </div>
+  </div>
+
+  <div class="redirect-note">
+    <strong>Pro tip:</strong> A 301 redirect from the typosquat domain to your main site not only protects customers — it also passes link equity if anyone accidentally links to the typosquat. Configure it as: <code style="background:rgba(255,255,255,.06);padding:1px 6px;border-radius:3px;font-size:11px" id="redirect-example">typosquat.com → yourdomain.com</code>
+  </div>
+
+</main>
+
+<footer>
+  <a href="/">SwarmHawk</a> · European Cybersecurity Intelligence · <a href="/kb.html">Knowledge Base</a>
+</footer>
+
+<script>
+// ── Parse query params ────────────────────────────────────────────────────────
+var params   = new URLSearchParams(window.location.search);
+var domain   = (params.get('domain') || '').trim();
+var protected_ = (params.get('protected') || '').trim();
+var isThreat = params.get('threat') === '1';
+
+// ── Registrar definitions ─────────────────────────────────────────────────────
+var REGISTRARS = [
+  {
+    id:          'namecheap',
+    name:        'Namecheap',
+    emoji:       '🟠',
+    bgColor:     'rgba(229,92,0,.12)',
+    badge:       'BEST OVERALL',
+    badgeClass:  'badge-best',
+    tagline:     'Free WHOIS privacy · Free SSL · 24/7 support',
+    priceLabel:  '≈ €10/yr',
+    features:    ['Free WHOIS privacy', 'Free SSL cert', 'Easy DNS editor', '2FA security', 'Auto-renew'],
+    goodFeats:   [0, 1, 2],
+    commission:  '20–35%',
+    commNote:    'Affiliate: namecheap.com/affiliates (Impact.com)',
+    searchUrl:   function(d){ return 'https://www.namecheap.com/domains/registration/results/?domain='+encodeURIComponent(d); },
+    featured:    true,
+  },
+  {
+    id:          'porkbun',
+    name:        'Porkbun',
+    emoji:       '🐷',
+    bgColor:     'rgba(231,76,139,.1)',
+    badge:       'LOWEST PRICE',
+    badgeClass:  'badge-cheap',
+    tagline:     'Cheapest .com · Free privacy · No upsells',
+    priceLabel:  '≈ €9/yr',
+    features:    ['Free WHOIS privacy', 'No upsell popups', 'Simple interface', 'Free SSL', 'Auto-renew'],
+    goodFeats:   [0, 1, 3],
+    commission:  '10–25%',
+    commNote:    'Affiliate: porkbun.com/affiliate',
+    searchUrl:   function(d){ return 'https://porkbun.com/checkout/registerDomain?domain='+encodeURIComponent(d); },
+    featured:    false,
+  },
+  {
+    id:          'dynadot',
+    name:        'Dynadot',
+    emoji:       '🔵',
+    bgColor:     'rgba(46,134,193,.1)',
+    badge:       'BULK FRIENDLY',
+    badgeClass:  'badge-eu',
+    tagline:     'Great for multiple domains · Bulk pricing',
+    priceLabel:  '≈ €10/yr',
+    features:    ['Free WHOIS privacy', 'Bulk discounts (10+)', 'Advanced DNS', 'Portfolio management', 'Auto-renew'],
+    goodFeats:   [0, 1, 2],
+    commission:  '10–20%',
+    commNote:    'Affiliate: dynadot.com/affiliates',
+    searchUrl:   function(d){ return 'https://www.dynadot.com/domain/search.html?domain='+encodeURIComponent(d); },
+    featured:    false,
+  },
+  {
+    id:          'ionos',
+    name:        'IONOS',
+    emoji:       '🇪🇺',
+    bgColor:     'rgba(0,119,255,.08)',
+    badge:       'EU DATA',
+    badgeClass:  'badge-eu',
+    tagline:     'EU-based · GDPR native · German reliability',
+    priceLabel:  '≈ €12/yr',
+    features:    ['EU data centres', 'Free WHOIS privacy', 'GDPR compliant', '24/7 phone support', 'Auto-renew'],
+    goodFeats:   [0, 1, 2, 3],
+    commission:  '€15–20 flat',
+    commNote:    'Affiliate: ionos.com/affiliate-program',
+    searchUrl:   function(d){ return 'https://www.ionos.com/domains/domain-checker#whois-check?q='+encodeURIComponent(d); },
+    featured:    false,
+  },
+  {
+    id:          'hover',
+    name:        'Hover',
+    emoji:       '🔷',
+    bgColor:     'rgba(52,152,219,.08)',
+    badge:       'PRIVACY FIRST',
+    badgeClass:  'badge-eu',
+    tagline:     'No upsells · Privacy included · Clean UX',
+    priceLabel:  '≈ €14/yr',
+    features:    ['Free WHOIS privacy', 'No upsells ever', 'Email forwarding', 'Clean dashboard', 'Auto-renew'],
+    goodFeats:   [0, 1, 2],
+    commission:  '15%',
+    commNote:    'Affiliate: hover.com/referral',
+    searchUrl:   function(d){ return 'https://www.hover.com/domains/results?q='+encodeURIComponent(d); },
+    featured:    false,
+  },
+];
+
+// ── Render page ───────────────────────────────────────────────────────────────
+function init() {
+  if (!domain) {
+    document.getElementById('hero-title').textContent = 'Register a domain to protect your brand';
+    document.getElementById('hero-subtitle').textContent = 'No domain specified. Go back to your SwarmHawk scan and click a "Register to Protect" button.';
+    return;
+  }
+
+  document.title = 'Register ' + domain + ' · SwarmHawk';
+  document.getElementById('hero-domain').textContent = domain;
+  document.getElementById('redirect-from').textContent = domain;
+  document.getElementById('redirect-example').textContent = domain + ' → ' + (protected_ || 'yourdomain.com');
+
+  if (protected_) {
+    document.getElementById('hero-subtitle').textContent =
+      'Protect ' + protected_ + ' by locking down this lookalike domain. ' +
+      (isThreat
+        ? 'This domain is currently registered — you may be able to acquire it via UDRP or monitor it for expiry.'
+        : 'This variant is currently unclaimed — register it now before attackers do.');
+  }
+
+  // Threat/protect banner
+  var infoEl = document.getElementById('threat-info');
+  if (isThreat) {
+    infoEl.innerHTML =
+      '<div class="threat-banner">' +
+        '<div class="icon">⚠️</div>' +
+        '<div>' +
+          '<h3>This domain is currently registered by someone else</h3>' +
+          '<p>SwarmHawk detected <strong style="color:#e07070">' + domain + '</strong> as an active typosquat of ' + (protected_ || 'your domain') + '. ' +
+          'You cannot register it directly — but you can:<br>' +
+          '• File a <strong>UDRP complaint</strong> via ICANN if it's being used for phishing<br>' +
+          '• <strong>Monitor it</strong> for expiry using a domain backorder service (Dynadot, DropCatch)<br>' +
+          '• <strong>Register similar variants</strong> that are still available (see SwarmHawk scan for full list)</p>' +
+        '</div>' +
+      '</div>';
+  } else if (protected_) {
+    infoEl.innerHTML =
+      '<div class="protect-banner">' +
+        '<div class="icon">🛡</div>' +
+        '<div>' +
+          '<h3>This variant is unclaimed — register now</h3>' +
+          '<p><strong style="color:var(--lime)">' + domain + '</strong> is a common lookalike of ' + protected_ + '. ' +
+          'Registering it costs ≈ €10/year and immediately removes it as a phishing vector. ' +
+          'Set a 301 redirect to your main site and enable auto-renew.</p>' +
+        '</div>' +
+      '</div>';
+  }
+
+  renderRegistrars();
+}
+
+function renderRegistrars() {
+  var grid = document.getElementById('registrar-grid');
+  var html = '';
+
+  REGISTRARS.forEach(function(r) {
+    var searchLink = r.searchUrl(domain);
+    html += '<div class="reg-card' + (r.featured ? ' featured' : '') + '">';
+
+    // Head
+    html += '<div class="reg-head" onclick="toggleCard(\'' + r.id + '\')">';
+    html += '<div class="reg-logo" style="background:' + r.bgColor + '">' + r.emoji + '</div>';
+    html += '<div class="reg-info">';
+    html += '<div class="reg-name">' + r.name + ' <span class="reg-badge ' + r.badgeClass + '">' + r.badge + '</span></div>';
+    html += '<div class="reg-tagline">' + r.tagline + '</div>';
+    html += '</div>';
+    html += '<div class="reg-price"><div class="reg-price-num">' + r.priceLabel + '</div><div class="reg-price-label">per year</div></div>';
+    html += '</div>';
+
+    // Body (featured open by default)
+    html += '<div class="reg-body" id="card-' + r.id + '" style="' + (r.featured ? '' : 'display:none') + '">';
+
+    // Features
+    html += '<div class="reg-features">';
+    r.features.forEach(function(f, i) {
+      var isGood = r.goodFeats.indexOf(i) !== -1;
+      html += '<span class="feat-pill' + (isGood ? ' good' : '') + '">' + (isGood ? '✓ ' : '') + f + '</span>';
+    });
+    html += '</div>';
+
+    // Commission note
+    html += '<div class="reg-commission">';
+    html += '<span>SwarmHawk affiliate commission: <span>' + r.commission + '</span> per registration</span>';
+    html += '<span style="font-size:9px;color:#444">' + r.commNote + '</span>';
+    html += '</div>';
+
+    // CTAs
+    html += '<div class="reg-cta">';
+    if (!isThreat) {
+      html += '<a href="' + searchLink + '" target="_blank" rel="noopener" class="btn-register">🛡 Register at ' + r.name + ' →</a>';
+    }
+    html += '<a href="' + searchLink + '" target="_blank" rel="noopener" class="btn-check">Check availability ↗</a>';
+    if (isThreat && (r.id === 'dynadot')) {
+      html += '<a href="https://www.dynadot.com/domain/backorder.html?domain=' + encodeURIComponent(domain) + '" target="_blank" rel="noopener" class="btn-check" style="color:var(--amber);border-color:rgba(212,133,10,.3)">⏳ Backorder (Dynadot) →</a>';
+    }
+    html += '</div>';
+
+    html += '</div>'; // reg-body
+    html += '</div>'; // reg-card
+  });
+
+  grid.innerHTML = html;
+}
+
+function toggleCard(id) {
+  var body = document.getElementById('card-' + id);
+  if (!body) return;
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+
+init();
+</script>
+</body>
+</html>
