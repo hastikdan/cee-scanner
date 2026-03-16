@@ -5199,6 +5199,14 @@ function _renderScanProgress(p) {
   var scanned = p.scanned || 0;
   var found   = p.found   || 0;
   var pct     = total > 0 ? Math.min(100, Math.round(scanned / total * 100)) : 0;
+
+  // Update thin top bar + label
+  var bar   = document.getElementById('prospect-scan-bar');
+  var label = document.getElementById('prospect-scan-label');
+  var pctEl = document.getElementById('prospect-scan-pct');
+  if (bar)   { bar.style.width = (p.status==='done'?100:Math.max(4,pct)) + '%'; bar.style.animation = p.status==='done'?'none':'scanPulse 1.2s ease-in-out infinite'; }
+  if (label) { label.textContent = p.status==='done' ? '✓ Scan complete' : p.status==='fetching' ? 'Fetching domain lists…' : 'Scanning ' + scanned.toLocaleString() + ' / ' + total.toLocaleString() + ' domains…'; }
+  if (pctEl) { pctEl.textContent = p.status==='done' ? '⚡ ' + found + ' found' : pct + '%'; }
   var elapsed = p.elapsed_s || 0;
   var eta     = p.eta_s;
   var isDone  = p.status === 'done';
@@ -5288,13 +5296,23 @@ async function prospectRunScan() {
     b.disabled = true; b.textContent = '↻ Starting…';
   });
 
-  // Show progress panel immediately
+  // Show immediate "starting" state
+  _prospectShowProgressWrapper(true);
   var panel = document.getElementById('prospect-scan-panel');
   if (panel) {
-    panel.style.display = 'block';
-    panel.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px">'
-      +'<div style="display:flex;align-items:center;gap:10px"><div class="spinner" style="width:16px;height:16px;border-width:2px"></div>'
-      +'<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--white)">Triggering scan across 60+ countries…</span></div></div>';
+    panel.innerHTML =
+      '<div style="background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:22px 24px">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">'
+        +'<div class="spinner" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>'
+        +'<div>'
+          +'<div style="font-family:Space Mono,monospace;font-size:13px;color:var(--white);font-weight:700">Starting scan…</div>'
+          +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--grey);margin-top:2px">Sending request to backend — fetching domain lists for all countries</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="background:rgba(255,255,255,.06);border-radius:4px;height:6px;overflow:hidden">'
+        +'<div style="background:var(--lime);height:6px;border-radius:4px;width:100%;animation:scanPulse 1.2s ease-in-out infinite"></div>'
+      +'</div>'
+      +'</div>';
   }
 
   try {
@@ -5303,7 +5321,7 @@ async function prospectRunScan() {
     _prospectAttachProgress();
   } catch(e) {
     toast('Scan trigger failed: ' + e.message, true);
-    if (panel) panel.style.display = 'none';
+    _prospectShowProgressWrapper(false);
     prospectScanning = false;
     document.querySelectorAll('[onclick="prospectRunScan()"]').forEach(function(b){
       b.disabled = false; b.textContent = '⟳ Run Now';
@@ -5311,10 +5329,15 @@ async function prospectRunScan() {
   }
 }
 
+function _prospectShowProgressWrapper(visible) {
+  var wrapper = document.getElementById('prospect-scan-progress');
+  if (wrapper) wrapper.style.display = visible ? 'block' : 'none';
+  var panel   = document.getElementById('prospect-scan-panel');
+  if (panel)   panel.style.display   = visible ? 'block' : 'none';
+}
+
 function _prospectAttachProgress() {
-  // Show progress panel
-  var panel = document.getElementById('prospect-scan-panel');
-  if (panel) panel.style.display = 'block';
+  _prospectShowProgressWrapper(true);
 
   // Load existing DB results immediately so queue isn't empty
   prospectLoadFromBackend();
@@ -5339,11 +5362,8 @@ function _prospectAttachProgress() {
         if (p.status === 'done') {
           toast('✓ Scan complete — ' + (p.found || 0) + ' vulnerable domains found');
         }
-        // Hide panel after 8s
-        setTimeout(function(){
-          var panel = document.getElementById('prospect-scan-panel');
-          if (panel) panel.style.display = 'none';
-        }, 8000);
+        // Hide panel after 10s
+        setTimeout(function(){ _prospectShowProgressWrapper(false); }, 10000);
       }
     } catch(e) {
       // Don't stop polling on transient errors
