@@ -685,6 +685,8 @@ h1 span{color:var(--lime)}
 .o-cvss-med{background:rgba(241,196,15,.15);color:#F1C40F}
 .o-cvss-low{background:rgba(52,152,219,.15);color:#3498DB}
 .o-cvss-info{background:rgba(255,255,255,.06);color:#666}
+.batch-sel-btn{font-family:'Space Mono',monospace;font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--white);cursor:pointer;white-space:nowrap;transition:background .12s}
+.batch-sel-btn:hover{background:rgba(255,255,255,.1)}
 .o-country-tag{font-size:10px;color:var(--grey);font-family:'Space Mono',monospace}
 .o-contact{font-size:11px;color:#6B8;font-family:'Space Mono',monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .o-preview{font-size:11px;color:var(--grey);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:600px}
@@ -2926,15 +2928,30 @@ function renderReportPage(data, domain, isSample) {
           <button class="pipeline-tab"        id="ptab-all"       onclick="outreachSetTab('all')">All</button>
         </div>
 
-        <!-- Quick actions row -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <button onclick="outreachSelectAll()" style="background:transparent;border:none;color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;padding:0;text-decoration:underline">Select All</button>
-          <span style="color:rgba(255,255,255,.1)">|</span>
-          <button onclick="outreachClearSelection()" style="background:transparent;border:none;color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;padding:0;text-decoration:underline">Clear</button>
-          <div style="margin-left:auto;display:flex;gap:8px">
-            <button onclick="outreachSyncContacts(this)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer">⟳ Sync Contacts</button>
-            <button onclick="outreachSendDigest(this)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer">📧 Send Digest</button>
+        <!-- ── BATCH SELECT + SORT BAR ── -->
+        <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 14px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-right:4px">Select batch:</span>
+            <button onclick="outreachSelectByCvss(9)"   class="batch-sel-btn" style="border-color:rgba(231,76,60,.4);color:#E74C3C">🔴 Critical ≥9</button>
+            <button onclick="outreachSelectByCvss(7)"   class="batch-sel-btn" style="border-color:rgba(230,126,34,.4);color:#E67E22">🟠 High ≥7</button>
+            <button onclick="outreachSelectByCvss(4)"   class="batch-sel-btn" style="border-color:rgba(241,196,15,.4);color:#F1C40F">🟡 Medium ≥4</button>
+            <button onclick="outreachSelectByCvss(0.1)" class="batch-sel-btn">Any CVE</button>
+            <button onclick="outreachSelectAll()"       class="batch-sel-btn">All</button>
+            <button onclick="outreachClearSelection()"  class="batch-sel-btn" style="color:var(--grey)">✕ Clear</button>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-family:'Space Mono',monospace;font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px">Sort:</span>
+              <select id="outreach-sort" onchange="outreachSetSort(this.value)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;border-radius:5px;outline:none;cursor:pointer">
+                <option value="cvss_desc">CVSS ↓</option>
+                <option value="cvss_asc">CVSS ↑</option>
+                <option value="domain_asc">Domain A→Z</option>
+                <option value="alpha_desc">Domain Z→A</option>
+              </select>
+              <button onclick="outreachSyncContacts(this)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">⟳ Sync</button>
+              <button onclick="outreachSendDigest(this)"   style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">📧 Digest</button>
+            </div>
           </div>
+          <!-- List summary -->
+          <div style="margin-top:8px;font-family:'Space Mono',monospace;font-size:10px;color:#555" id="outreach-list-summary"></div>
         </div>
 
         <!-- ── BULK TOOLBAR (sticky, appears on checkbox select) ── -->
@@ -5528,7 +5545,9 @@ async function outreachLoad() {
     if (outreachCountry !== 'all') qs += '&country=' + outreachCountry;
     var data = await api(qs);
     outreachProspects = data.prospects || [];
-    outreachRender();
+    // Apply current sort (backend returns cvss_desc by default; re-sort if user changed it)
+    if (_outreachSort && _outreachSort !== 'cvss_desc') outreachSetSort(_outreachSort);
+    else outreachRender();
     outreachUpdateStats();
   };
   try {
@@ -5621,6 +5640,20 @@ function outreachRender() {
 
   var FLAGS = {CZ:'🇨🇿',PL:'🇵🇱',SK:'🇸🇰',HU:'🇭🇺',RO:'🇷🇴',AT:'🇦🇹',DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',IT:'🇮🇹',ES:'🇪🇸',NL:'🇳🇱',SE:'🇸🇪',NO:'🇳🇴',FI:'🇫🇮',DK:'🇩🇰',CH:'🇨🇭',BE:'🇧🇪',PT:'🇵🇹',UA:'🇺🇦'};
   var COUNTRY_OPTS = Object.keys(FLAGS);
+
+  // Summary line
+  var sumEl = document.getElementById('outreach-list-summary');
+  if (sumEl) {
+    var crit = outreachProspects.filter(function(p){ return (p.max_cvss||0) >= 9; }).length;
+    var high = outreachProspects.filter(function(p){ return (p.max_cvss||0) >= 7 && (p.max_cvss||0) < 9; }).length;
+    var med  = outreachProspects.filter(function(p){ return (p.max_cvss||0) >= 4 && (p.max_cvss||0) < 7; }).length;
+    var info = outreachProspects.filter(function(p){ return (p.max_cvss||0) < 4; }).length;
+    sumEl.innerHTML = outreachProspects.length + ' domains · '
+      + (crit ? '<span style="color:#E74C3C">⬤ '+crit+' critical</span>  ' : '')
+      + (high ? '<span style="color:#E67E22">⬤ '+high+' high</span>  ' : '')
+      + (med  ? '<span style="color:#F1C40F">⬤ '+med+' medium</span>  ' : '')
+      + (info ? '<span style="color:#555">⬤ '+info+' info</span>' : '');
+  }
 
   list.innerHTML = outreachProspects.map(function(p, idx) {
     var cves = Array.isArray(p.cves) ? p.cves : [];
@@ -6019,6 +6052,41 @@ function outreachSelectAll() {
     }
   });
   outreachUpdateBulkToolbar();
+}
+
+// Select all rows where CVSS >= minCvss
+function outreachSelectByCvss(minCvss) {
+  // First clear
+  _outreachSelected = {};
+  document.querySelectorAll('.o-row-check').forEach(function(cb){ cb.checked = false; });
+  document.querySelectorAll('.o-row.o-selected').forEach(function(r){ r.classList.remove('o-selected'); });
+  // Then select matching
+  outreachProspects.forEach(function(p, idx) {
+    if (p.status === 'sent') return;
+    var cvss = p.max_cvss || 0;
+    if (cvss >= minCvss) {
+      _outreachSelected[p.id] = idx;
+      var cb = document.querySelector('#ocard-'+idx+' .o-row-check');
+      if (cb) cb.checked = true;
+      var card = document.getElementById('ocard-'+idx);
+      if (card) card.classList.add('o-selected');
+    }
+  });
+  outreachUpdateBulkToolbar();
+}
+
+var _outreachSort = 'cvss_desc';
+function outreachSetSort(val) {
+  _outreachSort = val;
+  var sorted = outreachProspects.slice();
+  if (val === 'cvss_desc')   sorted.sort(function(a,b){ return (b.max_cvss||0)-(a.max_cvss||0); });
+  if (val === 'cvss_asc')    sorted.sort(function(a,b){ return (a.max_cvss||0)-(b.max_cvss||0); });
+  if (val === 'domain_asc')  sorted.sort(function(a,b){ return a.domain.localeCompare(b.domain); });
+  if (val === 'alpha_desc')  sorted.sort(function(a,b){ return b.domain.localeCompare(a.domain); });
+  outreachProspects = sorted;
+  _outreachSelected = {};
+  outreachUpdateBulkToolbar();
+  outreachRender();
 }
 
 // Load outreach data when tab is opened
