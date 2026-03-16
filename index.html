@@ -5500,19 +5500,38 @@ async function outreachLoad() {
   if (!_outreachTemplates) {
     api('/outreach/templates').then(function(td){ _outreachTemplates = td.templates || {}; }).catch(function(){});
   }
-  // Fetch current tab's prospects
-  try {
+  // Fetch current tab's prospects (with one auto-retry for cold-start / network blips)
+  var _outreachLoadAttempt = async function() {
     var qs = '/outreach/prospects?status=' + outreachFilter + '&limit=300';
     if (outreachCountry !== 'all') qs += '&country=' + outreachCountry;
     var data = await api(qs);
     outreachProspects = data.prospects || [];
     outreachRender();
+    outreachUpdateStats();
+  };
+  try {
+    await _outreachLoadAttempt();
   } catch(e) {
+    // Cold-start / transient network error — show spinner and auto-retry once after 5s
     var list = document.getElementById('outreach-list');
-    if (list) list.innerHTML = '<div class="outreach-empty">Failed to load: ' + e.message + '</div>';
+    var isNetwork = e.message === 'Failed to fetch' || e.message.includes('503') || e.message.includes('502');
+    if (list) {
+      if (isNetwork) {
+        list.innerHTML = '<div class="outreach-empty"><div style="font-size:22px;margin-bottom:10px">⟳</div>'
+          + '<div style="color:var(--white);font-weight:600;margin-bottom:6px">Backend starting up…</div>'
+          + '<div style="color:var(--grey);font-size:13px;margin-bottom:16px">Render cold-start — retrying in 5 seconds</div>'
+          + '<button onclick="outreachLoad()" class="btn-scan-all" style="font-size:11px;padding:7px 16px">Retry Now</button></div>';
+        setTimeout(function(){
+          outreachLoad();
+        }, 5000);
+      } else {
+        list.innerHTML = '<div class="outreach-empty"><div style="font-size:22px;margin-bottom:10px">⚠</div>'
+          + '<div style="color:var(--white);font-weight:600;margin-bottom:6px">Load failed</div>'
+          + '<div style="color:var(--grey);font-size:13px;margin-bottom:16px">' + e.message + '</div>'
+          + '<button onclick="outreachLoad()" class="btn-scan-all" style="font-size:11px;padding:7px 16px">Retry</button></div>';
+      }
+    }
   }
-  // Update stats (separate call to get all-status counts)
-  outreachUpdateStats();
 }
 
 async function outreachUpdateStats() {
