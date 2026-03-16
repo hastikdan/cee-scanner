@@ -5240,21 +5240,20 @@ function _renderScanProgress(p) {
     '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px">'
     // Header row
     +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-        +(isDone
-          ? '<span style="color:#2ECC71;font-size:18px">✓</span>'
-          : '<div class="spinner" style="width:16px;height:16px;border-width:2px;flex-shrink:0"></div>')
-      +'</div>'
+      +(isDone
+        ? '<span style="color:#2ECC71;font-size:18px">✓</span>'
+        : '<div class="spinner" style="width:16px;height:16px;border-width:2px;flex-shrink:0"></div>')
       +'<div style="flex:1">'
         +'<div style="font-family:Space Mono,monospace;font-size:12px;color:var(--white);font-weight:700;margin-bottom:2px">'
           +(isDone ? 'Scan complete' : isFetch ? 'Fetching domain lists…' : 'Scanning in progress')
         +'</div>'
         +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--grey)">'+(p.phase||'')+'</div>'
       +'</div>'
-      +'<div style="text-align:right">'
+      +'<div style="text-align:right;margin-right:12px">'
         +'<div style="font-family:Space Mono,monospace;font-size:20px;font-weight:700;color:var(--lime)">'+pct+'%</div>'
         +'<div style="font-family:Space Mono,monospace;font-size:9px;color:#555">'+scanned.toLocaleString()+' / '+total.toLocaleString()+' domains</div>'
       +'</div>'
+      +(!isDone ? '<button onclick="outreachStopScan(this)" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#E74C3C;font-family:Space Mono,monospace;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0">⏹ Stop</button>' : '')
     +'</div>'
     // Main progress bar
     +'<div style="background:rgba(255,255,255,.06);border-radius:4px;height:8px;margin-bottom:10px;overflow:hidden">'
@@ -5304,10 +5303,11 @@ async function prospectRunScan() {
       '<div style="background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:22px 24px">'
       +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">'
         +'<div class="spinner" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>'
-        +'<div>'
+        +'<div style="flex:1">'
           +'<div style="font-family:Space Mono,monospace;font-size:13px;color:var(--white);font-weight:700">Starting scan…</div>'
-          +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--grey);margin-top:2px">Sending request to backend — fetching domain lists for all countries</div>'
+          +'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--grey);margin-top:2px">Fetching domain lists for all countries</div>'
         +'</div>'
+        +'<button onclick="outreachStopScan(this)" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#E74C3C;font-family:Space Mono,monospace;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap">⏹ Stop</button>'
       +'</div>'
       +'<div style="background:rgba(255,255,255,.06);border-radius:4px;height:6px;overflow:hidden">'
         +'<div style="background:var(--lime);height:6px;border-radius:4px;width:100%;animation:scanPulse 1.2s ease-in-out infinite"></div>'
@@ -5869,6 +5869,17 @@ async function outreachRunScan() {
   } catch(e) {
     if (prog) prog.style.display = 'none';
     toast('Scan error: ' + e.message, true);
+  }
+}
+
+async function outreachStopScan(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Stopping…'; }
+  try {
+    await api('/outreach/stop-scan', { method: 'POST' });
+    toast('⏹ Stop requested — scan will finish its current batch then stop');
+  } catch(e) {
+    toast('Stop failed: ' + e.message, true);
+    if (btn) { btn.disabled = false; btn.textContent = '⏹ Stop'; }
   }
 }
 
