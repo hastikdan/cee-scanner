@@ -683,6 +683,8 @@ h1 span{color:var(--lime)}
 .o-cvss-crit{background:rgba(231,76,60,.2);color:#E74C3C}
 .o-cvss-high{background:rgba(230,126,34,.2);color:#E67E22}
 .o-cvss-med{background:rgba(241,196,15,.15);color:#F1C40F}
+.o-cvss-low{background:rgba(52,152,219,.15);color:#3498DB}
+.o-cvss-info{background:rgba(255,255,255,.06);color:#666}
 .o-country-tag{font-size:10px;color:var(--grey);font-family:'Space Mono',monospace}
 .o-contact{font-size:11px;color:#6B8;font-family:'Space Mono',monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .o-preview{font-size:11px;color:var(--grey);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:600px}
@@ -5626,8 +5628,8 @@ function outreachRender() {
     var sw   = Array.isArray(p.software) ? p.software : [];
 
     var cvss = p.max_cvss || 0;
-    var cvssClass = cvss >= 9 ? 'o-cvss-crit' : cvss >= 7 ? 'o-cvss-high' : 'o-cvss-med';
-    var cvssLabel = cvss > 0 ? 'CVSS ' + cvss : '';
+    var cvssClass = cvss >= 9 ? 'o-cvss-crit' : cvss >= 7 ? 'o-cvss-high' : cvss >= 4 ? 'o-cvss-med' : cvss > 0 ? 'o-cvss-low' : 'o-cvss-info';
+    var cvssLabel = cvss > 0 ? 'CVSS ' + cvss : 'INFO';
 
     var swText  = sw.slice(0,2).map(function(s){ return s.product+' '+s.version; }).join(' · ');
     var topCve  = top.id ? top.id + ' ' + top.cvss : '';
