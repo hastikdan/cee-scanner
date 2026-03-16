@@ -1929,6 +1929,37 @@ async function loadDeathPredictor(domainId) {
   }
 }
 
+async function checkTyposquatAvailability(domains) {
+  if (!domains || !domains.length) return;
+  try {
+    const res = await fetch(API + '/check-domains-available?domains=' + domains.map(encodeURIComponent).join(','));
+    if (!res.ok) return;
+    const data = await res.json();
+    domains.forEach(d => {
+      const rowId = 'typo-row-' + d.replace(/\./g, '-');
+      const row = document.getElementById(rowId);
+      if (!row) return;
+      const badge = row.querySelector('.typo-avail-badge');
+      const btn   = row.querySelector('.typo-register-btn');
+      const status = data[d] || 'unknown';
+      if (status === 'available') {
+        if (badge) { badge.textContent = '✅ Free'; badge.style.color = '#2ECC71'; badge.style.borderColor = 'rgba(46,204,113,.3)'; }
+        if (btn)   { btn.style.display = 'inline-block'; }
+      } else if (status === 'taken') {
+        if (badge) { badge.textContent = '✗ Taken'; badge.style.color = '#C0392B'; badge.style.borderColor = 'rgba(192,57,43,.3)'; }
+        if (btn)   { btn.style.display = 'none'; }
+        // Dim the whole row
+        row.style.opacity = '0.45';
+      } else {
+        if (badge) { badge.textContent = '? Unknown'; badge.style.color = '#555'; }
+        if (btn)   { btn.style.display = 'inline-block'; }
+      }
+    });
+  } catch(e) {
+    // Silently fail — just leave Checking… badges
+  }
+}
+
 function buildTyposquatAffiliateBlock(c, domainName) {
   // Parse detected domains from c.detail: "Examples: a.com, b.com" or "a.com, b.com"
   const detailStr = (c.detail||'').replace(/^examples:\s*/i,'');
@@ -1945,18 +1976,22 @@ function buildTyposquatAffiliateBlock(c, domainName) {
       html += `</div>`;
     });
   }
-  // Safe variants to register
+  // Safe variants to register — availability checked async after render
   const baseName = protected_domain.split('.')[0];
   const safeVariants = ['.com','.net','.org','.eu','.co'].map(ext=>baseName+ext).filter(v=>v!==protected_domain&&!domains.includes(v));
   if (safeVariants.length) {
     html += `<div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin:10px 0 6px">🛡 Register Now to Protect Your Brand</div>`;
     safeVariants.forEach(v=>{
       const url = `/register.html?domain=${encodeURIComponent(v)}&protected=${encodeURIComponent(protected_domain)}`;
-      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)">`;
+      const rowId = 'typo-row-' + v.replace(/\./g,'-');
+      html += `<div id="${rowId}" data-typo-domain="${v}" data-protected="${protected_domain}" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)">`;
       html += `<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--grey)">${v}</span>`;
-      html += `<a href="${url}" target="_blank" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);text-decoration:none;border:1px solid rgba(212,133,10,0.4);padding:3px 10px;border-radius:4px;white-space:nowrap">🛡 Register to Protect →</a>`;
+      html += `<span class="typo-avail-badge" style="font-family:'Space Mono',monospace;font-size:9px;color:#555;padding:2px 8px;border:1px solid rgba(255,255,255,.08);border-radius:4px">Checking…</span>`;
+      html += `<a href="${url}" target="_blank" class="typo-register-btn" style="display:none;font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);text-decoration:none;border:1px solid rgba(212,133,10,0.4);padding:3px 10px;border-radius:4px;white-space:nowrap">🛡 Register to Protect →</a>`;
       html += `</div>`;
     });
+    // Trigger async availability check after a short delay (DOM must be ready)
+    setTimeout(()=>checkTyposquatAvailability(safeVariants), 200);
   }
   html += `<div style="margin-top:10px;font-size:11px;color:var(--grey)">Compare registrars — Namecheap, Porkbun, Dynadot &amp; more. Earn affiliate commissions on referrals.</div>`;
   html += `</div>`;
@@ -3770,16 +3805,19 @@ function dbRenderSingleDomainThreats(domainId, container) {
         html += '</div>';
       }
 
+      var safeVariantsToShow = safeVariants.slice(0,5);
       html += '<div style="font-family:Space Mono,monospace;font-size:9px;color:#cbff00;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🛡 Register now to protect your brand</div>';
       html += '<div style="display:flex;flex-direction:column;gap:6px">';
-      safeVariants.slice(0,4).forEach(function(sv) {
-        html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(203,255,0,.04);border:1px solid rgba(203,255,0,.12);border-radius:7px">';
+      safeVariantsToShow.forEach(function(sv) {
+        var rowId = 'typo-row-' + sv.replace(/\./g,'-');
+        html += '<div id="'+rowId+'" data-typo-domain="'+sv+'" data-protected="'+userDomain+'" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(203,255,0,.04);border:1px solid rgba(203,255,0,.12);border-radius:7px">';
         html += '<span style="font-family:Space Mono,monospace;font-size:11px;color:#cbff00;flex:1">'+sv+'</span>';
-        html += '<span style="font-family:Space Mono,monospace;font-size:9px;color:#555;white-space:nowrap">≈ €10–15/yr</span>';
-        html += '<a href="/register.html?domain='+encodeURIComponent(sv)+'&protected='+encodeURIComponent(userDomain) +'" target="_blank" style="font-family:Space Mono,monospace;font-size:10px;font-weight:700;background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.3);color:#cbff00;text-decoration:none;padding:5px 14px;border-radius:5px;white-space:nowrap">🛡 Register to Protect →</a>';
+        html += '<span class="typo-avail-badge" style="font-family:Space Mono,monospace;font-size:9px;color:#555;white-space:nowrap;padding:2px 8px;border:1px solid rgba(255,255,255,.08);border-radius:4px">Checking…</span>';
+        html += '<a href="/register.html?domain='+encodeURIComponent(sv)+'&protected='+encodeURIComponent(userDomain)+'" target="_blank" class="typo-register-btn" style="display:none;font-family:Space Mono,monospace;font-size:10px;font-weight:700;background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.3);color:#cbff00;text-decoration:none;padding:5px 14px;border-radius:5px;white-space:nowrap">🛡 Register →</a>';
         html += '</div>';
       });
       html += '</div>';
+      setTimeout(function(){ checkTyposquatAvailability(safeVariantsToShow); }, 200);
       html += '</div>';
     } else {
       html += '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:10px">';
