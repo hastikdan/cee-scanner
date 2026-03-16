@@ -385,7 +385,7 @@
   #side-panel {
     position: fixed;
     top: 0; right: 0;
-    width: 340px;
+    width: 420px;
     height: 100vh;
     background: #13121b;
     border-left: 1px solid var(--border);
@@ -493,6 +493,90 @@
     color: #cbff00;
     border-color: rgba(203,255,0,.4);
   }
+
+  .sp-report-btn {
+    background: transparent;
+    border: 1px solid rgba(66,133,244,.3);
+    color: rgba(66,133,244,.85);
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    padding: 3px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+
+  .sp-report-btn:hover {
+    background: rgba(66,133,244,.08);
+    color: #4285F4;
+    border-color: rgba(66,133,244,.5);
+  }
+
+  .sp-score-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    min-width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .sp-scan-date {
+    font-size: 9px;
+    color: var(--grey);
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .sp-summary-box {
+    margin: 12px 16px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .sp-sum-stat { text-align: center; }
+  .sp-sum-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .sp-sum-lbl {
+    font-size: 9px;
+    color: var(--grey);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .sp-country-report-btn {
+    display: block;
+    margin: 0 16px 12px;
+    padding: 8px;
+    text-align: center;
+    background: rgba(192,57,43,.1);
+    border: 1px solid rgba(192,57,43,.25);
+    border-radius: 7px;
+    color: var(--red);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s;
+  }
+
+  .sp-country-report-btn:hover { background: rgba(192,57,43,.18); }
 
   .sp-loading {
     padding: 40px 20px;
@@ -756,7 +840,7 @@ function buildPopup(c) {
   var scoreHtml = scanned
     ? '<div class="pop-score" style="color:'+color+'">'+score+'</div>'
     : '<div class="pop-score" style="color:'+color+';font-size:14px">Scanning soon</div>';
-  return '<div style="min-width:190px">'
+  return '<div style="min-width:200px">'
     + '<div class="pop-flag">'+flag+'</div>'
     + '<div class="pop-name">'+name+'</div>'
     + scoreHtml
@@ -767,6 +851,7 @@ function buildPopup(c) {
     +   '<div class="pop-stat"><strong style="color:#C0392B">'+(c.high_risk_domains||0)+'</strong>High Risk</div>'
     +   '<div class="pop-stat"><strong style="color:#D4850A">'+(c.critical_findings||0)+'</strong>Criticals</div>'
     + '</div>'
+    + '<button onclick="openPanel(\''+c.country+'\',_countryDataCache[\''+c.country+'\']||null)" style="margin-top:10px;width:100%;background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:\'Space Mono\',monospace;font-size:9px;letter-spacing:1px;padding:6px;border-radius:6px;cursor:pointer">VIEW DOMAINS →</button>'
     + '</div>';
 }
 
@@ -854,7 +939,10 @@ function renderTable(countries) {
       + '<td>'+c.domains+'</td>'
       + '<td><span style="color:#C0392B;font-weight:600">'+(c.high_risk_domains||0)+'</span></td>'
       + '<td><span style="color:#D4850A;font-weight:600">'+(c.critical_findings||0)+'</span></td>'
-      + '<td><button class="fly-btn" onclick="flyTo(\''+c.country+'\')">📍 MAP</button></td>'
+      + '<td style="white-space:nowrap">'
+      + '<button class="fly-btn" style="margin-right:4px" onclick="flyTo(\''+c.country+'\')">📍 MAP</button>'
+      + '<button class="fly-btn" style="border-color:rgba(66,133,244,.3);color:rgba(66,133,244,.8)" onclick="openPanel(\''+c.country+'\',null)">📋 DOMAINS</button>'
+      + '</td>'
       + '</tr>';
   });
   document.getElementById('country-tbody').innerHTML = rows ||
@@ -930,8 +1018,8 @@ function openPanel(countryCode, countryData) {
 
   fetch(API_BASE + '/map/country/' + countryCode)
     .then(function(r) { return r.json(); })
-    .then(function(data) { renderPanelDomains(data.domains || [], name); })
-    .catch(function() { renderPanelDomains([], name); });
+    .then(function(data) { renderPanelDomains(data.domains || [], name, data.summary || {}); })
+    .catch(function() { renderPanelDomains([], name, {}); });
 }
 
 function closePanel() {
@@ -939,21 +1027,43 @@ function closePanel() {
   panelOpen = false;
 }
 
-function renderPanelDomains(domains, countryName) {
+function renderPanelDomains(domains, countryName, summary) {
   var body = document.getElementById('sp-body');
+  var html = '';
+
+  // Country summary stats
+  if (summary && !summary.error) {
+    var avgColor = riskColor(summary.avg_risk || 0, summary.scanned || 0);
+    html += '<div class="sp-summary-box">';
+    html += '<div class="sp-sum-stat"><div class="sp-sum-val">'+(summary.total_tracked||0)+'</div><div class="sp-sum-lbl">Tracked</div></div>';
+    html += '<div class="sp-sum-stat"><div class="sp-sum-val">'+(summary.scanned||0)+'</div><div class="sp-sum-lbl">Scanned</div></div>';
+    html += '<div class="sp-sum-stat"><div class="sp-sum-val" style="color:'+avgColor+'">'+(summary.avg_risk||0)+'</div><div class="sp-sum-lbl">Avg Risk</div></div>';
+    html += '<div class="sp-sum-stat"><div class="sp-sum-val" style="color:#C0392B">'+(summary.high_risk||0)+'</div><div class="sp-sum-lbl">High Risk</div></div>';
+    html += '</div>';
+  }
+
   if (!domains.length) {
-    body.innerHTML = '<div class="sp-empty">No scan results yet for '
+    html += '<div class="sp-empty">No scan results yet for '
       + countryName + '.<br><br>Domains are queued — results appear after the next daily scan at 08:00.</div>';
+    body.innerHTML = html;
     return;
   }
-  var html = '<div class="sp-section-label">Top ' + domains.length + ' Domains · Tranco Top-1M</div>';
+
+  html += '<div class="sp-section-label">Top ' + domains.length + ' Domains · Sorted by Risk</div>';
   for (var i = 0; i < domains.length; i++) {
-    var d = domains[i];
-    html += '<div class="sp-domain-row">'
-      + '<span class="sp-rank">' + (i+1) + '</span>'
-      + '<span class="sp-domain" title="' + d + '">' + d + '</span>'
-      + '<a class="sp-scan-btn" href="/?domain=' + encodeURIComponent(d) + '" target="_blank">SCAN →</a>'
-      + '</div>';
+    var d = typeof domains[i] === 'object' ? domains[i] : { domain: domains[i], risk_score: 0, scanned_at: '' };
+    var score = d.risk_score || 0;
+    var scoreColor = score >= 70 ? '#C0392B' : score >= 30 ? '#D4850A' : '#2ECC71';
+    var scoreDisplay = score > 0 ? score : '—';
+    html += '<div class="sp-domain-row">';
+    html += '<span class="sp-rank">' + (i+1) + '</span>';
+    html += '<div style="flex:1;min-width:0">';
+    html +=   '<div class="sp-domain" title="' + d.domain + '">' + d.domain + '</div>';
+    if (d.scanned_at) html += '<div class="sp-scan-date">' + d.scanned_at + '</div>';
+    html += '</div>';
+    html += '<span class="sp-score-pill" style="background:'+scoreColor+'22;color:'+scoreColor+';border:1px solid '+scoreColor+'44">'+scoreDisplay+'</span>';
+    html += '<a class="sp-report-btn" href="/?domain=' + encodeURIComponent(d.domain) + '#report" target="_blank">REPORT →</a>';
+    html += '</div>';
   }
   body.innerHTML = html;
 }
