@@ -148,6 +148,7 @@ kbd{font-family:'Space Mono',monospace;font-size:10px;background:#1e1d28;border:
   <a class="sb-link" href="#dashboard-reports">Reports & PDF</a>
   <a class="sb-link" href="#nis2">NIS2 / DORA</a>
   <a class="sb-link" href="#outreach">Outreach (MSP)</a>
+  <a class="sb-link" href="#auto-discover">↳ Auto-Discover Contacts</a>
 
   <div class="sb-section">Integrations</div>
   <a class="sb-link" href="#api">REST API</a>
@@ -618,6 +619,37 @@ kbd{font-family:'Space Mono',monospace;font-size:10px;background:#1e1d28;border:
     <li>One-click outreach email with AI-generated subject line and personalised findings</li>
     <li>Track prospect status: new → contacted → converted</li>
     <li>Competitive intelligence: compare prospect's security posture to industry benchmarks</li>
+  </ul>
+
+  <!-- Auto-Discover -->
+  <h3 id="auto-discover">Auto-Discover Contacts</h3>
+  <p>Each domain in the Outreach tab has a <strong>🔍 Auto-discover</strong> button that automatically finds security and business contact emails without any manual research. Click it once — SwarmHawk runs four discovery stages in parallel and populates the contact list within seconds.</p>
+
+  <h4>How it works — 4 stages</h4>
+  <table>
+    <thead><tr><th>Stage</th><th>Source</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>security.txt</strong></td><td>Fetches <code>/.well-known/security.txt</code> and <code>/security.txt</code> per RFC 9116. Most authoritative source — if it exists, the contact is verified.</td></tr>
+      <tr><td>2</td><td><strong>WHOIS</strong></td><td>Looks up registrant, admin, and tech contacts from domain registration records.</td></tr>
+      <tr><td>3</td><td><strong>Web scraping</strong></td><td>Scans up to 10 pages: <code>/contact</code>, <code>/impressum</code>, <code>/imprint</code>, <code>/about</code>, <code>/datenschutz</code>, <code>/privacy</code>, and more. Stops early once 5+ real emails are found.</td></tr>
+      <tr><td>4</td><td><strong>Pattern guesses</strong></td><td>Falls back to common patterns: <code>security@</code>, <code>info@</code>, <code>contact@</code>, <code>webmaster@</code>, <code>admin@</code> — only used if stages 1–3 return nothing.</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Filtering &amp; ranking</h4>
+  <ul>
+    <li>All emails are deduplicated and lowercased.</li>
+    <li>Junk domains (CDNs, analytics, frameworks) are automatically discarded.</li>
+    <li>Verified emails (stages 1–3) are ranked above guesses.</li>
+    <li>Results are capped at <strong>10 emails</strong> per domain.</li>
+  </ul>
+
+  <h4>After discovery</h4>
+  <ul>
+    <li>The full list is saved to the domain record and shown as interactive chips.</li>
+    <li>The first result is automatically set as <strong>Primary Contact</strong> (you can change it).</li>
+    <li>You can remove any email or add contacts manually at any time.</li>
+    <li>The primary contact is used for one-click outreach emails.</li>
   </ul>
 
   <!-- API -->
