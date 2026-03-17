@@ -5936,7 +5936,6 @@ function hideScanProgress() {
 // ── ACCOUNT SETTINGS ─────────────────────────────────────────────────────────
 
 async function dbLoadAccount() {
-  acctLoadApiKeys();
   try {
     var u = await api('/me');
     var nameEl  = document.getElementById('acct-name');
@@ -5979,6 +5978,8 @@ async function dbLoadAccount() {
         billingEl.innerHTML = '<div style="color:var(--grey)">No active subscription.<br><span style="font-size:12px">Upgrade a domain to Annual for monthly scans + PDF reports.</span></div>';
       }
     }
+    // Load API keys only after /me confirms backend is alive
+    acctLoadApiKeys();
   } catch(e) {
     var infoEl = document.getElementById('acct-info');
     if (infoEl) infoEl.textContent = 'Failed to load account info';
@@ -6218,8 +6219,20 @@ async function acctLoadApiKeys() {
   var el = document.getElementById('api-keys-list');
   var genBtn = document.getElementById('btn-gen-api-key');
   if (!el) return;
+  var data;
   try {
-    var data = await api('/api/v1/keys');
+    data = await api('/api/v1/keys');
+  } catch(e) {
+    // One automatic retry after 2s (handles transient network blips)
+    try {
+      await new Promise(function(r){ setTimeout(r, 2000); });
+      data = await api('/api/v1/keys');
+    } catch(e2) {
+      if (el) el.innerHTML = '<span style="color:#C0392B;font-size:11px">Could not load keys — ' + e2.message + '</span>';
+      return;
+    }
+  }
+  try {
     var active = (data.keys || []).filter(function(k){ return k.active !== false; });
     if (!active.length) {
       el.innerHTML = '<span style="color:#555">No keys yet — generate one below</span>';
