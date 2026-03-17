@@ -6216,25 +6216,47 @@ async function compHistory(id, domain) {
 
 async function acctLoadApiKeys() {
   var el = document.getElementById('api-keys-list');
+  var genBtn = document.getElementById('btn-gen-api-key');
   if (!el) return;
   try {
     var data = await api('/api/v1/keys');
-    if (!data.keys || !data.keys.length) {
+    var active = (data.keys || []).filter(function(k){ return k.active !== false; });
+    if (!active.length) {
       el.innerHTML = '<span style="color:#555">No keys yet — generate one below</span>';
+      if (genBtn) genBtn.style.display = '';
       return;
     }
-    el.innerHTML = data.keys.map(function(k) {
+    if (genBtn) genBtn.style.display = 'none'; // hide Generate when key exists
+    el.innerHTML = active.map(function(k) {
+      var masked = k.key.slice(0,8) + '••••••••••••••••' + k.key.slice(-4);
       var pct = Math.round((k.calls_this_month||0) / (k.limit_per_month||10) * 100);
-      var bar = '<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:4px;width:100%"><div style="height:100%;border-radius:2px;background:'+(pct>=80?'#C0392B':'var(--lime)')+';width:'+Math.min(pct,100)+'%"></div></div>';
-      return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:12px;margin-bottom:8px">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        +'<span style="color:var(--lime);font-size:12px;word-break:break-all">' + k.key + '</span>'
-        +'<button onclick="acctCopyKey(\''+k.key+'\')" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:11px;padding:0 0 0 8px;white-space:nowrap">Copy</button>'
-        +'</div>'
-        +'<div style="font-size:10px;color:#666">' + (k.calls_this_month||0) + ' / ' + (k.limit_per_month||10) + ' calls this month ' + bar + '</div>'
+      var barColor = pct >= 80 ? '#C0392B' : 'var(--lime)';
+      var bar = '<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px">'
+               +'<div style="height:100%;border-radius:2px;background:'+barColor+';width:'+Math.min(pct,100)+'%"></div></div>';
+      var keyId = 'apikey-val-' + k.key.slice(-6);
+      return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;margin-bottom:8px">'
+        // Key display row
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'
+        +'<code id="'+keyId+'" data-full="'+k.key+'" data-masked="'+masked+'" style="color:var(--lime);font-size:12px;word-break:break-all;flex:1">'+masked+'</code>'
+        +'<div style="display:flex;gap:6px;flex-shrink:0">'
+        +'<button onclick="acctToggleKeyVisibility(\''+keyId+'\')" title="Show/hide key" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">👁</button>'
+        +'<button onclick="acctCopyKey(\''+k.key+'\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">Copy</button>'
+        +'<button onclick="acctRegenerateApiKey(\''+k.key+'\')" style="background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">↻ Regenerate</button>'
+        +'<button onclick="acctRevokeApiKey(\''+k.key+'\')" style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);color:#E74C3C;font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">Revoke</button>'
+        +'</div></div>'
+        // Usage row
+        +'<div style="font-size:10px;color:#666;font-family:\'Space Mono\',monospace">'+(k.calls_this_month||0)+' / '+(k.limit_per_month||10)+' calls this month'+bar+'</div>'
         +'</div>';
     }).join('');
-  } catch(e) { if (el) el.innerHTML = '<span style="color:#555">Could not load keys</span>'; }
+  } catch(e) { if (el) el.innerHTML = '<span style="color:#C0392B;font-size:11px">Could not load keys — '+e.message+'</span>'; }
+}
+
+function acctToggleKeyVisibility(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var showing = el.dataset.showing === '1';
+  el.textContent = showing ? el.dataset.masked : el.dataset.full;
+  el.dataset.showing = showing ? '0' : '1';
 }
 
 async function acctGenerateApiKey() {
@@ -6242,13 +6264,31 @@ async function acctGenerateApiKey() {
   if (btn) { btn.disabled=true; btn.textContent='Generating…'; }
   try {
     var data = await api('/api/v1/keys', { method: 'POST' });
-    toast('✓ API key ready');
+    toast(data.created ? '✓ API key created' : '✓ Key loaded');
     acctLoadApiKeys();
   } catch(e) {
     toast('Error: ' + e.message, true);
   } finally {
     if (btn) { btn.disabled=false; btn.textContent='+ Generate API Key'; }
   }
+}
+
+async function acctRegenerateApiKey(key) {
+  if (!confirm('Regenerate this API key? The old key will stop working immediately.')) return;
+  try {
+    await api('/api/v1/keys/' + key + '/regenerate', { method: 'POST' });
+    toast('✓ New API key issued');
+    acctLoadApiKeys();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function acctRevokeApiKey(key) {
+  if (!confirm('Revoke this API key? Any integrations using it will stop working.')) return;
+  try {
+    await api('/api/v1/keys/' + key, { method: 'DELETE' });
+    toast('✓ Key revoked');
+    acctLoadApiKeys();
+  } catch(e) { toast('Error: ' + e.message, true); }
 }
 
 function acctCopyKey(key) {
