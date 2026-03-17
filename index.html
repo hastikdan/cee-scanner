@@ -3395,8 +3395,8 @@ function renderReportPage(data, domain, isSample) {
               <a href="https://github.com/hastikdan/swarmhawk-backend#api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
             </div>
 
-            <!-- API Subscription Status (shown for paid plans) -->
-            <div id="api-sub-status" style="display:none;border:1px solid rgba(203,255,0,.2);border-radius:8px;padding:16px;background:rgba(203,255,0,.03);margin-bottom:20px">
+            <!-- API Subscription Status (always visible) -->
+            <div id="api-sub-status" style="display:none;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:16px;background:rgba(255,255,255,.02);margin-bottom:20px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
                 <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;text-transform:uppercase">API Subscription</div>
                 <button onclick="acctOpenApiPortal()" id="btn-api-portal" style="background:transparent;border:1px solid rgba(203,255,0,.3);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer">Manage →</button>
@@ -6413,26 +6413,33 @@ async function acctLoadApiPlan() {
     var data = await api('/api/v1/plan');
     _currentApiPlan = data.plan || 'free';
     _renderApiPlanState(_currentApiPlan);
-    // Show subscription status panel for paid plans
+    var planLabels = {free:'Free', api_starter:'Starter', api_growth:'Growth', api_pro:'Pro'};
+    var calls = data.calls_this_month || 0;
+    var limit = data.limit || 10;
+    var pct = limit > 0 ? Math.min(100, Math.round(calls / limit * 100)) : 0;
+    var planEl = document.getElementById('api-sub-plan');
+    var usageTxt = document.getElementById('api-sub-usage-text');
+    var usageBar = document.getElementById('api-sub-usage-bar');
     var subEl = document.getElementById('api-sub-status');
     var titleEl = document.getElementById('api-plan-section-title');
-    if (_currentApiPlan !== 'free') {
-      var planLabels = {api_starter:'Starter', api_growth:'Growth', api_pro:'Pro'};
-      var calls = data.calls_this_month || 0;
-      var limit = data.limit || 10;
-      var pct = limit > 0 ? Math.min(100, Math.round(calls / limit * 100)) : 0;
-      var planEl = document.getElementById('api-sub-plan');
-      var usageTxt = document.getElementById('api-sub-usage-text');
-      var usageBar = document.getElementById('api-sub-usage-bar');
-      if (planEl) planEl.textContent = (planLabels[_currentApiPlan] || _currentApiPlan.toUpperCase()) + ' Plan';
-      if (usageTxt) usageTxt.textContent = calls.toLocaleString() + ' / ' + limit.toLocaleString();
-      if (usageBar) usageBar.style.width = pct + '%';
-      if (subEl) subEl.style.display = 'block';
-      if (titleEl) titleEl.textContent = 'Change API Plan';
-    } else {
-      if (subEl) subEl.style.display = 'none';
-      if (titleEl) titleEl.textContent = 'Upgrade API Plan';
+    var manageBtn = document.getElementById('btn-api-portal');
+    if (planEl) planEl.textContent = (planLabels[_currentApiPlan] || _currentApiPlan.toUpperCase()) + ' Plan';
+    if (usageTxt) usageTxt.textContent = calls.toLocaleString() + ' / ' + limit.toLocaleString();
+    if (usageBar) usageBar.style.width = pct + '%';
+    if (subEl) {
+      subEl.style.display = 'block';
+      // Paid plans get the highlighted lime border; free gets a subtle neutral style
+      if (_currentApiPlan === 'free') {
+        subEl.style.border = '1px solid rgba(255,255,255,.08)';
+        subEl.style.background = 'rgba(255,255,255,.02)';
+      } else {
+        subEl.style.border = '1px solid rgba(203,255,0,.25)';
+        subEl.style.background = 'rgba(203,255,0,.03)';
+      }
     }
+    // Only show Manage button for paid plans (free has no portal)
+    if (manageBtn) manageBtn.style.display = _currentApiPlan === 'free' ? 'none' : '';
+    if (titleEl) titleEl.textContent = _currentApiPlan !== 'free' ? 'Change API Plan' : 'Upgrade API Plan';
   } catch(e) { /* non-fatal */ }
 }
 
