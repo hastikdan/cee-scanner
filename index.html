@@ -3443,7 +3443,8 @@ function renderReportPage(data, domain, isSample) {
                   <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--grey);margin-bottom:6px">FREE</div>
                   <div style="font-size:20px;font-weight:700;color:var(--white);font-family:'Space Mono',monospace;margin-bottom:2px">€0</div>
                   <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">10 calls/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:8px;line-height:1.7">10 calls/month</div>
+                  <div id="api-plan-usage-free" style="margin-bottom:10px"></div>
                   <div id="api-plan-btn-free" style="font-family:'Space Mono',monospace;font-size:10px;color:#555;text-align:center">Current plan</div>
                 </div>
 
@@ -3452,7 +3453,8 @@ function renderReportPage(data, domain, isSample) {
                   <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:6px">STARTER</div>
                   <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€19</div>
                   <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">500 calls/month<br>REST API access<br>JSON responses</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:8px;line-height:1.7">500 calls/month<br>REST API access<br>JSON responses</div>
+                  <div id="api-plan-usage-starter" style="margin-bottom:10px"></div>
                   <button id="api-plan-btn-starter" onclick="apiPlanCheckout('api_starter')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
                 </div>
 
@@ -3462,7 +3464,8 @@ function renderReportPage(data, domain, isSample) {
                   <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:6px">GROWTH</div>
                   <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€49</div>
                   <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">2,000 calls/month<br>Priority response<br>Webhook support</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:8px;line-height:1.7">2,000 calls/month<br>Priority response<br>Webhook support</div>
+                  <div id="api-plan-usage-growth" style="margin-bottom:10px"></div>
                   <button id="api-plan-btn-growth" onclick="apiPlanCheckout('api_growth')" style="width:100%;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:none;border-radius:5px;cursor:pointer">Upgrade →</button>
                 </div>
 
@@ -3471,7 +3474,8 @@ function renderReportPage(data, domain, isSample) {
                   <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:6px">PRO</div>
                   <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€99</div>
                   <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">10,000 calls/month<br>Dedicated support<br>SLA guarantee</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:8px;line-height:1.7">10,000 calls/month<br>Dedicated support<br>SLA guarantee</div>
+                  <div id="api-plan-usage-pro" style="margin-bottom:10px"></div>
                   <button id="api-plan-btn-pro" onclick="apiPlanCheckout('api_pro')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
                 </div>
 
@@ -6424,7 +6428,6 @@ async function acctLoadApiPlan() {
   try {
     var data = await api('/api/v1/plan');
     _currentApiPlan = data.plan || 'free';
-    _renderApiPlanState(_currentApiPlan);
     var planLabels = {free:'Free', api_starter:'Starter', api_growth:'Growth', api_pro:'Pro'};
     var calls = data.calls_this_month || 0;
     var limit = data.limit || 10;
@@ -6438,9 +6441,10 @@ async function acctLoadApiPlan() {
     if (planEl) planEl.textContent = (planLabels[_currentApiPlan] || _currentApiPlan.toUpperCase()) + ' Plan';
     if (usageTxt) usageTxt.textContent = calls.toLocaleString() + ' / ' + limit.toLocaleString();
     if (usageBar) usageBar.style.width = pct + '%';
-    // Only show Manage button for paid plans (free has no portal)
-    if (manageBtn) manageBtn.style.display = _currentApiPlan === 'free' ? 'none' : '';
+    if (manageBtn) manageBtn.style.display = '';  // always visible
     if (titleEl) titleEl.textContent = _currentApiPlan !== 'free' ? 'Change API Plan' : 'Upgrade API Plan';
+    // Store usage for plan card rendering
+    _renderApiPlanState(_currentApiPlan, calls, limit);
   } catch(e) { /* non-fatal */ }
 }
 
@@ -6451,34 +6455,53 @@ async function acctOpenApiPortal() {
     var data = await api('/billing-portal/api');
     window.location.href = data.url;
   } catch(e) {
-    toast('Portal error: ' + e.message, true);
-    if (btn) { btn.disabled=false; btn.textContent='Manage →'; }
+    var msg = e.message || '';
+    if (msg.toLowerCase().includes('no stripe customer') || msg.toLowerCase().includes('no billing')) {
+      toast('No active subscription yet — upgrade a plan below to get started.', true);
+    } else {
+      toast('Portal error: ' + msg, true);
+    }
+    if (btn) { btn.disabled=false; btn.textContent='Manage API Subscription →'; }
   }
 }
 
-function _renderApiPlanState(plan) {
-  // Badge next to "Developer API" title
+function _renderApiPlanState(plan, calls, limit) {
+  calls = calls || 0; limit = limit || 10;
+  // Badge next to "Developer API Portal" title
   var badge = document.getElementById('api-plan-badge');
   if (badge) {
     var planLabels = {free:'FREE', api_starter:'STARTER', api_growth:'GROWTH', api_pro:'PRO'};
-    var planColors = {free:'#555', api_starter:'var(--lime)', api_growth:'var(--lime)', api_pro:'var(--lime)'};
+    var planColors = {free:'#777', api_starter:'var(--lime)', api_growth:'var(--lime)', api_pro:'var(--lime)'};
     badge.textContent = planLabels[plan] || plan.toUpperCase();
     badge.style.cssText = 'display:inline-block;background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:'+planColors[plan]+';font-family:\'Space Mono\',monospace;font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:1px';
   }
-  // Highlight active plan card, disable its button
+  // Highlight active plan card, show usage on it, disable/mark its button
   var planMap = {free:'free', api_starter:'starter', api_growth:'growth', api_pro:'pro'};
+  var planLimits = {free:10, starter:500, growth:2000, pro:10000};
   ['free','starter','growth','pro'].forEach(function(t) {
-    var card    = document.getElementById('api-plan-card-' + t);
-    var btn     = document.getElementById('api-plan-btn-' + t);
+    var card      = document.getElementById('api-plan-card-' + t);
+    var btn       = document.getElementById('api-plan-btn-' + t);
+    var usageEl   = document.getElementById('api-plan-usage-' + t);
     var isCurrent = planMap[plan] === t;
     if (card) {
       card.style.border = isCurrent ? '1px solid rgba(203,255,0,.5)' : (t==='growth' ? '1px solid rgba(203,255,0,.2)' : '1px solid rgba(255,255,255,.1)');
       card.style.background = isCurrent ? 'rgba(203,255,0,.06)' : (t==='growth' ? 'rgba(203,255,0,.03)' : 'rgba(255,255,255,.02)');
     }
+    // Usage line: show actual usage on current plan, show plan limit on others
+    if (usageEl) {
+      if (isCurrent) {
+        var pct = limit > 0 ? Math.min(100, Math.round(calls / limit * 100)) : 0;
+        usageEl.innerHTML =
+          '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--grey);margin-bottom:4px"><span>Used</span><span style="color:var(--white)">' + calls.toLocaleString() + ' / ' + limit.toLocaleString() + '</span></div>' +
+          '<div style="background:rgba(255,255,255,.07);border-radius:2px;height:3px;overflow:hidden"><div style="height:100%;background:var(--lime);border-radius:2px;width:' + pct + '%"></div></div>';
+      } else {
+        usageEl.innerHTML = '';
+      }
+    }
     if (btn && isCurrent) {
-      if (t === 'free') { btn.textContent = 'Current plan'; }
+      if (t === 'free') { btn.textContent = '✓ Current plan'; btn.style.color = '#555'; }
       else {
-        btn.textContent = '✓ Active plan';
+        btn.textContent = '✓ Active';
         btn.disabled = true;
         btn.style.opacity = '0.5';
         btn.style.cursor = 'default';
