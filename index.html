@@ -8035,7 +8035,7 @@ async function adminLoadLLMStats(period) {
 
     if (!d.configured) {
       el.innerHTML = '<div style="background:rgba(212,133,10,.07);border:1px solid rgba(212,133,10,.2);border-radius:8px;padding:16px 20px;font-size:12px;color:#f0c070">'
-        + '⚠ ' + d.message + '<br><span style="color:var(--grey);margin-top:4px;display:block">Set <code>PORTKEY_API_KEY</code> in Render environment variables and re-route Anthropic calls through the Portkey gateway.</span></div>';
+        + '⚠ ' + d.message + '<br><span style="color:var(--grey);margin-top:4px;display:block">Set <code>PORTKEY_API_KEY</code> and <code>PORTKEY_WORKSPACE_SLUG</code> in Render environment variables. The workspace slug is found in Portkey dashboard → Settings → Workspace.</span></div>';
       return;
     }
 
