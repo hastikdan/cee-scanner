@@ -3008,16 +3008,43 @@ function renderReportPage(data, domain, isSample) {
 
         <!-- Developer API Stats -->
         <div class="admin-section" id="admin-api-section" style="margin-bottom:20px">
-          <div class="admin-section-title">🔑 Developer API Usage</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+            <div class="admin-section-title" style="margin-bottom:0">🔑 API Management — Developers</div>
+            <button onclick="adminLoadApiKeys()" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;padding:6px 12px;border-radius:6px;cursor:pointer">↻ Refresh</button>
+          </div>
+
+          <!-- Stats row -->
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
             <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-active">—</span><span class="admin-stat-lbl">Active Keys</span><span class="admin-stat-sub" id="astat-api-total"></span></div>
-            <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-calls" style="color:var(--lime)">—</span><span class="admin-stat-lbl">API Calls (this month)</span></div>
+            <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-calls" style="color:var(--lime)">—</span><span class="admin-stat-lbl">API Calls this month</span></div>
             <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-new7d">—</span><span class="admin-stat-lbl">New Keys (7d)</span><span class="admin-stat-sub" id="astat-api-new30d"></span></div>
+            <div class="admin-stat" style="flex:1"><span class="admin-stat-val" id="astat-api-disabled" style="color:#666">—</span><span class="admin-stat-lbl">Disabled Keys</span></div>
           </div>
+
+          <!-- Search -->
+          <div style="margin-bottom:12px">
+            <input id="admin-api-search" type="text" placeholder="Filter by email or key prefix…"
+              oninput="adminFilterApiKeys(this.value)"
+              style="width:100%;max-width:360px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--white);font-size:12px;padding:8px 12px;font-family:inherit;box-sizing:border-box">
+          </div>
+
+          <!-- Full keys table -->
           <div class="admin-table-wrap">
             <table class="admin-table">
-              <thead><tr><th>Key (truncated)</th><th>Calls this month</th><th>Limit</th><th>Usage</th></tr></thead>
-              <tbody id="admin-api-body"><tr><td colspan="4" style="text-align:center;padding:16px;color:var(--grey)">Loading…</td></tr></tbody>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Key</th>
+                  <th>Status</th>
+                  <th>Calls / Limit</th>
+                  <th>Usage</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-api-body">
+                <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -7023,6 +7050,125 @@ async function adminLoad() {
   adminScansLoad();
 }
 
+// ── API KEY MANAGEMENT ────────────────────────────────────────────────────────
+
+var _adminApiKeys = [];  // cache for client-side filtering
+
+async function adminLoadApiKeys() {
+  var body = document.getElementById('admin-api-body');
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr>';
+  try {
+    var data = await api('/admin/api-keys');
+    _adminApiKeys = data.keys || [];
+    var disabled = _adminApiKeys.filter(function(k){ return k.active === false; }).length;
+    var el = document.getElementById('astat-api-disabled');
+    if (el) el.textContent = disabled;
+    adminRenderApiKeys(_adminApiKeys);
+  } catch(e) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px;color:#C0392B">Failed to load: ' + e.message + '</td></tr>';
+  }
+}
+
+function adminFilterApiKeys(q) {
+  if (!q) { adminRenderApiKeys(_adminApiKeys); return; }
+  var lq = q.toLowerCase();
+  adminRenderApiKeys(_adminApiKeys.filter(function(k){
+    return (k.user_email||'').toLowerCase().includes(lq)
+        || (k.user_name||'').toLowerCase().includes(lq)
+        || (k.key||'').toLowerCase().includes(lq);
+  }));
+}
+
+function adminRenderApiKeys(keys) {
+  var body = document.getElementById('admin-api-body');
+  if (!body) return;
+  if (!keys.length) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--grey)">No API keys found</td></tr>';
+    return;
+  }
+  body.innerHTML = keys.map(function(k) {
+    var calls   = k.calls_this_month || 0;
+    var limit   = k.limit_per_month  || 10;
+    var pct     = Math.min(Math.round(calls / limit * 100), 100);
+    var barClr  = pct >= 90 ? '#C0392B' : pct >= 70 ? '#D4850A' : 'var(--lime)';
+    var active  = k.active !== false;
+    var created = k.created_at ? new Date(k.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    var keyShort = (k.key||'').slice(0,12) + '…';
+    var statusBadge = active
+      ? '<span style="background:rgba(46,204,113,.12);color:#2ECC71;font-family:\'Space Mono\',monospace;font-size:9px;padding:2px 7px;border-radius:10px;letter-spacing:1px">ACTIVE</span>'
+      : '<span style="background:rgba(100,100,100,.12);color:#555;font-family:\'Space Mono\',monospace;font-size:9px;padding:2px 7px;border-radius:10px;letter-spacing:1px">DISABLED</span>';
+    var bar = '<div style="background:rgba(255,255,255,.07);border-radius:2px;height:5px;margin-bottom:3px"><div style="height:5px;border-radius:2px;background:'+barClr+';width:'+pct+'%"></div></div>'
+            + '<span style="font-size:10px;color:var(--grey)">'+pct+'%</span>';
+    return '<tr id="apirow-' + k.key.slice(-8) + '">'
+      + '<td><div style="color:var(--white);font-size:12px">' + (k.user_name||'—') + '</div>'
+      +     '<div style="color:var(--grey);font-size:10px">' + (k.user_email||'—') + '</div></td>'
+      + '<td style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--lime)">' + keyShort + '</td>'
+      + '<td>' + statusBadge + '</td>'
+      + '<td>'
+      +   '<div style="display:flex;align-items:center;gap:6px">'
+      +   '<span style="font-family:\'Space Mono\',monospace;font-weight:700;color:var(--white)">' + calls + '</span>'
+      +   '<span style="color:var(--grey)">/</span>'
+      +   '<input id="limit-' + k.key.slice(-8) + '" type="number" value="' + limit + '" min="1" max="100000"'
+      +   ' style="width:60px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:3px 6px;text-align:center">'
+      +   '<button onclick="adminSaveKeyLimit(\''+k.key+'\')" title="Save limit" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 7px;border-radius:4px;cursor:pointer">Save</button>'
+      +   '</div></td>'
+      + '<td style="min-width:90px">' + bar + '</td>'
+      + '<td style="color:var(--grey);font-size:11px">' + created + '</td>'
+      + '<td>'
+      +   '<div class="admin-actions">'
+      +   '<button onclick="adminResetKeyCalls(\''+k.key+'\')" title="Reset monthly counter" style="background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.2);color:#4285F4;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Reset</button>'
+      +   '<button onclick="adminToggleKey(\''+k.key+'\','+active+')" title="'+(active?'Disable':'Enable')+' key" style="background:rgba(212,133,10,.08);border:1px solid rgba(212,133,10,.2);color:#D4850A;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">'+(active?'Disable':'Enable')+'</button>'
+      +   '<button onclick="adminRevokeKey(\''+k.key+'\',\''+k.user_email+'\')" class="admin-btn-danger" style="font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Revoke</button>'
+      +   '</div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function adminSaveKeyLimit(key) {
+  var inputId = 'limit-' + key.slice(-8);
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var limit = parseInt(input.value);
+  if (isNaN(limit) || limit < 1) { toast('Invalid limit', true); return; }
+  try {
+    await api('/admin/api-keys/' + key + '/limit', { method: 'PATCH', body: JSON.stringify({limit: limit}) });
+    toast('✓ Limit updated to ' + limit);
+    var idx = _adminApiKeys.findIndex(function(k){ return k.key === key; });
+    if (idx !== -1) _adminApiKeys[idx].limit_per_month = limit;
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function adminResetKeyCalls(key) {
+  if (!confirm('Reset monthly call counter for this key to 0?')) return;
+  try {
+    await api('/admin/api-keys/' + key + '/reset-calls', { method: 'POST' });
+    toast('✓ Call counter reset');
+    adminLoadApiKeys();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function adminToggleKey(key, currentlyActive) {
+  var action = currentlyActive ? 'disable' : 'enable';
+  if (!confirm(action.charAt(0).toUpperCase() + action.slice(1) + ' this API key?')) return;
+  try {
+    var data = await api('/admin/api-keys/' + key + '/toggle', { method: 'PATCH' });
+    toast('✓ Key ' + (data.active ? 'enabled' : 'disabled'));
+    adminLoadApiKeys();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+async function adminRevokeKey(key, userEmail) {
+  if (!confirm('Permanently revoke API key for ' + (userEmail||'this user') + '? This cannot be undone.')) return;
+  try {
+    await api('/admin/api-keys/' + key, { method: 'DELETE' });
+    toast('✓ Key revoked');
+    adminLoadApiKeys();
+  } catch(e) { toast('Error: ' + e.message, true); }
+}
+
+// ── END API KEY MANAGEMENT ────────────────────────────────────────────────────
+
 async function adminScansLoad() {
   // ── Active scans ──────────────────────────────────────────────────────────
   var activeEl = document.getElementById('admin-active-scans');
@@ -7660,7 +7806,7 @@ async function adminLoadStats() {
     set('astat-scans-24h',  data.scans.last_24h);
     set('astat-paid',       data.revenue.total_sales);
 
-    // API key stats
+    // API key stats (counts only — full table loaded by adminLoadApiKeys)
     if (data.api_keys) {
       var ak = data.api_keys;
       set('astat-api-active', ak.active);
@@ -7668,24 +7814,8 @@ async function adminLoadStats() {
       set('astat-api-calls',  ak.calls_this_month);
       set('astat-api-new7d',  ak.new_7d);
       set('astat-api-new30d', ak.new_30d + ' keys (30d)');
-      var apiBody = document.getElementById('admin-api-body');
-      if (apiBody) {
-        if (!ak.top_users || !ak.top_users.length) {
-          apiBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:var(--grey)">No API activity yet</td></tr>';
-        } else {
-          apiBody.innerHTML = ak.top_users.map(function(k) {
-            var pct = Math.round(k.calls / (k.limit || 10) * 100);
-            var barColor = pct >= 80 ? '#C0392B' : 'var(--lime)';
-            return '<tr>'
-              + '<td style="font-family:Space Mono,monospace;font-size:11px;color:var(--lime)">' + k.key + '</td>'
-              + '<td style="font-family:Space Mono,monospace;font-weight:700;color:var(--white)">' + k.calls + '</td>'
-              + '<td style="font-family:Space Mono,monospace;color:var(--grey)">' + k.limit + '</td>'
-              + '<td style="min-width:80px"><div style="background:rgba(255,255,255,.08);border-radius:2px;height:6px"><div style="height:6px;border-radius:2px;background:'+barColor+';width:'+Math.min(pct,100)+'%"></div></div><span style="font-size:10px;color:var(--grey)">'+pct+'%</span></td>'
-              + '</tr>';
-          }).join('');
-        }
-      }
     }
+    adminLoadApiKeys();
 
     // Top risky domains
     var riskyBody = document.getElementById('admin-risky-body');
