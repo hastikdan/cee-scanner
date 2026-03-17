@@ -2619,30 +2619,6 @@ function renderReportPage(data, domain, isSample) {
           <button class="btn-scan-all" onclick="dbScanAll()">↻ Scan All Domains</button>
         </div>
 
-        <!-- Stat cards -->
-        <div class="db-stat-row" id="db-stat-row">
-          <div class="db-stat-card" id="stat-card-critical" onclick="dbShowDomainsWithFilter('critical')" title="View critical domains">
-            <div class="db-stat-icon" style="background:rgba(192,57,43,.1);color:#C0392B">🚨</div>
-            <div><div class="db-stat-val" id="stat-critical">—</div><div class="db-stat-lbl">Critical</div></div>
-          </div>
-          <div class="db-stat-card" id="stat-card-warning" onclick="dbShowDomainsWithFilter('warning')" title="View domains with warnings">
-            <div class="db-stat-icon" style="background:rgba(212,133,10,.1);color:#D4850A">⚠️</div>
-            <div><div class="db-stat-val" id="stat-warnings">—</div><div class="db-stat-lbl">Warnings</div></div>
-          </div>
-          <div class="db-stat-card" id="stat-card-clean" onclick="dbShowDomainsWithFilter('clean')" title="View clean domains">
-            <div class="db-stat-icon" style="background:rgba(26,122,74,.1);color:#1A7A4A">✓</div>
-            <div><div class="db-stat-val" id="stat-clean">—</div><div class="db-stat-lbl">Clean</div></div>
-          </div>
-          <div class="db-stat-card" id="stat-card-all" onclick="dbShowDomainsWithFilter('all')" title="View all domains">
-            <div class="db-stat-icon" style="background:rgba(203,255,0,.1);color:var(--lime)">🌐</div>
-            <div><div class="db-stat-val" id="stat-domains">—</div><div class="db-stat-lbl">Monitored</div></div>
-          </div>
-          <div class="db-stat-card" style="cursor:default" title="Average risk score across all domains">
-            <div class="db-stat-icon" style="background:rgba(107,114,128,.1);color:var(--grey)">📊</div>
-            <div><div class="db-stat-val" id="stat-avg-score">—</div><div class="db-stat-lbl">Avg Score</div></div>
-          </div>
-        </div>
-
         <!-- Filters + search -->
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
           <div class="db-filter-row" id="domain-risk-filters">
