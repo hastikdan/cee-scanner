@@ -3382,86 +3382,6 @@ function renderReportPage(data, domain, isSample) {
             <button id="acct-billing-btn" onclick="acctOpenBillingPortal()" style="background:transparent;border:1px solid rgba(203,255,0,.3);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:9px 16px;border-radius:6px;cursor:pointer">Manage Billing →</button>
           </div>
 
-          <!-- Developer API Management card -->
-          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase">Developer API</div>
-                <span id="api-plan-badge" style="display:none"></span>
-              </div>
-              <button onclick="acctOpenApiPortal()" id="btn-api-portal" style="display:none;background:transparent;border:1px solid rgba(203,255,0,.3);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer">Manage API Plan →</button>
-            </div>
-            <p style="font-size:12px;color:var(--grey);margin-bottom:16px;line-height:1.6">Use your API key to integrate SwarmHawk into your own tools.</p>
-
-            <!-- Current plan + usage -->
-            <div id="api-sub-status" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:14px;margin-bottom:16px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <div id="api-sub-plan" style="font-family:'Space Mono',monospace;font-size:12px;color:var(--white)">Loading…</div>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);margin-bottom:5px">
-                <span>Calls this month</span>
-                <span id="api-sub-usage-text">— / —</span>
-              </div>
-              <div style="background:rgba(255,255,255,.07);border-radius:3px;height:4px;overflow:hidden">
-                <div id="api-sub-usage-bar" style="height:100%;background:var(--lime);border-radius:3px;width:0%;transition:width .4s"></div>
-              </div>
-              <div id="api-sub-note" style="font-size:10px;color:#555;font-family:'Space Mono',monospace;margin-top:6px">Resets monthly. Upgrade to increase your limit.</div>
-            </div>
-
-            <!-- API Keys -->
-            <div id="api-keys-list" style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:12px">Loading…</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
-              <button onclick="acctGenerateApiKey()" id="btn-gen-api-key" style="background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(203,255,0,.25);border-radius:6px;cursor:pointer">+ Generate API Key</button>
-              <a href="https://github.com/hastikdan/swarmhawk-backend#api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
-            </div>
-
-            <!-- API Pricing Plans -->
-            <div style="border-top:1px solid var(--border);padding-top:20px">
-              <div id="api-plan-section-title" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">Upgrade API Plan</div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
-
-                <!-- Free -->
-                <div id="api-plan-card-free" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;background:rgba(255,255,255,.02)">
-                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--grey);margin-bottom:5px">FREE</div>
-                  <div style="font-size:18px;font-weight:700;color:var(--white);font-family:'Space Mono',monospace;margin-bottom:1px">€0</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px;line-height:1.6">10 calls/month</div>
-                  <div id="api-plan-btn-free" style="font-family:'Space Mono',monospace;font-size:10px;color:#555;text-align:center">Current plan</div>
-                </div>
-
-                <!-- Starter -->
-                <div id="api-plan-card-starter" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;background:rgba(255,255,255,.02)">
-                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:5px">STARTER</div>
-                  <div style="font-size:18px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:1px">€19</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px;line-height:1.6">500 calls/month<br>REST API access<br>JSON responses</div>
-                  <button id="api-plan-btn-starter" onclick="apiPlanCheckout('api_starter')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:7px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
-                </div>
-
-                <!-- Growth -->
-                <div id="api-plan-card-growth" style="border:1px solid rgba(203,255,0,.2);border-radius:8px;padding:14px;background:rgba(203,255,0,.03);position:relative">
-                  <div style="position:absolute;top:-1px;right:10px;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:2px 7px;border-radius:0 0 5px 5px;letter-spacing:1px">POPULAR</div>
-                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:5px">GROWTH</div>
-                  <div style="font-size:18px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:1px">€49</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px;line-height:1.6">2,000 calls/month<br>Priority response<br>Webhook support</div>
-                  <button id="api-plan-btn-growth" onclick="apiPlanCheckout('api_growth')" style="width:100%;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:7px;border:none;border-radius:5px;cursor:pointer">Upgrade →</button>
-                </div>
-
-                <!-- Pro -->
-                <div id="api-plan-card-pro" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;background:rgba(255,255,255,.02)">
-                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:5px">PRO</div>
-                  <div style="font-size:18px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:1px">€99</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
-                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px;line-height:1.6">10,000 calls/month<br>Dedicated support<br>SLA guarantee</div>
-                  <button id="api-plan-btn-pro" onclick="apiPlanCheckout('api_pro')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:7px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
-                </div>
-
-              </div>
-              <p style="font-size:10px;color:#555;margin-top:10px;font-family:'Space Mono',monospace">All plans billed monthly. Cancel anytime.</p>
-            </div>
-          </div>
-
           <!-- Danger Zone card -->
           <div style="background:rgba(192,57,43,.04);border:1px solid rgba(192,57,43,.3);border-radius:10px;padding:24px">
             <div style="font-family:'Space Mono',monospace;font-size:10px;color:#C0392B;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">⚠ Danger Zone</div>
@@ -3469,6 +3389,97 @@ function renderReportPage(data, domain, isSample) {
             <button onclick="acctDeleteAccount()" style="background:rgba(192,57,43,.15);color:#E74C3C;font-family:'Space Mono',monospace;font-size:11px;padding:9px 16px;border:1px solid rgba(192,57,43,.4);border-radius:6px;cursor:pointer">Delete My Account</button>
           </div>
 
+        </div>
+
+        <!-- Developer API Portal — full width below the 2-col grid -->
+        <div style="max-width:860px;margin-top:20px">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px">
+
+            <!-- Header -->
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase">Developer API Portal</div>
+                <span id="api-plan-badge" style="display:none"></span>
+              </div>
+              <button onclick="acctOpenApiPortal()" id="btn-api-portal" style="display:none;background:transparent;border:1px solid rgba(203,255,0,.3);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;padding:7px 16px;border-radius:6px;cursor:pointer">Manage API Subscription →</button>
+            </div>
+
+            <!-- Top row: usage status + API key side by side -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+
+              <!-- Current plan & usage -->
+              <div id="api-sub-status" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:16px">
+                <div style="font-family:'Space Mono',monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Current Plan</div>
+                <div id="api-sub-plan" style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--white);margin-bottom:12px">Loading…</div>
+                <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);margin-bottom:5px">
+                  <span>Calls this month</span>
+                  <span id="api-sub-usage-text">— / —</span>
+                </div>
+                <div style="background:rgba(255,255,255,.07);border-radius:3px;height:4px;overflow:hidden;margin-bottom:6px">
+                  <div id="api-sub-usage-bar" style="height:100%;background:var(--lime);border-radius:3px;width:0%;transition:width .4s"></div>
+                </div>
+                <div id="api-sub-note" style="font-size:10px;color:#555;font-family:'Space Mono',monospace">Resets monthly. Upgrade below to increase your limit.</div>
+              </div>
+
+              <!-- API Keys -->
+              <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:16px">
+                <div style="font-family:'Space Mono',monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">API Key</div>
+                <div id="api-keys-list" style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:12px">Loading…</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button onclick="acctGenerateApiKey()" id="btn-gen-api-key" style="background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid rgba(203,255,0,.25);border-radius:6px;cursor:pointer">+ Generate Key</button>
+                  <a href="https://github.com/hastikdan/swarmhawk-backend#api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Pricing plans -->
+            <div style="border-top:1px solid var(--border);padding-top:20px">
+              <div id="api-plan-section-title" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">Upgrade API Plan</div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+
+                <!-- Free -->
+                <div id="api-plan-card-free" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:16px;background:rgba(255,255,255,.02)">
+                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--grey);margin-bottom:6px">FREE</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--white);font-family:'Space Mono',monospace;margin-bottom:2px">€0</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">10 calls/month</div>
+                  <div id="api-plan-btn-free" style="font-family:'Space Mono',monospace;font-size:10px;color:#555;text-align:center">Current plan</div>
+                </div>
+
+                <!-- Starter -->
+                <div id="api-plan-card-starter" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:16px;background:rgba(255,255,255,.02)">
+                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:6px">STARTER</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€19</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">500 calls/month<br>REST API access<br>JSON responses</div>
+                  <button id="api-plan-btn-starter" onclick="apiPlanCheckout('api_starter')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
+                </div>
+
+                <!-- Growth -->
+                <div id="api-plan-card-growth" style="border:1px solid rgba(203,255,0,.2);border-radius:8px;padding:16px;background:rgba(203,255,0,.03);position:relative">
+                  <div style="position:absolute;top:-1px;right:12px;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:2px 8px;border-radius:0 0 5px 5px;letter-spacing:1px">POPULAR</div>
+                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:6px">GROWTH</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€49</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">2,000 calls/month<br>Priority response<br>Webhook support</div>
+                  <button id="api-plan-btn-growth" onclick="apiPlanCheckout('api_growth')" style="width:100%;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:none;border-radius:5px;cursor:pointer">Upgrade →</button>
+                </div>
+
+                <!-- Pro -->
+                <div id="api-plan-card-pro" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:16px;background:rgba(255,255,255,.02)">
+                  <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--white);margin-bottom:6px">PRO</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€99</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:10px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.7">10,000 calls/month<br>Dedicated support<br>SLA guarantee</div>
+                  <button id="api-plan-btn-pro" onclick="apiPlanCheckout('api_pro')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
+                </div>
+
+              </div>
+              <p style="font-size:10px;color:#555;margin-top:12px;font-family:'Space Mono',monospace">All plans billed monthly. Cancel anytime.</p>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
