@@ -2616,24 +2616,28 @@ function renderReportPage(data, domain, isSample) {
             <h2 class="db-title">Good <span id="db-greeting-time">morning</span>, <span id="db-greeting-name">—</span></h2>
             <p style="color:var(--grey);font-size:13px;margin-top:4px">Here's your security overview</p>
           </div>
-          <button class="btn-scan-all" onclick="dbScanAll()">↻ Scan All Domains</button>
         </div>
 
-        <!-- Filters + search -->
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
-          <div class="db-filter-row" id="domain-risk-filters">
+        <!-- Unified toolbar -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
+          <!-- Filter pills -->
+          <div class="db-filter-row" id="domain-risk-filters" style="flex-shrink:0">
             <button class="db-filter active" id="drf-all"      onclick="dbSetDomainRiskFilter('all',this)">All</button>
             <button class="db-filter"        id="drf-critical" onclick="dbSetDomainRiskFilter('critical',this)" style="color:#C0392B">🚨 Critical</button>
             <button class="db-filter"        id="drf-warning"  onclick="dbSetDomainRiskFilter('warning',this)"  style="color:#D4850A">⚠ Warnings</button>
             <button class="db-filter"        id="drf-clean"    onclick="dbSetDomainRiskFilter('clean',this)"    style="color:#1A7A4A">✓ Clean</button>
           </div>
-          <input class="db-search" id="domain-search" type="text" placeholder="Search domains…" oninput="dbFilterDomains(this.value)">
-        </div>
-        <div id="db-add-bar" style="margin-bottom:20px">
-          <div style="display:flex;gap:10px;align-items:center">
-            <input class="domain-input" id="db-domain-input" type="text" placeholder="yourdomain.com" style="max-width:320px" onkeydown="if(event.key==='Enter')dbAddDomain()">
-            <button class="btn-scan-all" id="db-add-btn" onclick="dbAddDomain()">+ Add Domain</button>
-          </div>
+          <!-- Divider -->
+          <div style="width:1px;height:24px;background:var(--border);flex-shrink:0"></div>
+          <!-- Search -->
+          <input class="db-search" id="domain-search" type="text" placeholder="Search domains…" oninput="dbFilterDomains(this.value)" style="flex:1;min-width:140px">
+          <!-- Divider -->
+          <div style="width:1px;height:24px;background:var(--border);flex-shrink:0"></div>
+          <!-- Add domain -->
+          <input class="domain-input" id="db-domain-input" type="text" placeholder="yourdomain.com" style="flex:1;min-width:140px;max-width:240px" onkeydown="if(event.key==='Enter')dbAddDomain()">
+          <button class="btn-scan-all" id="db-add-btn" onclick="dbAddDomain()" style="flex-shrink:0">+ Add</button>
+          <!-- Scan all -->
+          <button class="btn-scan-all" onclick="dbScanAll()" style="flex-shrink:0;background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime)">↻ Scan All</button>
         </div>
         <div id="db-domains-table" class="db-domains-table">
           <div class="db-empty">Loading domains…</div>
