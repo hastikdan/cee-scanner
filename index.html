@@ -2767,7 +2767,7 @@ function renderReportPage(data, domain, isSample) {
           <div class="wf-step" id="wf1">
             <div class="wf-step-num">1</div>
             <div class="wf-step-icon">🔍</div>
-            <div class="wf-step-label">Scan runs<br>daily 08:00</div>
+            <div class="wf-step-label">Scan runs<br>nightly 02:00</div>
             <button class="wf-step-btn" onclick="prospectRunScan()">Run Now</button>
           </div>
           <div class="wf-step" id="wf2">
@@ -2884,6 +2884,52 @@ function renderReportPage(data, domain, isSample) {
               Daily scan runs automatically at <strong style="color:var(--lime)">08:00</strong>. Use <strong style="color:var(--lime)">Run Scan</strong> to start immediately.
             </div>
             <button class="btn-scan-all" onclick="prospectRunScan()">⟳ Run Scan Now</button>
+          </div>
+        </div>
+
+        <!-- Email Template Settings — super admin only -->
+        <div id="mkt-template-section" style="display:none;margin-top:32px">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+              <div>
+                <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">✉ Email Template Settings</div>
+                <p style="font-size:12px;color:var(--grey);margin:0">Edit the AI prompt used to draft outreach emails per country. Variables: <code style="color:var(--lime);font-size:11px">{domain} {sw_list} {cve_list} {top_cve_id} {top_cvss}</code></p>
+              </div>
+              <button onclick="mktLoadTemplates()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:7px 14px;border-radius:6px;cursor:pointer">↻ Reload</button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:220px 1fr;gap:20px">
+
+              <!-- Left: country list -->
+              <div>
+                <div style="font-family:'Space Mono',monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Country</div>
+                <div id="mkt-tpl-country-list" style="display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto">
+                  <div style="color:var(--grey);font-size:12px">Loading…</div>
+                </div>
+              </div>
+
+              <!-- Right: editor -->
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                  <div id="mkt-tpl-country-label" style="font-family:'Space Mono',monospace;font-size:12px;color:var(--white);font-weight:700">—</div>
+                  <span id="mkt-tpl-custom-badge" style="display:none;font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.25);color:var(--lime);border-radius:8px">CUSTOM</span>
+                </div>
+                <textarea id="mkt-tpl-prompt" rows="12" placeholder="Select a country…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--white);font-size:12px;font-family:'Space Mono',monospace;padding:14px;resize:vertical;line-height:1.6;outline:none"></textarea>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+                  <button onclick="mktSaveTemplate()" style="background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:8px 16px;border:none;border-radius:6px;cursor:pointer">💾 Save</button>
+                  <button onclick="mktResetTemplate()" style="background:transparent;border:1px solid rgba(192,57,43,.3);color:#C0392B;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:6px;cursor:pointer">↩ Reset to Default</button>
+                  <button onclick="mktTestTemplate()" id="mkt-tpl-test-btn" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border-radius:6px;cursor:pointer">⚡ Test Generate</button>
+                </div>
+                <div id="mkt-tpl-status" style="display:none;margin-top:8px;font-family:'Space Mono',monospace;font-size:11px;color:#2ECC71"></div>
+
+                <!-- Test output -->
+                <div id="mkt-tpl-preview-wrap" style="display:none;margin-top:16px">
+                  <div style="font-family:'Space Mono',monospace;font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Generated Test Email</div>
+                  <pre id="mkt-tpl-preview" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:14px;font-size:11px;color:#ccc;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto"></pre>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 
@@ -5377,6 +5423,108 @@ async function outreachApproveFromProspect(id) {
 
 
 // ═══════════════════════════════════════════════════════
+// MARKETING — EMAIL TEMPLATE SETTINGS (super admin)
+// ═══════════════════════════════════════════════════════
+
+var _mktTemplates = null;
+var _mktSelectedCountry = null;
+
+function mktShowTemplateSection() {
+  if (!currentUser || !currentUser.is_admin) return;
+  var el = document.getElementById('mkt-template-section');
+  if (el) { el.style.display = 'block'; mktLoadTemplates(); }
+}
+
+async function mktLoadTemplates() {
+  try {
+    var data = await api('/outreach/templates');
+    _mktTemplates = data.templates || {};
+    var list = document.getElementById('mkt-tpl-country-list');
+    if (!list) return;
+    var countries = Object.keys(_mktTemplates).sort();
+    list.innerHTML = countries.map(function(cc) {
+      var t = _mktTemplates[cc];
+      var isCustom = t.custom ? ' style="color:var(--lime)"' : '';
+      return '<button onclick="mktSelectCountry(\'' + cc + '\')" id="mkt-tpl-btn-' + cc + '" style="text-align:left;background:transparent;border:1px solid rgba(255,255,255,.06);border-radius:5px;color:var(--grey);font-family:\'Space Mono\',monospace;font-size:10px;padding:6px 10px;cursor:pointer;width:100%"' + isCustom + '>' +
+        cc + (t.custom ? ' ✎' : '') +
+        '</button>';
+    }).join('');
+    if (countries.length) mktSelectCountry(countries[0]);
+  } catch(e) { toast('Could not load templates: ' + e.message, true); }
+}
+
+function mktSelectCountry(cc) {
+  _mktSelectedCountry = cc;
+  var t = _mktTemplates && _mktTemplates[cc];
+  if (!t) return;
+  var label = document.getElementById('mkt-tpl-country-label');
+  var badge = document.getElementById('mkt-tpl-custom-badge');
+  var prompt = document.getElementById('mkt-tpl-prompt');
+  var preview = document.getElementById('mkt-tpl-preview-wrap');
+  var status = document.getElementById('mkt-tpl-status');
+  if (label) label.textContent = cc + ' — ' + (t.language || 'en').toUpperCase();
+  if (badge) badge.style.display = t.custom ? 'inline-block' : 'none';
+  if (prompt) prompt.value = t.prompt || '';
+  if (preview) preview.style.display = 'none';
+  if (status) status.style.display = 'none';
+  // Highlight selected
+  document.querySelectorAll('[id^="mkt-tpl-btn-"]').forEach(function(b) {
+    b.style.borderColor = 'rgba(255,255,255,.06)';
+    b.style.background = 'transparent';
+  });
+  var btn = document.getElementById('mkt-tpl-btn-' + cc);
+  if (btn) { btn.style.borderColor = 'rgba(203,255,0,.3)'; btn.style.background = 'rgba(203,255,0,.04)'; }
+}
+
+async function mktSaveTemplate() {
+  if (!_mktSelectedCountry) return;
+  var prompt = (document.getElementById('mkt-tpl-prompt') || {}).value || '';
+  var status = document.getElementById('mkt-tpl-status');
+  try {
+    await api('/outreach/templates/' + _mktSelectedCountry, { method: 'PUT', body: JSON.stringify({ language: 'en', prompt: prompt }) });
+    if (status) { status.textContent = '✓ Saved'; status.style.color = '#2ECC71'; status.style.display = 'block'; }
+    if (_mktTemplates && _mktTemplates[_mktSelectedCountry]) {
+      _mktTemplates[_mktSelectedCountry].prompt = prompt;
+      _mktTemplates[_mktSelectedCountry].custom = true;
+    }
+    var badge = document.getElementById('mkt-tpl-custom-badge');
+    if (badge) badge.style.display = 'inline-block';
+    var btn = document.getElementById('mkt-tpl-btn-' + _mktSelectedCountry);
+    if (btn && !btn.textContent.includes('✎')) btn.textContent += ' ✎';
+    setTimeout(function(){ if (status) status.style.display = 'none'; }, 3000);
+  } catch(e) { toast('Save failed: ' + e.message, true); }
+}
+
+async function mktResetTemplate() {
+  if (!_mktSelectedCountry || !confirm('Reset "' + _mktSelectedCountry + '" to default template?')) return;
+  var status = document.getElementById('mkt-tpl-status');
+  try {
+    var data = await api('/outreach/templates/' + _mktSelectedCountry, { method: 'DELETE' });
+    var prompt = document.getElementById('mkt-tpl-prompt');
+    if (prompt) prompt.value = data.prompt || '';
+    if (status) { status.textContent = '↩ Reset to default'; status.style.color = '#888'; status.style.display = 'block'; }
+    if (_mktTemplates && _mktTemplates[_mktSelectedCountry]) _mktTemplates[_mktSelectedCountry].custom = false;
+    var badge = document.getElementById('mkt-tpl-custom-badge');
+    if (badge) badge.style.display = 'none';
+    setTimeout(function(){ if (status) status.style.display = 'none'; }, 3000);
+  } catch(e) { toast('Reset failed: ' + e.message, true); }
+}
+
+async function mktTestTemplate() {
+  var btn = document.getElementById('mkt-tpl-test-btn');
+  var prompt = (document.getElementById('mkt-tpl-prompt') || {}).value || '';
+  var previewWrap = document.getElementById('mkt-tpl-preview-wrap');
+  var previewEl = document.getElementById('mkt-tpl-preview');
+  if (btn) { btn.disabled = true; btn.textContent = '⚡ Generating…'; }
+  try {
+    var data = await api('/outreach/templates/test', { method: 'POST', body: JSON.stringify({ prompt: prompt, domain: 'example.com' }) });
+    if (previewEl) previewEl.textContent = data.email || '(no output)';
+    if (previewWrap) previewWrap.style.display = 'block';
+  } catch(e) { toast('Test failed: ' + e.message, true); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '⚡ Test Generate'; } }
+}
+
+// ═══════════════════════════════════════════════════════
 // OUTREACH TAB
 // ═══════════════════════════════════════════════════════
 
@@ -5421,6 +5569,8 @@ async function outreachLoad() {
   if (!_outreachTemplates) {
     api('/outreach/templates').then(function(td){ _outreachTemplates = td.templates || {}; }).catch(function(){});
   }
+  // Show Email Template Settings for super admins
+  mktShowTemplateSection();
   // Fetch current tab's prospects (with one auto-retry for cold-start / network blips)
   var _outreachLoadAttempt = async function() {
     var qs = '/outreach/prospects?status=' + outreachFilter + '&limit=300';
