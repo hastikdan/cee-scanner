@@ -3384,12 +3384,61 @@ function renderReportPage(data, domain, isSample) {
 
           <!-- Developer API Keys card -->
           <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px">
-            <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Developer API</div>
-            <p style="font-size:12px;color:var(--grey);margin-bottom:12px;line-height:1.6">Use your API key to integrate SwarmHawk into your own tools. Free tier: 10 scans/month. Unlimited with any paid plan.</p>
-            <div id="api-keys-list" style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:12px">Loading…</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase">Developer API</div>
+              <span id="api-plan-badge" style="display:none"></span>
+            </div>
+            <p style="font-size:12px;color:var(--grey);margin-bottom:12px;line-height:1.6">Use your API key to integrate SwarmHawk into your own tools.</p>
+            <div id="api-keys-list" style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:16px">Loading…</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
               <button onclick="acctGenerateApiKey()" id="btn-gen-api-key" style="background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(203,255,0,.25);border-radius:6px;cursor:pointer">+ Generate API Key</button>
               <a href="https://github.com/hastikdan/swarmhawk-backend#api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
+            </div>
+
+            <!-- API Pricing Plans -->
+            <div style="border-top:1px solid var(--border);padding-top:20px">
+              <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">Upgrade API Plan</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+
+                <!-- Free -->
+                <div id="api-plan-card-free" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:16px;background:rgba(255,255,255,.02)">
+                  <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--grey);margin-bottom:6px">FREE</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--white);font-family:'Space Mono',monospace;margin-bottom:2px">€0</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.6">10 calls/month</div>
+                  <div id="api-plan-btn-free" style="font-family:'Space Mono',monospace;font-size:10px;color:#555;text-align:center">Current plan</div>
+                </div>
+
+                <!-- Starter -->
+                <div id="api-plan-card-starter" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:16px;background:rgba(255,255,255,.02)">
+                  <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--white);margin-bottom:6px">STARTER</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€19</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.6">500 calls/month<br>REST API access<br>JSON responses</div>
+                  <button id="api-plan-btn-starter" onclick="apiPlanCheckout('api_starter')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
+                </div>
+
+                <!-- Growth -->
+                <div id="api-plan-card-growth" style="border:1px solid rgba(203,255,0,.2);border-radius:8px;padding:16px;background:rgba(203,255,0,.03);position:relative">
+                  <div style="position:absolute;top:-1px;right:12px;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:2px 8px;border-radius:0 0 5px 5px;letter-spacing:1px">POPULAR</div>
+                  <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--white);margin-bottom:6px">GROWTH</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€49</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.6">2,000 calls/month<br>Priority response<br>Webhook support</div>
+                  <button id="api-plan-btn-growth" onclick="apiPlanCheckout('api_growth')" style="width:100%;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:none;border-radius:5px;cursor:pointer">Upgrade →</button>
+                </div>
+
+                <!-- Pro -->
+                <div id="api-plan-card-pro" style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:16px;background:rgba(255,255,255,.02)">
+                  <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--white);margin-bottom:6px">PRO</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--lime);font-family:'Space Mono',monospace;margin-bottom:2px">€99</div>
+                  <div style="font-size:10px;color:var(--grey);margin-bottom:12px">/month</div>
+                  <div style="font-size:11px;color:var(--grey);margin-bottom:14px;line-height:1.6">10,000 calls/month<br>Dedicated support<br>SLA guarantee</div>
+                  <button id="api-plan-btn-pro" onclick="apiPlanCheckout('api_pro')" style="width:100%;background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:8px;border:1px solid rgba(203,255,0,.25);border-radius:5px;cursor:pointer">Upgrade →</button>
+                </div>
+
+              </div>
+              <p style="font-size:11px;color:#555;margin-top:12px;font-family:'Space Mono',monospace">All plans billed monthly. Cancel anytime via Manage Billing.</p>
             </div>
           </div>
 
@@ -6005,8 +6054,9 @@ async function dbLoadAccount() {
         billingEl.innerHTML = '<div style="color:var(--grey)">No active subscription.<br><span style="font-size:12px">Upgrade a domain to Annual for monthly scans + PDF reports.</span></div>';
       }
     }
-    // Load API keys only after /me confirms backend is alive
+    // Load API keys + plan only after /me confirms backend is alive
     acctLoadApiKeys();
+    acctLoadApiPlan();
   } catch(e) {
     var infoEl = document.getElementById('acct-info');
     if (infoEl) infoEl.textContent = 'Failed to load account info';
@@ -6334,6 +6384,74 @@ async function acctRevokeApiKey(key) {
 function acctCopyKey(key) {
   navigator.clipboard.writeText(key).then(function(){ toast('✓ Key copied to clipboard'); });
 }
+
+// ── API PLAN PRICING ──────────────────────────────────────────────────────────
+
+var _currentApiPlan = 'free';
+
+async function acctLoadApiPlan() {
+  try {
+    var data = await api('/api/v1/plan');
+    _currentApiPlan = data.plan || 'free';
+    _renderApiPlanState(_currentApiPlan);
+  } catch(e) { /* non-fatal */ }
+}
+
+function _renderApiPlanState(plan) {
+  // Badge next to "Developer API" title
+  var badge = document.getElementById('api-plan-badge');
+  if (badge) {
+    var planLabels = {free:'FREE', api_starter:'STARTER', api_growth:'GROWTH', api_pro:'PRO'};
+    var planColors = {free:'#555', api_starter:'var(--lime)', api_growth:'var(--lime)', api_pro:'var(--lime)'};
+    badge.textContent = planLabels[plan] || plan.toUpperCase();
+    badge.style.cssText = 'display:inline-block;background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:'+planColors[plan]+';font-family:\'Space Mono\',monospace;font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:1px';
+  }
+  // Highlight active plan card, disable its button
+  var planMap = {free:'free', api_starter:'starter', api_growth:'growth', api_pro:'pro'};
+  ['free','starter','growth','pro'].forEach(function(t) {
+    var card    = document.getElementById('api-plan-card-' + t);
+    var btn     = document.getElementById('api-plan-btn-' + t);
+    var isCurrent = planMap[plan] === t;
+    if (card) {
+      card.style.border = isCurrent ? '1px solid rgba(203,255,0,.5)' : (t==='growth' ? '1px solid rgba(203,255,0,.2)' : '1px solid rgba(255,255,255,.1)');
+      card.style.background = isCurrent ? 'rgba(203,255,0,.06)' : (t==='growth' ? 'rgba(203,255,0,.03)' : 'rgba(255,255,255,.02)');
+    }
+    if (btn && isCurrent) {
+      if (t === 'free') { btn.textContent = 'Current plan'; }
+      else {
+        btn.textContent = '✓ Active plan';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'default';
+      }
+    }
+  });
+}
+
+async function apiPlanCheckout(plan) {
+  var btnId = 'api-plan-btn-' + plan.replace('api_', '');
+  var btn   = document.getElementById(btnId);
+  if (btn) { btn.disabled=true; btn.textContent='Redirecting…'; }
+  try {
+    var data = await api('/checkout/api-plan', { method:'POST', body: JSON.stringify({plan: plan}) });
+    if (!data.url) throw new Error('No checkout URL');
+    window.location.href = data.url;
+  } catch(e) {
+    toast('Checkout failed: ' + e.message, true);
+    if (btn) { btn.disabled=false; btn.textContent='Upgrade →'; }
+  }
+}
+
+// Handle return from Stripe after API plan upgrade
+(function() {
+  var p = new URLSearchParams(location.search);
+  if (p.get('api_upgrade') === 'success') {
+    setTimeout(function(){ toast('✓ API plan upgraded — your key limits have been updated'); }, 600);
+    history.replaceState(null, '', location.pathname);
+  }
+})();
+
+// ── END API PLAN PRICING ──────────────────────────────────────────────────────
 
 function preLoginScan() {
   var d = document.getElementById('domain-input-pre').value.trim().toLowerCase();
