@@ -6505,7 +6505,6 @@ async function acctLoadApiKeys() {
   try {
     data = await api('/api/v1/keys');
   } catch(e) {
-    // One automatic retry after 2s (handles transient network blips)
     try {
       await new Promise(function(r){ setTimeout(r, 2000); });
       data = await api('/api/v1/keys');
@@ -6515,31 +6514,27 @@ async function acctLoadApiKeys() {
     }
   }
   try {
-    var active = (data.keys || []).filter(function(k){ return k.active !== false; });
-    if (!active.length) {
+    var keys = data.keys || [];
+    if (!keys.length) {
       el.innerHTML = '<span style="color:#555">No keys yet — generate one below</span>';
       if (genBtn) genBtn.style.display = '';
       return;
     }
-    if (genBtn) genBtn.style.display = 'none'; // hide Generate when key exists
-    el.innerHTML = active.map(function(k) {
-      var masked = k.key.slice(0,8) + '••••••••••••••••' + k.key.slice(-4);
+    if (genBtn) genBtn.style.display = 'none';
+    el.innerHTML = keys.map(function(k) {
+      var prefix  = k.key_prefix || '';
+      var display = prefix + '••••••••••••••••••••••••••••••••••••••';
       var pct = Math.round((k.calls_this_month||0) / (k.limit_per_month||10) * 100);
       var barColor = pct >= 80 ? '#C0392B' : 'var(--lime)';
       var bar = '<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px">'
                +'<div style="height:100%;border-radius:2px;background:'+barColor+';width:'+Math.min(pct,100)+'%"></div></div>';
-      var keyId = 'apikey-val-' + k.key.slice(-6);
       return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:14px;margin-bottom:8px">'
-        // Key display row
         +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'
-        +'<code id="'+keyId+'" data-full="'+k.key+'" data-masked="'+masked+'" style="color:var(--lime);font-size:12px;word-break:break-all;flex:1">'+masked+'</code>'
+        +'<code style="color:var(--lime);font-size:12px;word-break:break-all;flex:1">'+display+'</code>'
         +'<div style="display:flex;gap:6px;flex-shrink:0">'
-        +'<button onclick="acctToggleKeyVisibility(\''+keyId+'\')" title="Show/hide key" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">👁</button>'
-        +'<button onclick="acctCopyKey(\''+k.key+'\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#aaa;font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">Copy</button>'
-        +'<button onclick="acctRegenerateApiKey(\''+k.key+'\')" style="background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">↻ Regenerate</button>'
-        +'<button onclick="acctRevokeApiKey(\''+k.key+'\')" style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);color:#E74C3C;font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">Revoke</button>'
+        +'<button onclick="acctRegenerateApiKey(\''+k.id+'\')" style="background:rgba(203,255,0,.06);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">↻ Regenerate</button>'
+        +'<button onclick="acctRevokeApiKey(\''+k.id+'\')" style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);color:#E74C3C;font-family:\'Space Mono\',monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer">Revoke</button>'
         +'</div></div>'
-        // Usage row
         +'<div style="font-size:10px;color:#666;font-family:\'Space Mono\',monospace">'+(k.calls_this_month||0)+' / '+(k.limit_per_month||10)+' calls this month'+bar+'</div>'
         +'</div>';
     }).join('');
@@ -6559,8 +6554,17 @@ async function acctGenerateApiKey() {
   if (btn) { btn.disabled=true; btn.textContent='Generating…'; }
   try {
     var data = await api('/api/v1/keys', { method: 'POST' });
-    toast(data.created ? '✓ API key created' : '✓ Key loaded');
-    acctLoadApiKeys();
+    if (data.full_key) {
+      // Show one-time key in a dismissable banner
+      var el = document.getElementById('api-keys-list');
+      if (el) el.innerHTML = '<div style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.3);border-radius:8px;padding:14px;margin-bottom:8px">'
+        + '<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--lime);letter-spacing:1px;margin-bottom:8px">⚠ COPY YOUR KEY NOW — it will not be shown again</div>'
+        + '<code id="full-api-key-display" style="color:var(--lime);font-size:12px;word-break:break-all;display:block;margin-bottom:10px">' + data.full_key + '</code>'
+        + '<button onclick="acctCopyKey(\''+data.full_key+'\')" style="background:var(--lime);color:var(--black);font-family:\'Space Mono\',monospace;font-size:10px;font-weight:700;padding:6px 14px;border:none;border-radius:5px;cursor:pointer">Copy Key</button>'
+        + '</div>';
+    }
+    toast(data.created ? '✓ API key created — copy it now!' : '✓ Key already exists');
+    if (!data.full_key) acctLoadApiKeys();
   } catch(e) {
     toast('Error: ' + e.message, true);
   } finally {
@@ -6568,19 +6572,26 @@ async function acctGenerateApiKey() {
   }
 }
 
-async function acctRegenerateApiKey(key) {
+async function acctRegenerateApiKey(keyId) {
   if (!confirm('Regenerate this API key? The old key will stop working immediately.')) return;
   try {
-    await api('/api/v1/keys/' + key + '/regenerate', { method: 'POST' });
-    toast('✓ New API key issued');
-    acctLoadApiKeys();
+    var data = await api('/api/v1/keys/' + keyId + '/regenerate', { method: 'POST' });
+    var el = document.getElementById('api-keys-list');
+    if (data.full_key && el) {
+      el.innerHTML = '<div style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.3);border-radius:8px;padding:14px;margin-bottom:8px">'
+        + '<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--lime);letter-spacing:1px;margin-bottom:8px">⚠ NEW KEY — copy it now, it will not be shown again</div>'
+        + '<code style="color:var(--lime);font-size:12px;word-break:break-all;display:block;margin-bottom:10px">' + data.full_key + '</code>'
+        + '<button onclick="acctCopyKey(\''+data.full_key+'\')" style="background:var(--lime);color:var(--black);font-family:\'Space Mono\',monospace;font-size:10px;font-weight:700;padding:6px 14px;border:none;border-radius:5px;cursor:pointer">Copy Key</button>'
+        + '</div>';
+    }
+    toast('✓ New API key issued — copy it now!');
   } catch(e) { toast('Error: ' + e.message, true); }
 }
 
-async function acctRevokeApiKey(key) {
+async function acctRevokeApiKey(keyId) {
   if (!confirm('Revoke this API key? Any integrations using it will stop working.')) return;
   try {
-    await api('/api/v1/keys/' + key, { method: 'DELETE' });
+    await api('/api/v1/keys/' + keyId, { method: 'DELETE' });
     toast('✓ Key revoked');
     acctLoadApiKeys();
   } catch(e) { toast('Error: ' + e.message, true); }
@@ -6645,27 +6656,27 @@ function acctRenderApiMgmt(keys) {
       + '<td><div style="display:flex;align-items:center;gap:6px">'
       +   '<span style="font-family:\'Space Mono\',monospace;font-weight:700;color:var(--white)">' + calls + '</span>'
       +   '<span style="color:var(--grey)">/</span>'
-      +   '<input id="acct-limit-' + k.key.slice(-8) + '" type="number" value="' + limit + '" min="1" max="100000"'
+      +   '<input id="acct-limit-' + k.id.slice(-8) + '" type="number" value="' + limit + '" min="1" max="100000"'
       +   ' style="width:60px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:3px 6px;text-align:center">'
-      +   '<button onclick="acctSaveKeyLimit(\''+k.key+'\')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 7px;border-radius:4px;cursor:pointer">Save</button>'
+      +   '<button onclick="acctSaveKeyLimit(\''+k.id+'\')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 7px;border-radius:4px;cursor:pointer">Save</button>'
       +   '</div></td>'
       + '<td style="min-width:90px">' + bar + '</td>'
       + '<td style="color:var(--grey);font-size:11px">' + created + '</td>'
       + '<td><div class="admin-actions">'
-      +   '<button onclick="acctResetKeyCalls(\''+k.key+'\')" style="background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.2);color:#4285F4;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Reset</button>'
-      +   '<button onclick="acctToggleKey(\''+k.key+'\','+active+')" style="background:rgba(212,133,10,.08);border:1px solid rgba(212,133,10,.2);color:#D4850A;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">'+(active?'Disable':'Enable')+'</button>'
-      +   '<button onclick="acctAdminRevokeKey(\''+k.key+'\',\''+k.user_email+'\')" class="admin-btn-danger" style="font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Revoke</button>'
+      +   '<button onclick="acctResetKeyCalls(\''+k.id+'\')" style="background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.2);color:#4285F4;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Reset</button>'
+      +   '<button onclick="acctToggleKey(\''+k.id+'\','+active+')" style="background:rgba(212,133,10,.08);border:1px solid rgba(212,133,10,.2);color:#D4850A;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">'+(active?'Disable':'Enable')+'</button>'
+      +   '<button onclick="acctAdminRevokeKey(\''+k.id+'\',\''+k.user_email+'\')" class="admin-btn-danger" style="font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Revoke</button>'
       + '</div></td></tr>';
   }).join('');
 }
 
-async function acctSaveKeyLimit(key) {
-  var input = document.getElementById('acct-limit-' + key.slice(-8));
+async function acctSaveKeyLimit(keyId) {
+  var input = document.getElementById('acct-limit-' + keyId.slice(-8));
   if (!input) return;
   var limit = parseInt(input.value);
   if (isNaN(limit) || limit < 1) { toast('Invalid limit', true); return; }
   try {
-    await api('/admin/api-keys/' + key + '/limit', { method: 'PATCH', body: JSON.stringify({limit: limit}) });
+    await api('/admin/api-keys/' + keyId + '/limit', { method: 'PATCH', body: JSON.stringify({limit: limit}) });
     toast('✓ Limit updated to ' + limit);
     acctLoadApiMgmt();
   } catch(e) { toast('Error: ' + e.message, true); }
