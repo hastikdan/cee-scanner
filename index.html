@@ -2444,22 +2444,29 @@ function openReportPage(domain, isSample) {
   domainEl.textContent = domain;
   demoTag.textContent = isSample ? 'SAMPLE REPORT' : 'LIVE SCAN';
   demoTag.style.color = isSample ? 'var(--grey)' : 'var(--lime)';
-  body.innerHTML = '<div style="text-align:center;padding:80px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div><p style="color:var(--grey);margin-top:16px;font-size:13px">Running 22 security checks on ' + domain + '...</p></div>';
-  /* Raise above dashboard (z-index 9999) when inside dashboard */
-  page.style.zIndex = '10001';
-  page.classList.add('active');
-  document.body.style.overflow = 'hidden';
 
   if (isSample) {
+    body.innerHTML = '<div style="text-align:center;padding:80px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div></div>';
+    page.style.zIndex = '10001';
+    page.classList.add('active');
+    document.body.style.overflow = 'hidden';
     setTimeout(function() { renderReportPage(getSampleData(), domain, true); }, 800);
     return;
   }
 
+  // Show scan progress overlay (same UX as logged-in domain scan)
+  showScanProgress(domain);
+
   // Wake up Render (cold start can take 15-30s) then scan
   (async function() {
+    function showReport() {
+      /* Raise above dashboard (z-index 9999) when inside dashboard */
+      page.style.zIndex = '10001';
+      page.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
     try {
       // First ping /health — if it fails we know server is cold-starting
-      body.innerHTML = '<div style="text-align:center;padding:80px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div><p style="color:var(--grey);margin-top:16px;font-size:13px">Waking up scanner…</p></div>';
       var pingOk = false;
       for (var i = 0; i < 3; i++) {
         try {
@@ -2469,8 +2476,6 @@ function openReportPage(domain, isSample) {
         if (i < 2) await new Promise(function(r){ setTimeout(r, 5000); });
       }
       if (!pingOk) throw new Error('Server is not reachable. Check if Render backend is running.');
-
-      body.innerHTML = '<div style="text-align:center;padding:80px"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto"></div><p style="color:var(--grey);margin-top:16px;font-size:13px">Running security checks on ' + domain + '…</p></div>';
 
       var scanHeaders = {'Content-Type': 'application/json'};
       if (sessionToken) scanHeaders['Authorization'] = 'Bearer ' + sessionToken;
@@ -2484,8 +2489,12 @@ function openReportPage(domain, isSample) {
       var data;
       try { data = await res.json(); } catch(e) { data = {}; }
       if (!res.ok) throw new Error(data.detail || ('Server error ' + res.status));
+      hideScanProgress();
+      showReport();
       renderReportPage(data, domain, false);
     } catch(err) {
+      hideScanProgress();
+      showReport();
       body.innerHTML = '<div style="text-align:center;padding:60px">'
         + '<div style="font-size:32px;margin-bottom:12px">⚠</div>'
         + '<p style="color:var(--white);font-weight:600;margin-bottom:8px">Scan failed</p>'
