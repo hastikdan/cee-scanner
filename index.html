@@ -2839,6 +2839,14 @@ function renderReportPage(data, domain, isSample) {
             <div style="font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:var(--lime)" id="pstat-total">—</div>
             <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Total</div>
           </div>
+          <div style="flex:1;min-width:100px;background:rgba(255,255,255,.03);border:1px solid rgba(100,200,255,.1);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:#5DADE2" id="pstat-today">—</div>
+            <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Today</div>
+          </div>
+          <div style="flex:2;min-width:140px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:12px;font-weight:700;font-family:'Space Mono',monospace;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="pstat-lastscan">—</div>
+            <div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Last Scan</div>
+          </div>
         </div>
 
         <!-- ── PIPELINE TABS ── -->
@@ -5673,6 +5681,29 @@ async function outreachUpdateStats() {
       draftBtn.textContent = 'Draft Emails (' + pending + ')';
     }
   } catch(e) { console.warn('outreachUpdateStats:', e.message); }
+  // Fetch daily scan freshness from stats endpoint
+  try {
+    var stats = await api('/outreach/prospects/stats');
+    var elv = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
+    elv('pstat-today', stats.scanned_today != null ? stats.scanned_today : '—');
+    if (stats.last_scan) {
+      var d = new Date(stats.last_scan);
+      var now = new Date();
+      var diffMs = now - d;
+      var diffH = Math.floor(diffMs / 3600000);
+      var diffM = Math.floor((diffMs % 3600000) / 60000);
+      var ago = diffH > 0 ? diffH + 'h ago' : diffM + 'm ago';
+      var dateStr = d.toLocaleDateString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      elv('pstat-lastscan', dateStr + ' (' + ago + ')');
+      // Warn if last scan was over 26h ago (missed)
+      var lastScanEl = document.getElementById('pstat-lastscan');
+      if (lastScanEl) lastScanEl.style.color = diffH > 26 ? '#E74C3C' : 'var(--white)';
+    } else {
+      elv('pstat-lastscan', 'Never');
+      var lastScanEl = document.getElementById('pstat-lastscan');
+      if (lastScanEl) lastScanEl.style.color = '#E74C3C';
+    }
+  } catch(e) { console.warn('outreachStats:', e.message); }
 }
 
 // ── Render list ──────────────────────────────────────────
