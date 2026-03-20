@@ -3547,25 +3547,6 @@ function renderReportPage(data, domain, isSample) {
       </div>
     </div>
 
-    <!-- API Management — admin only -->
-    <div id="acct-api-mgmt-wrap" style="display:none;max-width:860px;margin-top:16px">
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase">🔑 API Management</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input id="acct-api-search" type="text" placeholder="Filter by email or key…" oninput="acctFilterApiMgmt(this.value)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--white);font-size:11px;padding:6px 10px;font-family:inherit;width:220px">
-            <button onclick="acctLoadApiMgmt()" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;padding:6px 12px;border-radius:6px;cursor:pointer">↻ Refresh</button>
-          </div>
-        </div>
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead><tr><th>User</th><th>Key</th><th>Status</th><th>Calls / Limit</th><th>Usage</th><th>Created</th><th>Actions</th></tr></thead>
-            <tbody id="acct-api-mgmt-body"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -6302,10 +6283,8 @@ async function dbLoadAccount() {
     acctLoadApiKeys();
     acctLoadApiPlan();
     if (u.is_admin) {
-      // Sync is_admin into currentUser before acctLoadApiMgmt() guard check runs
       currentUser = Object.assign(currentUser || {}, { is_admin: true });
       localStorage.setItem('sw_user', JSON.stringify(currentUser));
-      acctLoadApiMgmt();
     }
   } catch(e) {
     var infoEl = document.getElementById('acct-info');
@@ -6644,113 +6623,6 @@ async function acctRevokeApiKey(keyId) {
 
 function acctCopyKey(key) {
   navigator.clipboard.writeText(key).then(function(){ toast('✓ Key copied to clipboard'); });
-}
-
-// ── API Management (admin-only section in Account tab) ────────────────────────
-var _acctApiMgmtKeys = [];
-
-async function acctLoadApiMgmt() {
-  if (!currentUser || !currentUser.is_admin) return;
-  var wrap = document.getElementById('acct-api-mgmt-wrap');
-  if (wrap) wrap.style.display = '';
-  var body = document.getElementById('acct-api-mgmt-body');
-  if (!body) return;
-  body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--grey)">Loading…</td></tr>';
-  try {
-    var data = await api('/admin/api-keys');
-    _acctApiMgmtKeys = data.keys || [];
-    acctRenderApiMgmt(_acctApiMgmtKeys);
-  } catch(e) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px;color:#C0392B">Failed: ' + e.message + '</td></tr>';
-  }
-}
-
-function acctFilterApiMgmt(q) {
-  if (!q) { acctRenderApiMgmt(_acctApiMgmtKeys); return; }
-  var lq = q.toLowerCase();
-  acctRenderApiMgmt(_acctApiMgmtKeys.filter(function(k){
-    return (k.user_email||'').toLowerCase().includes(lq) || (k.key||'').toLowerCase().includes(lq);
-  }));
-}
-
-function acctRenderApiMgmt(keys) {
-  var body = document.getElementById('acct-api-mgmt-body');
-  if (!body) return;
-  if (!keys.length) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--grey)">No API keys found</td></tr>';
-    return;
-  }
-  body.innerHTML = keys.map(function(k) {
-    var calls  = k.calls_this_month || 0;
-    var limit  = k.limit_per_month  || 10;
-    var pct    = Math.min(Math.round(calls / limit * 100), 100);
-    var barClr = pct >= 90 ? '#C0392B' : pct >= 70 ? '#D4850A' : 'var(--lime)';
-    var active = k.active !== false;
-    var created = k.created_at ? new Date(k.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
-    var keyShort = (k.key||'').slice(0,12) + '…';
-    var statusBadge = active
-      ? '<span style="background:rgba(46,204,113,.12);color:#2ECC71;font-family:\'Space Mono\',monospace;font-size:9px;padding:2px 7px;border-radius:10px">ACTIVE</span>'
-      : '<span style="background:rgba(100,100,100,.12);color:#555;font-family:\'Space Mono\',monospace;font-size:9px;padding:2px 7px;border-radius:10px">DISABLED</span>';
-    var bar = '<div style="background:rgba(255,255,255,.07);border-radius:2px;height:5px;margin-bottom:3px"><div style="height:5px;border-radius:2px;background:'+barClr+';width:'+pct+'%"></div></div>'
-            + '<span style="font-size:10px;color:var(--grey)">'+pct+'%</span>';
-    return '<tr>'
-      + '<td><div style="color:var(--white);font-size:12px">' + (k.user_name||'—') + '</div>'
-      +     '<div style="color:var(--grey);font-size:10px">' + (k.user_email||'—') + '</div></td>'
-      + '<td style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--lime)">' + keyShort + '</td>'
-      + '<td>' + statusBadge + '</td>'
-      + '<td><div style="display:flex;align-items:center;gap:6px">'
-      +   '<span style="font-family:\'Space Mono\',monospace;font-weight:700;color:var(--white)">' + calls + '</span>'
-      +   '<span style="color:var(--grey)">/</span>'
-      +   '<input id="acct-limit-' + k.id.slice(-8) + '" type="number" value="' + limit + '" min="1" max="100000"'
-      +   ' style="width:60px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:var(--white);font-family:\'Space Mono\',monospace;font-size:11px;padding:3px 6px;text-align:center">'
-      +   '<button onclick="acctSaveKeyLimit(\''+k.id+'\')" style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 7px;border-radius:4px;cursor:pointer">Save</button>'
-      +   '</div></td>'
-      + '<td style="min-width:90px">' + bar + '</td>'
-      + '<td style="color:var(--grey);font-size:11px">' + created + '</td>'
-      + '<td><div class="admin-actions">'
-      +   '<button onclick="acctResetKeyCalls(\''+k.id+'\')" style="background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.2);color:#4285F4;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Reset</button>'
-      +   '<button onclick="acctToggleKey(\''+k.id+'\','+active+')" style="background:rgba(212,133,10,.08);border:1px solid rgba(212,133,10,.2);color:#D4850A;font-family:\'Space Mono\',monospace;font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">'+(active?'Disable':'Enable')+'</button>'
-      +   '<button onclick="acctAdminRevokeKey(\''+k.id+'\',\''+k.user_email+'\')" class="admin-btn-danger" style="font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer">Revoke</button>'
-      + '</div></td></tr>';
-  }).join('');
-}
-
-async function acctSaveKeyLimit(keyId) {
-  var input = document.getElementById('acct-limit-' + keyId.slice(-8));
-  if (!input) return;
-  var limit = parseInt(input.value);
-  if (isNaN(limit) || limit < 1) { toast('Invalid limit', true); return; }
-  try {
-    await api('/admin/api-keys/' + keyId + '/limit', { method: 'PATCH', body: JSON.stringify({limit: limit}) });
-    toast('✓ Limit updated to ' + limit);
-    acctLoadApiMgmt();
-  } catch(e) { toast('Error: ' + e.message, true); }
-}
-
-async function acctResetKeyCalls(key) {
-  if (!confirm('Reset this month\'s call counter to 0?')) return;
-  try {
-    await api('/admin/api-keys/' + key + '/reset-calls', { method: 'POST' });
-    toast('✓ Call counter reset');
-    acctLoadApiMgmt();
-  } catch(e) { toast('Error: ' + e.message, true); }
-}
-
-async function acctToggleKey(key, currentlyActive) {
-  try {
-    await api('/admin/api-keys/' + key + '/toggle', { method: 'PATCH' });
-    toast(currentlyActive ? '✓ Key disabled' : '✓ Key enabled');
-    acctLoadApiMgmt();
-  } catch(e) { toast('Error: ' + e.message, true); }
-}
-
-async function acctAdminRevokeKey(key, email) {
-  if (!confirm('Permanently revoke key for ' + email + '?')) return;
-  try {
-    await api('/admin/api-keys/' + key, { method: 'DELETE' });
-    toast('✓ Key revoked');
-    acctLoadApiMgmt();
-  } catch(e) { toast('Error: ' + e.message, true); }
 }
 
 // ── API PLAN PRICING ──────────────────────────────────────────────────────────
