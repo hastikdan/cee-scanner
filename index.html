@@ -5669,6 +5669,10 @@ async function outreachUpdateStats() {
     el('ostat-pending',  pending);
     el('ostat-approved', approved);
     el('ostat-sent',     sent);
+    // Auto-switch from empty Pending tab to All if data exists in other stages
+    if (pending === 0 && total > 0 && outreachFilter === 'pending') {
+      outreachSetTab('all');
+    }
     // Highlight Step 4 button if there are approved prospects waiting
     var sendBtn = document.getElementById('outreach-send-btn');
     if (sendBtn) {
@@ -5693,7 +5697,7 @@ async function outreachUpdateStats() {
       var diffH = Math.floor(diffMs / 3600000);
       var diffM = Math.floor((diffMs % 3600000) / 60000);
       var ago = diffH > 0 ? diffH + 'h ago' : diffM + 'm ago';
-      var dateStr = d.toLocaleDateString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      var dateStr = d.toLocaleString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
       elv('pstat-lastscan', dateStr + ' (' + ago + ')');
       // Warn if last scan was over 26h ago (missed)
       var lastScanEl = document.getElementById('pstat-lastscan');
