@@ -325,7 +325,7 @@ console.log(<span class="str">`Risk: ${data.risk_score} — ${data.critical} cri
 )
 data = resp.json()
 <span class="cm"># data["risk_score"], data["checks"]</span></pre></div>
-          <div class="code-pane" id="scan-js"><pre><span class="kw">const</span> r = <span class="kw">await</span> fetch(<span class="str">"/api/v2/scan"</span>, {
+          <div class="code-pane" id="scan-js"><pre><span class="kw">const</span> r = <span class="kw">await</span> fetch(<span class="str">"https://api.swarmhawk.com/api/v2/scan"</span>, {
   method:<span class="str">"POST"</span>,
   headers:{<span class="str">"X-API-Key"</span>:key,<span class="str">"Content-Type"</span>:<span class="str">"application/json"</span>},
   body:JSON.stringify({domain:<span class="str">"example.com"</span>})
@@ -395,12 +395,12 @@ data = resp.json()
 
   <!-- DOMAINS -->
   <section id="domains">
-    <h2>GET /domains</h2>
+    <h2>GET /api/v2/domains</h2>
     <p>List all domains in your account with their latest risk scores and checks.</p>
     <div class="endpoint">
       <div class="endpoint-head">
         <span class="method-badge method-get">GET</span>
-        <span class="endpoint-path">/domains</span>
+        <span class="endpoint-path">/api/v2/domains</span>
         <span class="endpoint-desc"><span class="badge-inline badge-auth">Bearer</span></span>
       </div>
       <div class="endpoint-body">
@@ -425,12 +425,12 @@ data = resp.json()
 
   <!-- ADD DOMAIN -->
   <section id="add-domain">
-    <h2>POST /domains</h2>
+    <h2>POST /api/v2/domains</h2>
     <p>Add a domain to your account and queue a background scan.</p>
     <div class="endpoint">
       <div class="endpoint-head">
         <span class="method-badge method-post">POST</span>
-        <span class="endpoint-path">/domains</span>
+        <span class="endpoint-path">/api/v2/domains</span>
         <span class="endpoint-desc"><span class="badge-inline badge-auth">Bearer</span></span>
       </div>
       <div class="endpoint-body">
@@ -453,12 +453,12 @@ data = resp.json()
 
   <!-- REPORT -->
   <section id="report">
-    <h2>GET /domains/{domain_id}/report</h2>
+    <h2>GET /api/v2/domains/{domain_id}/report</h2>
     <p>Retrieve the latest full scan report for a domain. Free users see a subset; paid users see all 22 checks including AI summary.</p>
     <div class="endpoint">
       <div class="endpoint-head">
         <span class="method-badge method-get">GET</span>
-        <span class="endpoint-path">/domains/{domain_id}/report</span>
+        <span class="endpoint-path">/api/v2/domains/{domain_id}/report</span>
         <span class="endpoint-desc"><span class="badge-inline badge-auth">Bearer</span></span>
       </div>
       <div class="endpoint-body">
@@ -478,12 +478,12 @@ data = resp.json()
 
   <!-- HISTORY -->
   <section id="history">
-    <h2>GET /domains/{domain_id}/history</h2>
+    <h2>GET /api/v2/domains/{domain_id}/history</h2>
     <p>Risk score trend over time — useful for building dashboards or alerting on score increases.</p>
     <div class="endpoint">
       <div class="endpoint-head">
         <span class="method-badge method-get">GET</span>
-        <span class="endpoint-path">/domains/{domain_id}/history</span>
+        <span class="endpoint-path">/api/v2/domains/{domain_id}/history</span>
         <span class="endpoint-desc"><span class="badge-inline badge-auth">Bearer</span></span>
       </div>
       <div class="endpoint-body">
@@ -500,12 +500,12 @@ data = resp.json()
 
   <!-- NIS2 -->
   <section id="nis2">
-    <h2>GET /domains/{domain_id}/nis2</h2>
+    <h2>GET /api/v2/domains/{domain_id}/nis2</h2>
     <p>Map scan findings to NIS2 Directive articles. Returns a compliance score and per-article status — suitable as audit evidence for regulators.</p>
     <div class="endpoint">
       <div class="endpoint-head">
         <span class="method-badge method-get">GET</span>
-        <span class="endpoint-path">/domains/{domain_id}/nis2</span>
+        <span class="endpoint-path">/api/v2/domains/{domain_id}/nis2</span>
         <span class="endpoint-desc"><span class="badge-inline badge-auth">Bearer</span></span>
       </div>
       <div class="endpoint-body">
