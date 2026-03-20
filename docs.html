@@ -163,11 +163,11 @@ tr:last-child td{border-bottom:none}
 
     <div class="base-url">
       <span class="label">Base URL</span>
-      <span>https://api.swarmhawk.com</span>
+      <span>https://swarmhawk-backend.onrender.com</span>
     </div>
     <div class="base-url">
       <span class="label">MCP URL</span>
-      <span>https://api.swarmhawk.com/mcp</span>
+      <span>https://swarmhawk-backend.onrender.com/mcp</span>
     </div>
 
     <div class="info-box">📘 All responses are <strong>JSON</strong>. All requests with a body must set <code>Content-Type: application/json</code>.</div>
@@ -182,7 +182,7 @@ tr:last-child td{border-bottom:none}
       <div class="code-pane active" id="qs-curl"><pre><span class="cm"># 1. Create a free API key at www.swarmhawk.com → Account → API Keys
 # 2. Run your first scan:</span>
 
-curl -X POST https://api.swarmhawk.com/api/v2/scan \
+curl -X POST https://swarmhawk-backend.onrender.com/api/v2/scan \
   -H <span class="str">"X-API-Key: swh_your_key_here"</span> \
   -H <span class="str">"Content-Type: application/json"</span> \
   -d <span class="str">'{"domain": "example.com"}'</span></pre></div>
@@ -191,13 +191,13 @@ curl -X POST https://api.swarmhawk.com/api/v2/scan \
 API_KEY = <span class="str">"swh_your_key_here"</span>
 
 resp = requests.post(
-    <span class="str">"https://api.swarmhawk.com/api/v2/scan"</span>,
+    <span class="str">"https://swarmhawk-backend.onrender.com/api/v2/scan"</span>,
     headers={<span class="str">"X-API-Key"</span>: API_KEY},
     json={<span class="str">"domain"</span>: <span class="str">"example.com"</span>}
 )
 data = resp.json()
 <span class="kw">print</span>(f<span class="str">"Risk score: {data['risk_score']} · {data['critical']} critical findings"</span>)</pre></div>
-      <div class="code-pane" id="qs-js"><pre><span class="kw">const</span> res = <span class="kw">await</span> fetch(<span class="str">"https://api.swarmhawk.com/api/v2/scan"</span>, {
+      <div class="code-pane" id="qs-js"><pre><span class="kw">const</span> res = <span class="kw">await</span> fetch(<span class="str">"https://swarmhawk-backend.onrender.com/api/v2/scan"</span>, {
   method: <span class="str">"POST"</span>,
   headers: {
     <span class="str">"X-API-Key"</span>: <span class="str">"swh_your_key_here"</span>,
@@ -314,18 +314,18 @@ console.log(<span class="str">`Risk: ${data.risk_score} — ${data.critical} cri
             <button class="code-tab-btn" onclick="switchTab('scan','python',this)">Python</button>
             <button class="code-tab-btn" onclick="switchTab('scan','js',this)">JavaScript</button>
           </div>
-          <div class="code-pane active" id="scan-curl"><pre>curl -X POST https://api.swarmhawk.com/api/v2/scan \
+          <div class="code-pane active" id="scan-curl"><pre>curl -X POST https://swarmhawk-backend.onrender.com/api/v2/scan \
   -H <span class="str">"X-API-Key: swh_your_key"</span> \
   -H <span class="str">"Content-Type: application/json"</span> \
   -d <span class="str">'{"domain":"example.com"}'</span></pre></div>
           <div class="code-pane" id="scan-python"><pre>resp = requests.post(
-    <span class="str">"https://api.swarmhawk.com/api/v2/scan"</span>,
+    <span class="str">"https://swarmhawk-backend.onrender.com/api/v2/scan"</span>,
     headers={<span class="str">"X-API-Key"</span>: API_KEY},
     json={<span class="str">"domain"</span>: <span class="str">"example.com"</span>}
 )
 data = resp.json()
 <span class="cm"># data["risk_score"], data["checks"]</span></pre></div>
-          <div class="code-pane" id="scan-js"><pre><span class="kw">const</span> r = <span class="kw">await</span> fetch(<span class="str">"https://api.swarmhawk.com/api/v2/scan"</span>, {
+          <div class="code-pane" id="scan-js"><pre><span class="kw">const</span> r = <span class="kw">await</span> fetch(<span class="str">"https://swarmhawk-backend.onrender.com/api/v2/scan"</span>, {
   method:<span class="str">"POST"</span>,
   headers:{<span class="str">"X-API-Key"</span>:key,<span class="str">"Content-Type"</span>:<span class="str">"application/json"</span>},
   body:JSON.stringify({domain:<span class="str">"example.com"</span>})
@@ -592,7 +592,7 @@ data = resp.json()
         <span class="endpoint-desc"><span class="badge-inline badge-auth">Bearer</span></span>
       </div>
       <div class="endpoint-body">
-        <div class="code-block-wrap"><pre>curl https://api.swarmhawk.com/api/v2/keys \
+        <div class="code-block-wrap"><pre>curl https://swarmhawk-backend.onrender.com/api/v2/keys \
   -H <span class="str">"Authorization: Bearer YOUR_SESSION_TOKEN"</span></pre></div>
       </div>
     </div>
@@ -620,14 +620,14 @@ data = resp.json()
 
     <div class="base-url">
       <span class="label">MCP URL</span>
-      <span>https://api.swarmhawk.com/mcp</span>
+      <span>https://swarmhawk-backend.onrender.com/mcp</span>
     </div>
 
     <h3>Claude Desktop config</h3>
     <div class="code-block-wrap"><pre>{
   <span class="key">"mcpServers"</span>: {
     <span class="key">"swarmhawk"</span>: {
-      <span class="key">"url"</span>: <span class="str">"https://api.swarmhawk.com/mcp"</span>,
+      <span class="key">"url"</span>: <span class="str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
       <span class="key">"headers"</span>: { <span class="key">"X-API-Key"</span>: <span class="str">"swh_your_key"</span> }
     }
   }
@@ -637,7 +637,7 @@ data = resp.json()
     <div class="code-block-wrap"><pre>{
   <span class="key">"mcpServers"</span>: {
     <span class="key">"swarmhawk"</span>: {
-      <span class="key">"url"</span>: <span class="str">"https://api.swarmhawk.com/mcp"</span>,
+      <span class="key">"url"</span>: <span class="str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
       <span class="key">"headers"</span>: { <span class="key">"X-API-Key"</span>: <span class="str">"swh_your_key"</span> }
     }
   }
