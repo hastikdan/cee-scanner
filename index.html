@@ -879,7 +879,7 @@ python3 swarmhawk_mcp.py --http</pre></div>
         <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(212,133,10,.08);border:1px solid rgba(212,133,10,.25);border-radius:8px;padding:9px 16px">
           <span style="font-size:16px">📡</span>
           <span style="font-size:12px;color:#D4850A;font-family:'Space Mono',monospace;letter-spacing:.5px">REST API — </span>
-          <a href="/docs.html" target="_blank" style="font-family:'Space Mono',monospace;font-size:11px;color:#D4850A;text-decoration:underline">Full API Docs →</a>
+          <a href="https://www.swarmhawk.com/api" target="_blank" style="font-family:'Space Mono',monospace;font-size:11px;color:#D4850A;text-decoration:underline">Full API Docs →</a>
         </div>
         <a href="https://www.swarmhawk.com/mcp.html" target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:rgba(212,133,10,.08);border:1px solid rgba(212,133,10,.25);border-radius:8px;padding:9px 16px;text-decoration:none">
           <span style="font-size:16px">📖</span>
@@ -1297,7 +1297,7 @@ python3 swarmhawk_mcp.py --http</pre></div>
         <div class="sf-links">
           <a href="#" onclick="openReportPage('csob.cz',true);return false">Sample Report</a>
           <a href="/kb.html" target="_blank">Knowledge Base</a>
-          <a href="/docs.html" target="_blank">API Documentation</a>
+          <a href="https://www.swarmhawk.com/api" target="_blank">API Documentation</a>
           <a href="/mcp.html" target="_blank">MCP Setup Guide</a>
           <a href="mailto:hello@swarmhawk.com?subject=Chrome Extension early access" title="Chrome extension coming soon — email for early access">Chrome Extension <span style="font-size:9px;opacity:.6">(soon)</span></a>
           <a href="https://github.com/hastikdan/swarmhawk" target="_blank" rel="noopener">GitHub</a>
@@ -2349,20 +2349,6 @@ async function startCheckout(plan) {
 }
 
 function checkout_mcp() { toast('MCP Pro plans coming soon — email hello@swarmhawk.com to get early access'); }
-
-function generateKey() {
-  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const rand=Array.from({length:32},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
-  const key='swh_free_'+rand;
-  document.getElementById('api-key-display').textContent=key;
-  toast('Free API key generated — 10 scans/month');
-}
-
-function copyKey() {
-  const key=document.getElementById('api-key-display').textContent;
-  if(key.startsWith('Click')) return toast('Generate a key first',true);
-  navigator.clipboard.writeText(key).then(()=>toast('✓ API key copied'));
-}
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 function toast(msg,error=false){const t=document.createElement('div');t.className='toast';t.style.borderColor=error?'rgba(192,57,43,.4)':'rgba(203,255,0,.2)';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);}
@@ -3500,7 +3486,7 @@ function renderReportPage(data, domain, isSample) {
                 <div id="api-keys-list" style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:12px">Loading…</div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                   <button onclick="acctGenerateApiKey()" id="btn-gen-api-key" style="background:rgba(203,255,0,.1);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid rgba(203,255,0,.25);border-radius:6px;cursor:pointer">+ Generate Key</button>
-                  <a href="https://github.com/hastikdan/swarmhawk-backend#api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
+                  <a href="https://www.swarmhawk.com/api" target="_blank" style="background:rgba(255,255,255,.05);color:#aaa;font-family:'Space Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;text-decoration:none">API Docs →</a>
                 </div>
               </div>
 
@@ -6315,7 +6301,12 @@ async function dbLoadAccount() {
     // Load API keys + plan only after /me confirms backend is alive
     acctLoadApiKeys();
     acctLoadApiPlan();
-    if (u.is_admin) acctLoadApiMgmt();
+    if (u.is_admin) {
+      // Sync is_admin into currentUser before acctLoadApiMgmt() guard check runs
+      currentUser = Object.assign(currentUser || {}, { is_admin: true });
+      localStorage.setItem('sw_user', JSON.stringify(currentUser));
+      acctLoadApiMgmt();
+    }
   } catch(e) {
     var infoEl = document.getElementById('acct-info');
     if (infoEl) infoEl.textContent = 'Failed to load account info';
@@ -6557,11 +6548,11 @@ async function acctLoadApiKeys() {
   if (!el) return;
   var data;
   try {
-    data = await api('/api/v1/keys');
+    data = await api('/api/v2/keys');
   } catch(e) {
     try {
       await new Promise(function(r){ setTimeout(r, 2000); });
-      data = await api('/api/v1/keys');
+      data = await api('/api/v2/keys');
     } catch(e2) {
       if (el) el.innerHTML = '<span style="color:#C0392B;font-size:11px">Could not load keys — ' + e2.message + '</span>';
       return;
@@ -6607,7 +6598,7 @@ async function acctGenerateApiKey() {
   var btn = document.getElementById('btn-gen-api-key');
   if (btn) { btn.disabled=true; btn.textContent='Generating…'; }
   try {
-    var data = await api('/api/v1/keys', { method: 'POST' });
+    var data = await api('/api/v2/keys', { method: 'POST' });
     if (data.full_key) {
       // Show one-time key in a dismissable banner
       var el = document.getElementById('api-keys-list');
@@ -6629,7 +6620,7 @@ async function acctGenerateApiKey() {
 async function acctRegenerateApiKey(keyId) {
   if (!confirm('Regenerate this API key? The old key will stop working immediately.')) return;
   try {
-    var data = await api('/api/v1/keys/' + keyId + '/regenerate', { method: 'POST' });
+    var data = await api('/api/v2/keys/' + keyId + '/regenerate', { method: 'POST' });
     var el = document.getElementById('api-keys-list');
     if (data.full_key && el) {
       el.innerHTML = '<div style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.3);border-radius:8px;padding:14px;margin-bottom:8px">'
@@ -6645,7 +6636,7 @@ async function acctRegenerateApiKey(keyId) {
 async function acctRevokeApiKey(keyId) {
   if (!confirm('Revoke this API key? Any integrations using it will stop working.')) return;
   try {
-    await api('/api/v1/keys/' + keyId, { method: 'DELETE' });
+    await api('/api/v2/keys/' + keyId, { method: 'DELETE' });
     toast('✓ Key revoked');
     acctLoadApiKeys();
   } catch(e) { toast('Error: ' + e.message, true); }
@@ -6768,7 +6759,7 @@ var _currentApiPlan = 'free';
 
 async function acctLoadApiPlan() {
   try {
-    var data = await api('/api/v1/plan');
+    var data = await api('/api/v2/plan');
     _currentApiPlan = data.plan || 'free';
     var planLabels = {free:'Free', api_starter:'Starter', api_growth:'Growth', api_pro:'Pro'};
     var calls = data.calls_this_month || 0;
@@ -6787,7 +6778,16 @@ async function acctLoadApiPlan() {
     if (titleEl) titleEl.textContent = _currentApiPlan !== 'free' ? 'Change API Plan' : 'Upgrade API Plan';
     // Store usage for plan card rendering
     _renderApiPlanState(_currentApiPlan, calls, limit);
-  } catch(e) { /* non-fatal */ }
+  } catch(e) {
+    // Fallback: render free plan so UI never stays stuck on "Loading…"
+    var planEl = document.getElementById('api-sub-plan');
+    var usageTxt = document.getElementById('api-sub-usage-text');
+    var manageBtn = document.getElementById('btn-api-portal');
+    if (planEl) planEl.textContent = 'Free Plan';
+    if (usageTxt) usageTxt.textContent = '— / 10';
+    if (manageBtn) manageBtn.style.display = '';
+    _renderApiPlanState('free', 0, 10);
+  }
 }
 
 async function acctOpenApiPortal() {
