@@ -1353,6 +1353,7 @@ python3 swarmhawk_mcp.py --http</pre></div>
 <script>
 const API = 'https://swarmhawk-backend.onrender.com';
 const MCP_URL = 'https://swarmhawk-backend.onrender.com/mcp';
+function safeHtmlErr(msg){ var s=document.createElement('span'); s.textContent=msg; return s.outerHTML; }
 let sessionToken = localStorage.getItem('sw_token') || '';
 let currentUser = JSON.parse(localStorage.getItem('sw_user') || 'null');
 let domains = []; let pollTimer = null;
@@ -1471,7 +1472,7 @@ async function openBlurredReportPage(domainObj) {
     var data = await api('/domains/' + domainObj.id + '/report');
     renderBlurredReport(data, domainObj);
   } catch(e) {
-    body.innerHTML = '<div style="padding:24px;color:var(--red)">Error: ' + e.message + '</div>';
+    body.innerHTML = '<div style="padding:24px;color:var(--red)">Error: ' + safeHtmlErr(e.message) + '</div>';
   }
 }
 
@@ -1840,7 +1841,7 @@ async function nis2Load() {
       grid.appendChild(card.firstChild);
     });
   } catch(e) {
-    grid.innerHTML = '<div style="color:#C0392B;font-size:13px;padding:20px 0">Error loading domains: '+e.message+'</div>';
+    grid.innerHTML = '<div style="color:#C0392B;font-size:13px;padding:20px 0">Error loading domains: '+safeHtmlErr(e.message)+'</div>';
   }
 }
 
@@ -1914,7 +1915,7 @@ async function nis2RunAutopilot(domainId, domainName) {
     if (body) body.innerHTML = html;
     if (btn) { btn.textContent='✓ Autopilot Done'; btn.disabled=false; }
   } catch(e) {
-    if (body) body.innerHTML = '<div style="color:#C0392B;font-size:13px;padding:20px">Autopilot error: '+e.message+'</div>';
+    if (body) body.innerHTML = '<div style="color:#C0392B;font-size:13px;padding:20px">Autopilot error: '+safeHtmlErr(e.message)+'</div>';
     if (btn) { btn.disabled=false; btn.textContent='🛡 RUN AUTOPILOT →'; }
   }
 }
@@ -2227,7 +2228,7 @@ async function paranoidlabLoadDetail(domainId) {
 
     el.innerHTML = inner;
   } catch(e) {
-    el.innerHTML = '<div style="padding:10px 18px;font-size:11px;color:#888">Could not load breakdown: ' + e.message + '</div>';
+    el.innerHTML = '<div style="padding:10px 18px;font-size:11px;color:#888">Could not load breakdown: ' + safeHtmlErr(e.message) + '</div>';
   }
 }
 
@@ -3921,7 +3922,7 @@ async function dbDiscoverContacts(domainId) {
     if (container) dbRenderSingleDomainThreats(domainId, container);
     toast('✓ Found ' + (data.contacts||[]).length + ' contact(s)');
   } catch(e) {
-    if (body) body.innerHTML += '<div style="color:#E74C3C;font-size:11px;margin-top:6px">Discovery failed: '+e.message+'</div>';
+    if (body) body.innerHTML += '<div style="color:#E74C3C;font-size:11px;margin-top:6px">Discovery failed: '+safeHtmlErr(e.message)+'</div>';
     if (btn) { btn.textContent = '🔍 Auto-discover'; btn.disabled = false; }
   }
 }
@@ -6580,11 +6581,17 @@ async function acctGenerateApiKey() {
     if (data.full_key) {
       // Show one-time key in a dismissable banner
       var el = document.getElementById('api-keys-list');
-      if (el) el.innerHTML = '<div style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.3);border-radius:8px;padding:14px;margin-bottom:8px">'
-        + '<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--lime);letter-spacing:1px;margin-bottom:8px">⚠ COPY YOUR KEY NOW — it will not be shown again</div>'
-        + '<code id="full-api-key-display" style="color:var(--lime);font-size:12px;word-break:break-all;display:block;margin-bottom:10px">' + data.full_key + '</code>'
-        + '<button onclick="acctCopyKey(\''+data.full_key+'\')" style="background:var(--lime);color:var(--black);font-family:\'Space Mono\',monospace;font-size:10px;font-weight:700;padding:6px 14px;border:none;border-radius:5px;cursor:pointer">Copy Key</button>'
-        + '</div>';
+      if (el) {
+        el.innerHTML = '<div style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.3);border-radius:8px;padding:14px;margin-bottom:8px">'
+          + '<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--lime);letter-spacing:1px;margin-bottom:8px">⚠ COPY YOUR KEY NOW — it will not be shown again</div>'
+          + '<code id="full-api-key-display" style="color:var(--lime);font-size:12px;word-break:break-all;display:block;margin-bottom:10px"></code>'
+          + '<button id="acct-copy-key-btn" data-key="" style="background:var(--lime);color:var(--black);font-family:\'Space Mono\',monospace;font-size:10px;font-weight:700;padding:6px 14px;border:none;border-radius:5px;cursor:pointer">Copy Key</button>'
+          + '</div>';
+        document.getElementById('full-api-key-display').textContent = data.full_key;
+        var copyBtn = document.getElementById('acct-copy-key-btn');
+        copyBtn.dataset.key = data.full_key;
+        copyBtn.onclick = function(){ acctCopyKey(this.dataset.key); };
+      }
     }
     toast(data.created ? '✓ API key created — copy it now!' : '✓ Key already exists');
     if (!data.full_key) acctLoadApiKeys();
@@ -6603,9 +6610,13 @@ async function acctRegenerateApiKey(keyId) {
     if (data.full_key && el) {
       el.innerHTML = '<div style="background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.3);border-radius:8px;padding:14px;margin-bottom:8px">'
         + '<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--lime);letter-spacing:1px;margin-bottom:8px">⚠ NEW KEY — copy it now, it will not be shown again</div>'
-        + '<code style="color:var(--lime);font-size:12px;word-break:break-all;display:block;margin-bottom:10px">' + data.full_key + '</code>'
-        + '<button onclick="acctCopyKey(\''+data.full_key+'\')" style="background:var(--lime);color:var(--black);font-family:\'Space Mono\',monospace;font-size:10px;font-weight:700;padding:6px 14px;border:none;border-radius:5px;cursor:pointer">Copy Key</button>'
+        + '<code id="regen-api-key-display" style="color:var(--lime);font-size:12px;word-break:break-all;display:block;margin-bottom:10px"></code>'
+        + '<button id="acct-regen-copy-key-btn" data-key="" style="background:var(--lime);color:var(--black);font-family:\'Space Mono\',monospace;font-size:10px;font-weight:700;padding:6px 14px;border:none;border-radius:5px;cursor:pointer">Copy Key</button>'
         + '</div>';
+      document.getElementById('regen-api-key-display').textContent = data.full_key;
+      var regenCopyBtn = document.getElementById('acct-regen-copy-key-btn');
+      regenCopyBtn.dataset.key = data.full_key;
+      regenCopyBtn.onclick = function(){ acctCopyKey(this.dataset.key); };
     }
     toast('✓ New API key issued — copy it now!');
   } catch(e) { toast('Error: ' + e.message, true); }
