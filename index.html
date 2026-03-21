@@ -2340,7 +2340,7 @@ async function startCheckout(plan) {
 
 function checkout_mcp() { toast('MCP Pro plans coming soon — email hello@swarmhawk.com to get early access'); }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('scan-progress-overlay'))cancelScanProgress();else closeModal();}});
 function toast(msg,error=false){const t=document.createElement('div');t.className='toast';t.style.borderColor=error?'rgba(192,57,43,.4)':'rgba(203,255,0,.2)';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);}
 </script>
 
@@ -2442,6 +2442,8 @@ function openReportPage(domain, isSample) {
 
   // Show scan progress overlay (same UX as logged-in domain scan)
   showScanProgress(domain);
+  _scanAbortController = new AbortController();
+  var _scanSignal = _scanAbortController.signal;
 
   // Wake up Render (cold start can take 15-30s) then scan
   (async function() {
@@ -2456,10 +2458,11 @@ function openReportPage(domain, isSample) {
       var pingOk = false;
       for (var i = 0; i < 3; i++) {
         try {
-          var ping = await fetch(API + '/health', {signal: AbortSignal.timeout(10000)});
+          var ping = await fetch(API + '/health', {signal: _scanSignal});
           if (ping.ok) { pingOk = true; break; }
-        } catch(e) { /* cold starting */ }
+        } catch(e) { if (_scanSignal.aborted) return; /* cold starting */ }
         if (i < 2) await new Promise(function(r){ setTimeout(r, 5000); });
+        if (_scanSignal.aborted) return;
       }
       if (!pingOk) throw new Error('Server is not reachable. Check if Render backend is running.');
 
@@ -2470,8 +2473,9 @@ function openReportPage(domain, isSample) {
         method: 'POST',
         headers: scanHeaders,
         body: JSON.stringify({domain: domain}),
-        signal: AbortSignal.timeout(60000)
+        signal: _scanSignal
       });
+      if (_scanSignal.aborted) return;
       var data;
       try { data = await res.json(); } catch(e) { data = {}; }
       if (!res.ok) throw new Error(data.detail || ('Server error ' + res.status));
@@ -2479,6 +2483,7 @@ function openReportPage(domain, isSample) {
       showReport();
       renderReportPage(data, domain, false);
     } catch(err) {
+      if (_scanSignal.aborted) return;
       hideScanProgress();
       showReport();
       body.innerHTML = '<div style="text-align:center;padding:60px">'
@@ -6156,6 +6161,12 @@ var _outreachLoaded = false;
 
 // ── SCAN PROGRESS UI ────────────────────────────────────────────────────────
 var _scanProgressInterval = null;
+var _scanAbortController = null;
+
+function cancelScanProgress() {
+  if (_scanAbortController) { _scanAbortController.abort(); _scanAbortController = null; }
+  hideScanProgress();
+}
 
 var SCAN_CHECKS = [
   'SSL/TLS Certificate', 'HTTPS Redirect', 'Security Headers', 'DNS & SPF',
@@ -6173,7 +6184,8 @@ function showScanProgress(domain) {
   overlay.id = 'scan-progress-overlay';
   overlay.className = 'scan-progress-overlay';
   overlay.innerHTML =
-    '<div class="scan-progress-box">' +
+    '<div class="scan-progress-box" style="position:relative">' +
+      '<button onclick="cancelScanProgress()" title="Cancel scan" style="position:absolute;top:12px;right:12px;background:transparent;border:none;color:var(--grey);font-size:18px;cursor:pointer;line-height:1;padding:0">✕</button>' +
       '<div class="scan-progress-title">⟳ SCANNING DOMAIN</div>' +
       '<div class="scan-progress-domain">' + domain + '</div>' +
       '<div class="scan-progress-bar-wrap"><div class="scan-progress-bar" id="spb"></div></div>' +
