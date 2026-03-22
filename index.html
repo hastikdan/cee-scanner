@@ -3638,11 +3638,12 @@ function dbRenderOverview() {
     totalScore += s;
     scanned++;
   });
-  document.getElementById('stat-critical').textContent = critical;
-  document.getElementById('stat-warnings').textContent = warnings;
-  document.getElementById('stat-clean').textContent = clean;
-  document.getElementById('stat-domains').textContent = dbDomains.length;
-  document.getElementById('stat-avg-score').textContent = scanned ? Math.round(totalScore/scanned) : '—';
+  var _s = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+  _s('stat-critical', critical);
+  _s('stat-warnings', warnings);
+  _s('stat-clean', clean);
+  _s('stat-domains', dbDomains.length);
+  _s('stat-avg-score', scanned ? Math.round(totalScore/scanned) : '—');
 }
 
 // ── DOMAINS TABLE ───────────────────────────────────────
