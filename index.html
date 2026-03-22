@@ -8209,6 +8209,7 @@ async function adminLoadLLMStats(period) {
 async function adminLoadStats() {
   try {
     var data = await api('/admin/stats');
+    if (!data || !data.users) { console.error('adminLoadStats: unexpected response', data); return; }
     var set = function(id, v){ var e = document.getElementById(id); if (e) e.textContent = v; };
 
     // Core KPIs
@@ -8218,20 +8219,20 @@ async function adminLoadStats() {
     set('astat-domains-7d', '+' + data.domains.new_7d + ' this week');
     set('astat-scans',      data.scans.total);
     set('astat-scans-7d',   data.scans.last_7d + ' last 7d');
-    set('astat-revenue',    '€' + data.revenue.total_eur);
-    set('astat-sales',      data.revenue.total_sales + ' sales');
+    set('astat-revenue',    '€' + (data.revenue || {}).total_eur);
+    set('astat-sales',      (data.revenue || {}).total_sales + ' sales');
 
     // Risk KPIs
-    set('astat-avg-risk',   data.risk.avg_score);
-    set('astat-critical-d', data.risk.critical);
-    set('astat-warning-d',  data.risk.warning);
-    set('astat-clean-d',    data.risk.clean);
+    set('astat-avg-risk',   (data.risk || {}).avg_score);
+    set('astat-critical-d', (data.risk || {}).critical);
+    set('astat-warning-d',  (data.risk || {}).warning);
+    set('astat-clean-d',    (data.risk || {}).clean);
 
     // User/activity row
     set('astat-email',      data.users.email);
     set('astat-new30',      data.users.new_30d);
     set('astat-scans-24h',  data.scans.last_24h);
-    set('astat-paid',       data.revenue.total_sales);
+    set('astat-paid',       (data.revenue || {}).total_sales);
 
     // API key stats (counts only — full table loaded by adminLoadApiKeys)
     if (data.api_keys) {
