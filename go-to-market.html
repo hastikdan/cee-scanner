@@ -1852,18 +1852,21 @@ let PRICE_PER_DOMAIN = 10;   // $10/domain/year
 function arr(domains) { return Math.round(domains * CONVERSION_RATE) * PRICE_PER_DOMAIN; }
 function customers(domains) { return Math.round(domains * CONVERSION_RATE); }
 
+function visibleCountries() {
+  return currentTier === 'all' ? COUNTRIES : COUNTRIES.filter(c => c.tier === parseInt(currentTier));
+}
 function totalARR() {
-  return COUNTRIES.reduce((sum, c) => sum + arr(c.domains), 0);
+  return visibleCountries().reduce((sum, c) => sum + arr(c.domains), 0);
 }
 function totalCustomers() {
-  return COUNTRIES.reduce((sum, c) => sum + customers(c.domains), 0);
+  return visibleCountries().reduce((sum, c) => sum + customers(c.domains), 0);
 }
 
 function recalculate() {
   // Update calc bar
   document.getElementById('calc-total-arr').textContent = fmtUSD(totalARR());
   document.getElementById('calc-total-sub').textContent =
-    `${fmtFull(totalCustomers())} customers · ${COUNTRIES.length} markets`;
+    `${fmtFull(totalCustomers())} customers · ${visibleCountries().length} markets`;
   // Update hero ARR metric
   document.getElementById('metric-arr').textContent = fmtUSD(totalARR());
   document.getElementById('metric-arr-sub').textContent =
@@ -2193,7 +2196,7 @@ document.getElementById('filter-group').addEventListener('click', e => {
   currentTier = btn.dataset.tier;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  render();
+  recalculate();
 });
 
 document.getElementById('conv-slider').addEventListener('input', e => {
