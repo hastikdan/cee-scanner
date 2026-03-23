@@ -2713,26 +2713,6 @@ function renderReportPage(data, domain, isSample) {
           </div>
         </div>
 
-        <!-- ── AI INTELLIGENCE BRIEFING ────────────────────────── -->
-        <div style="margin-top:40px;border-top:1px solid var(--border);padding-top:36px">
-          <div class="db-header" style="margin-bottom:16px">
-            <div>
-              <div class="db-section-label" style="margin-bottom:4px">🤖 AI Threat Briefing</div>
-              <p style="color:var(--grey);font-size:12px;margin:0">AI-generated intelligence summary across all your monitored domains</p>
-            </div>
-            <button class="btn-scan-all" id="intel-refresh-btn" onclick="dbLoadIntel(true)">↻ AI Briefing</button>
-          </div>
-          <div class="db-card intel-card" id="intel-briefing">
-            <div class="db-card-head">
-              <span class="db-card-title">Briefing</span>
-              <span id="intel-timestamp" style="font-size:11px;color:var(--grey)"></span>
-            </div>
-            <div id="intel-content" class="intel-content">
-              <div class="db-empty" style="padding:40px;text-align:center">Click ↻ AI Briefing to generate your personalised threat briefing</div>
-            </div>
-          </div>
-          <div class="intel-grid" id="intel-grid" style="margin-top:20px"></div>
-        </div>
 
       </div>
     </div>
