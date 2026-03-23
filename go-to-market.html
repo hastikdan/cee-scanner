@@ -1083,6 +1083,110 @@ footer {
 
 .empty-state.visible { display: block; }
 
+/* ── CALCULATOR BAR ── */
+.calc-bar {
+  background: linear-gradient(135deg, #0e0e1a 0%, #111120 100%);
+  border-bottom: 1px solid rgba(203,255,0,0.2);
+  padding: 28px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+.calc-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 32px;
+  align-items: center;
+}
+@media (max-width: 900px) { .calc-inner { grid-template-columns: 1fr; } }
+
+.calc-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.calc-group-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.calc-group-val {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(203,255,0,0.4);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 14px rgba(203,255,0,0.7); }
+input[type=range]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+}
+.calc-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 5px;
+}
+
+.calc-total-box {
+  text-align: center;
+  padding: 16px 28px;
+  background: rgba(203,255,0,0.06);
+  border: 1px solid rgba(203,255,0,0.25);
+  border-radius: 12px;
+  min-width: 220px;
+}
+.calc-total-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+.calc-total-val {
+  font-family: var(--mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+.calc-total-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+
 /* ── CARD REVENUE ROW ── */
 .card-revenue-row {
   display: flex;
@@ -1140,27 +1244,56 @@ footer {
     <div class="metrics-row">
       <div class="metric-card">
         <div class="metric-label">Total Domains Addressable</div>
-        <div class="metric-value" data-target="14830000" id="metric-domains">0</div>
-        <div class="metric-sub">across 16 countries</div>
+        <div class="metric-value" data-target="61760000" id="metric-domains">0</div>
+        <div class="metric-sub">across 31 countries</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Countries Mapped</div>
-        <div class="metric-value" data-target="16" id="metric-countries">0</div>
+        <div class="metric-value" data-target="31" id="metric-countries">0</div>
         <div class="metric-sub">full provider breakdown</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Identified Providers</div>
-        <div class="metric-value" data-target="72" id="metric-providers">0</div>
+        <div class="metric-value" data-target="147" id="metric-providers">0</div>
         <div class="metric-sub">named, ranked, profiled</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">ARR Potential</div>
-        <div class="metric-value" id="metric-arr">$7.4M</div>
-        <div class="metric-sub">5% conversion · $10/domain/yr</div>
+        <div class="metric-value" id="metric-arr">$30.9M</div>
+        <div class="metric-sub" id="metric-arr-sub">5% conversion · $10/domain/yr</div>
       </div>
     </div>
   </div>
 </header>
+
+<!-- ══════════════════════════════════════════════════
+     BUSINESS CASE CALCULATOR
+══════════════════════════════════════════════════ -->
+<div class="calc-bar">
+  <div class="calc-inner">
+    <div class="calc-group">
+      <div class="calc-label-row">
+        <span class="calc-group-label">Conversion Rate</span>
+        <span class="calc-group-val" id="conv-display">5%</span>
+      </div>
+      <input type="range" id="conv-slider" min="1" max="20" value="5" step="0.5">
+      <div class="calc-range-labels"><span>1%</span><span>5%</span><span>10%</span><span>20%</span></div>
+    </div>
+    <div class="calc-group">
+      <div class="calc-label-row">
+        <span class="calc-group-label">Price / Domain / Year</span>
+        <span class="calc-group-val" id="price-display">$10</span>
+      </div>
+      <input type="range" id="price-slider" min="1" max="50" value="10" step="1">
+      <div class="calc-range-labels"><span>$1</span><span>$10</span><span>$25</span><span>$50</span></div>
+    </div>
+    <div class="calc-total-box">
+      <div class="calc-total-label">TOTAL ARR POTENTIAL</div>
+      <div class="calc-total-val" id="calc-total-arr">$30.9M</div>
+      <div class="calc-total-sub" id="calc-total-sub">1,548,000 customers · 31 markets</div>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════
      CONTROLS BAR
@@ -1207,7 +1340,7 @@ footer {
 <section class="strategy-panel">
   <div class="strategy-inner">
     <div class="strategy-title">GTM FRAMEWORK</div>
-    <div class="strategy-heading">Partnership <span>Tier Structure</span> — CEE Go-to-Market</div>
+    <div class="strategy-heading">Partnership <span>Tier Structure</span> — EU Go-to-Market</div>
     <div class="tier-cols">
       <div class="tier-col t1">
         <div class="tier-num">TIER 1</div>
@@ -1230,7 +1363,7 @@ footer {
           <li>Custom SLA + priority support queue</li>
           <li>Co-branded marketing materials + press release</li>
         </ul>
-        <div class="tier-revenue">ARR Potential: <strong>$5.58M</strong> &nbsp;·&nbsp; 557,500 customers &nbsp;·&nbsp; Rev share 15–20%</div>
+        <div class="tier-revenue" id="tier1-rev">ARR Potential: <strong>$5.58M</strong> &nbsp;·&nbsp; 557,500 customers &nbsp;·&nbsp; Rev share 15–20%</div>
       </div>
       <div class="tier-col t2">
         <div class="tier-num">TIER 2</div>
@@ -1253,13 +1386,28 @@ footer {
           <li>Monthly business review cadence</li>
           <li>Volume-based pricing tiers</li>
         </ul>
-        <div class="tier-revenue">ARR Potential: <strong>$1.05M</strong> &nbsp;·&nbsp; 105,000 customers &nbsp;·&nbsp; Channel program</div>
+        <div class="tier-revenue" id="tier2-rev">ARR Potential: <strong>$1.05M</strong> &nbsp;·&nbsp; 105,000 customers &nbsp;·&nbsp; Channel program</div>
       </div>
       <div class="tier-col t3">
         <div class="tier-num">TIER 3</div>
         <div class="tier-name">Ecosystem Partners</div>
-        <div class="tier-threshold">&lt;100,000 domains under management</div>
+        <div class="tier-threshold">EU expansion markets — self-serve motion</div>
         <div class="tier-countries">
+          <span class="country-chip">🇩🇪 Germany</span>
+          <span class="country-chip">🇫🇷 France</span>
+          <span class="country-chip">🇳🇱 Netherlands</span>
+          <span class="country-chip">🇮🇹 Italy</span>
+          <span class="country-chip">🇪🇸 Spain</span>
+          <span class="country-chip">🇸🇪 Sweden</span>
+          <span class="country-chip">🇩🇰 Denmark</span>
+          <span class="country-chip">🇧🇪 Belgium</span>
+          <span class="country-chip">🇫🇮 Finland</span>
+          <span class="country-chip">🇵🇹 Portugal</span>
+          <span class="country-chip">🇮🇪 Ireland</span>
+          <span class="country-chip">🇬🇷 Greece</span>
+          <span class="country-chip">🇱🇺 Luxembourg</span>
+          <span class="country-chip">🇨🇾 Cyprus</span>
+          <span class="country-chip">🇲🇹 Malta</span>
           <span class="country-chip">🇭🇷 Croatia</span>
           <span class="country-chip">🇸🇮 Slovenia</span>
           <span class="country-chip">🇧🇾 Belarus</span>
@@ -1274,7 +1422,7 @@ footer {
           <li>Quarterly newsletter updates</li>
           <li>Monitor for market growth triggers</li>
         </ul>
-        <div class="tier-revenue">ARR Potential: <strong>$330k</strong> &nbsp;·&nbsp; 33,000 customers &nbsp;·&nbsp; Self-serve reseller</div>
+        <div class="tier-revenue" id="tier3-rev">ARR Potential: <strong>$330k</strong> &nbsp;·&nbsp; 33,000 customers &nbsp;·&nbsp; Self-serve reseller</div>
       </div>
     </div>
   </div>
@@ -1508,16 +1656,236 @@ const COUNTRIES = [
     gtm: "Very small market, low priority. Monitor for future EU accession opportunity.",
     approach: { sales: "Self-serve Reseller", rev: "Standard reseller rates", integration: "Portal onboarding", priority: "P4 — Monitor" }
   },
+  // ── Western & Northern EU Expansion ──────────────────────────────────────
+  {
+    name: "Germany", flag: "🇩🇪", tier: 3,
+    domains: 16000000, opp: "MEDIUM",
+    providers: [
+      { name: "IONOS (1&1)",       pct: 40, domains: 6400000 },
+      { name: "Strato",            pct: 15, domains: 2400000 },
+      { name: "united-domains",    pct:  8, domains: 1280000 },
+      { name: "Hetzner",           pct:  7, domains: 1120000 },
+      { name: "DomainFactory",     pct:  5, domains:  800000 },
+    ],
+    gtm: "Largest EU domain market. IONOS alone manages 6M+ domains — a single API partnership is transformative. Strong NIS2 compliance demand across German Mittelstand.",
+    approach: { sales: "Enterprise Direct", rev: "Volume-based API licensing", integration: "White-label + API", priority: "P1 — Q3 2026" }
+  },
+  {
+    name: "France", flag: "🇫🇷", tier: 3,
+    domains: 7000000, opp: "MEDIUM",
+    providers: [
+      { name: "OVH",            pct: 45, domains: 3150000 },
+      { name: "Gandi",          pct: 12, domains:  840000 },
+      { name: "Scaleway/Online",pct:  8, domains:  560000 },
+      { name: "LWS",            pct:  6, domains:  420000 },
+      { name: "Infomaniak",     pct:  5, domains:  350000 },
+    ],
+    gtm: "OVH is a global provider headquartered in France — partnership covers FR, EU, and global customers. Gandi is developer-friendly, strong in tech community.",
+    approach: { sales: "Channel + API", rev: "Volume licensing", integration: "API integration", priority: "P1 — Q3 2026" }
+  },
+  {
+    name: "Netherlands", flag: "🇳🇱", tier: 3,
+    domains: 6000000, opp: "MEDIUM",
+    providers: [
+      { name: "TransIP",      pct: 35, domains: 2100000 },
+      { name: "SIDN",         pct: 20, domains: 1200000 },
+      { name: "Yourhosting",  pct: 12, domains:  720000 },
+      { name: "OVH NL",       pct:  8, domains:  480000 },
+      { name: "Antagonist",   pct:  5, domains:  300000 },
+    ],
+    gtm: "TransIP is one of Europe's most tech-forward registrars — strong API culture. Netherlands has high SME density and strong NIS2 awareness.",
+    approach: { sales: "API-first Partner", rev: "Volume licensing", integration: "Deep API", priority: "P2 — Q3 2026" }
+  },
+  {
+    name: "Italy", flag: "🇮🇹", tier: 3,
+    domains: 4000000, opp: "MEDIUM",
+    providers: [
+      { name: "Aruba.it",    pct: 45, domains: 1800000 },
+      { name: "Register.it", pct: 20, domains:  800000 },
+      { name: "Netsons",     pct:  8, domains:  320000 },
+      { name: "OVH IT",      pct:  6, domains:  240000 },
+      { name: "Tophost",     pct:  5, domains:  200000 },
+    ],
+    gtm: "Aruba.it dominates Italian hosting — 45% market share. Large SME segment with growing cybersecurity awareness. GDPR enforcement particularly strict.",
+    approach: { sales: "Direct Enterprise", rev: "Revenue share", integration: "White-label option", priority: "P2 — Q4 2026" }
+  },
+  {
+    name: "Spain", flag: "🇪🇸", tier: 3,
+    domains: 4000000, opp: "MEDIUM",
+    providers: [
+      { name: "IONOS ES",   pct: 25, domains: 1000000 },
+      { name: "OVH ES",     pct: 18, domains:  720000 },
+      { name: "Nominalia",  pct: 15, domains:  600000 },
+      { name: "Arsys",      pct: 12, domains:  480000 },
+      { name: "Acens",      pct:  8, domains:  320000 },
+    ],
+    gtm: "Fast-growing digital economy, especially in Madrid and Barcelona tech clusters. IONOS and OVH both have strong Spanish operations — leverage existing relationships.",
+    approach: { sales: "Channel Program", rev: "Volume licensing", integration: "API + co-brand", priority: "P2 — Q4 2026" }
+  },
+  {
+    name: "Sweden", flag: "🇸🇪", tier: 3,
+    domains: 1900000, opp: "MEDIUM",
+    providers: [
+      { name: "Loopia",        pct: 30, domains: 570000 },
+      { name: "one.com",       pct: 25, domains: 475000 },
+      { name: "Binero",        pct: 12, domains: 228000 },
+      { name: "Websupport SE", pct: 10, domains: 190000 },
+      { name: "GleSYS",        pct:  6, domains: 114000 },
+    ],
+    gtm: "Loopia is Sweden's dominant registrar (same group as Loopia HR). one.com operates across all Nordic countries — one deal covers DK, SE, NO, FI.",
+    approach: { sales: "Nordic Bundle Deal", rev: "Volume licensing", integration: "API integration", priority: "P2 — Q4 2026" }
+  },
+  {
+    name: "Denmark", flag: "🇩🇰", tier: 3,
+    domains: 1500000, opp: "MEDIUM",
+    providers: [
+      { name: "one.com",     pct: 30, domains: 450000 },
+      { name: "Simply.com",  pct: 20, domains: 300000 },
+      { name: "Unoeuro",     pct: 15, domains: 225000 },
+      { name: "DK Hostmaster",pct:10, domains: 150000 },
+      { name: "Gigahost",    pct:  5, domains:  75000 },
+    ],
+    gtm: "one.com headquartered in Copenhagen — Nordic-wide reach. Simply.com (previously Unoeuro) has high SME penetration. Denmark leads EU in e-government and digitalization.",
+    approach: { sales: "Nordic Bundle Deal", rev: "Volume licensing", integration: "API integration", priority: "P3 — Q4 2026" }
+  },
+  {
+    name: "Belgium", flag: "🇧🇪", tier: 3,
+    domains: 1500000, opp: "MEDIUM",
+    providers: [
+      { name: "Combell",  pct: 35, domains: 525000 },
+      { name: "OVH BE",   pct: 20, domains: 300000 },
+      { name: "Nucleus",  pct: 10, domains: 150000 },
+      { name: "EuroDNS",  pct:  8, domains: 120000 },
+      { name: "Kinamo",   pct:  5, domains:  75000 },
+    ],
+    gtm: "Combell is the clear Belgian leader and operates across BeNeLux. EU institutions are headquartered in Brussels — high regulatory awareness creates natural security demand.",
+    approach: { sales: "BeNeLux Bundle", rev: "Volume licensing", integration: "API + compliance framing", priority: "P3 — Q4 2026" }
+  },
+  {
+    name: "Finland", flag: "🇫🇮", tier: 3,
+    domains: 1200000, opp: "MEDIUM",
+    providers: [
+      { name: "Traficom/Ficora", pct: 30, domains: 360000 },
+      { name: "Louhi",           pct: 20, domains: 240000 },
+      { name: "Nebula",          pct: 15, domains: 180000 },
+      { name: "Zoner FI",        pct:  8, domains:  96000 },
+      { name: "Elisa",           pct:  6, domains:  72000 },
+    ],
+    gtm: "Finland is a NATO member with high cybersecurity maturity. Elisa is a major telco — enterprise relationships. Bundle with Sweden via Nordic deals.",
+    approach: { sales: "Nordic Bundle Deal", rev: "Volume licensing", integration: "API integration", priority: "P3 — Q4 2026" }
+  },
+  {
+    name: "Portugal", flag: "🇵🇹", tier: 3,
+    domains: 1200000, opp: "LOW",
+    providers: [
+      { name: "DNS.pt/FCCN",  pct: 25, domains: 300000 },
+      { name: "OVH PT",       pct: 18, domains: 216000 },
+      { name: "PTisp",        pct: 15, domains: 180000 },
+      { name: "Altice/Sapo",  pct: 10, domains: 120000 },
+      { name: "GoDaddy PT",   pct:  8, domains:  96000 },
+    ],
+    gtm: "Growing tech scene in Lisbon. OVH presence makes partnership extension from France feasible. Atlantic Bridge program creates US-EU business links.",
+    approach: { sales: "Self-serve / Channel", rev: "Standard rates", integration: "Portal onboarding", priority: "P3 — 2027" }
+  },
+  {
+    name: "Ireland", flag: "🇮🇪", tier: 3,
+    domains: 800000, opp: "LOW",
+    providers: [
+      { name: "Blacknight",       pct: 25, domains: 200000 },
+      { name: "Register365",      pct: 20, domains: 160000 },
+      { name: "Host Ireland",     pct: 15, domains: 120000 },
+      { name: "IE Domain Registry",pct:12, domains:  96000 },
+      { name: "OVH IE",           pct:  6, domains:  48000 },
+    ],
+    gtm: "Ireland hosts EU HQs of Google, Meta, Apple — high corporate domain density. Blacknight is vocal in EU internet policy circles. English-speaking market, easy to pitch.",
+    approach: { sales: "Direct Outreach", rev: "Standard rates", integration: "API integration", priority: "P3 — 2027" }
+  },
+  {
+    name: "Greece", flag: "🇬🇷", tier: 3,
+    domains: 600000, opp: "LOW",
+    providers: [
+      { name: "Papaki",    pct: 35, domains: 210000 },
+      { name: "OTE/Cosmote",pct:20, domains: 120000 },
+      { name: "Forthnet",  pct: 12, domains:  72000 },
+      { name: "GR Registrar",pct:10, domains:  60000 },
+      { name: "Datarealm", pct:  5, domains:  30000 },
+    ],
+    gtm: "Papaki is the dominant modern registrar. Greece has strong EU fund-driven digitalization programs. Tourism and shipping sectors have large domain footprints.",
+    approach: { sales: "Self-serve / Channel", rev: "Standard rates", integration: "Portal onboarding", priority: "P4 — Monitor" }
+  },
+  {
+    name: "Luxembourg", flag: "🇱🇺", tier: 3,
+    domains: 100000, opp: "LOW",
+    providers: [
+      { name: "EuroDNS",        pct: 45, domains: 45000 },
+      { name: "POST Luxembourg", pct: 20, domains: 20000 },
+      { name: "Restena",        pct: 15, domains: 15000 },
+    ],
+    gtm: "Small market but financial hub — high-value domains. EuroDNS operates pan-European and is a natural channel partner for broader EU expansion.",
+    approach: { sales: "Self-serve Reseller", rev: "Standard rates", integration: "Portal onboarding", priority: "P4 — Monitor" }
+  },
+  {
+    name: "Cyprus", flag: "🇨🇾", tier: 3,
+    domains: 80000, opp: "LOW",
+    providers: [
+      { name: "CYTA",       pct: 35, domains: 28000 },
+      { name: "Logos IT",   pct: 20, domains: 16000 },
+      { name: "Spidernet",  pct: 15, domains: 12000 },
+    ],
+    gtm: "Financial services hub. Many EU-registered holding companies. Small but high-value domain segment.",
+    approach: { sales: "Self-serve Reseller", rev: "Standard rates", integration: "Portal onboarding", priority: "P4 — Monitor" }
+  },
+  {
+    name: "Malta", flag: "🇲🇹", tier: 3,
+    domains: 50000, opp: "LOW",
+    providers: [
+      { name: "GoDaddy MT", pct: 30, domains: 15000 },
+      { name: "Melita",     pct: 25, domains: 12500 },
+      { name: "BMIT",       pct: 20, domains: 10000 },
+    ],
+    gtm: "iGaming and fintech hub. High density of EU-licensed financial companies — security compliance is a strong pitch.",
+    approach: { sales: "Self-serve Reseller", rev: "Standard rates", integration: "Portal onboarding", priority: "P4 — Monitor" }
+  },
 ];
 
 // ═══════════════════════════════════════════════════
 // UTILITIES
 // ═══════════════════════════════════════════════════
-const CONVERSION_RATE = 0.05;  // 5% of total domains become customers
-const PRICE_PER_DOMAIN = 10;   // $10/domain/year
+let CONVERSION_RATE = 0.05;  // 5% of total domains become customers
+let PRICE_PER_DOMAIN = 10;   // $10/domain/year
 
 function arr(domains) { return Math.round(domains * CONVERSION_RATE) * PRICE_PER_DOMAIN; }
 function customers(domains) { return Math.round(domains * CONVERSION_RATE); }
+
+function totalARR() {
+  return COUNTRIES.reduce((sum, c) => sum + arr(c.domains), 0);
+}
+function totalCustomers() {
+  return COUNTRIES.reduce((sum, c) => sum + customers(c.domains), 0);
+}
+
+function recalculate() {
+  // Update calc bar
+  document.getElementById('calc-total-arr').textContent = fmtUSD(totalARR());
+  document.getElementById('calc-total-sub').textContent =
+    `${fmtFull(totalCustomers())} customers · ${COUNTRIES.length} markets`;
+  // Update hero ARR metric
+  document.getElementById('metric-arr').textContent = fmtUSD(totalARR());
+  document.getElementById('metric-arr-sub').textContent =
+    `${(CONVERSION_RATE * 100).toFixed(1).replace(/\.0$/, '')}% conversion · $${PRICE_PER_DOMAIN}/domain/yr`;
+  // Update tier revenue boxes
+  const t1Domains = COUNTRIES.filter(c => c.tier === 1).reduce((s,c) => s + c.domains, 0);
+  const t2Domains = COUNTRIES.filter(c => c.tier === 2).reduce((s,c) => s + c.domains, 0);
+  const t3Domains = COUNTRIES.filter(c => c.tier === 3).reduce((s,c) => s + c.domains, 0);
+  const t1r = document.getElementById('tier1-rev');
+  const t2r = document.getElementById('tier2-rev');
+  const t3r = document.getElementById('tier3-rev');
+  if (t1r) t1r.innerHTML = `ARR Potential: <strong>${fmtUSD(arr(t1Domains))}</strong> &nbsp;·&nbsp; ${fmtFull(customers(t1Domains))} customers &nbsp;·&nbsp; Rev share 15–20%`;
+  if (t2r) t2r.innerHTML = `ARR Potential: <strong>${fmtUSD(arr(t2Domains))}</strong> &nbsp;·&nbsp; ${fmtFull(customers(t2Domains))} customers &nbsp;·&nbsp; Channel program`;
+  if (t3r) t3r.innerHTML = `ARR Potential: <strong>${fmtUSD(arr(t3Domains))}</strong> &nbsp;·&nbsp; ${fmtFull(customers(t3Domains))} customers &nbsp;·&nbsp; Self-serve reseller`;
+  // Re-render cards (to update ARR on each card)
+  render();
+}
 
 function fmt(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
@@ -1831,6 +2199,18 @@ document.getElementById('filter-group').addEventListener('click', e => {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   render();
+});
+
+document.getElementById('conv-slider').addEventListener('input', e => {
+  CONVERSION_RATE = parseFloat(e.target.value) / 100;
+  document.getElementById('conv-display').textContent = parseFloat(e.target.value).toFixed(1).replace(/\.0$/, '') + '%';
+  recalculate();
+});
+
+document.getElementById('price-slider').addEventListener('input', e => {
+  PRICE_PER_DOMAIN = parseInt(e.target.value);
+  document.getElementById('price-display').textContent = '$' + e.target.value;
+  recalculate();
 });
 
 // ═══════════════════════════════════════════════════
