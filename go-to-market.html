@@ -912,6 +912,106 @@ body {
 .t2 .tier-revenue { background: rgba(245,200,66,0.06); color: var(--med); border: 1px solid rgba(245,200,66,0.15); }
 .t3 .tier-revenue { background: rgba(255,107,53,0.05); color: var(--low); border: 1px solid rgba(255,107,53,0.15); }
 
+/* ── REVENUE MODAL STYLES ── */
+.rev-assumptions {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.rev-assumptions strong { color: var(--accent); }
+
+.rev-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.rev-summary-box {
+  flex: 1;
+  min-width: 120px;
+  padding: 14px 16px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+.rev-summary-highlight {
+  background: rgba(203,255,0,0.06);
+  border-color: rgba(203,255,0,0.25);
+}
+.rev-summary-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.rev-summary-val {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.rev-summary-highlight .rev-summary-val { color: var(--accent); }
+.rev-summary-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+}
+.rev-summary-arrow {
+  font-size: 18px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+.rev-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr;
+  gap: 8px;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.rev-provider-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr;
+  gap: 8px;
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  align-items: center;
+}
+.rev-provider-row:last-child { border-bottom: none; }
+.rev-prov-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+}
+.rev-prov-domains, .rev-prov-cust {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+}
+.rev-prov-arr {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
 /* ── FOOTER ── */
 footer {
   background: var(--bg);
@@ -983,6 +1083,38 @@ footer {
 
 .empty-state.visible { display: block; }
 
+/* ── CARD REVENUE ROW ── */
+.card-revenue-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 6px 0 12px;
+  padding: 7px 10px;
+  background: rgba(203,255,0,0.04);
+  border: 1px solid rgba(203,255,0,0.12);
+  border-radius: 6px;
+}
+.card-rev-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+.card-rev-val {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.card-rev-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-left: auto;
+}
+
 /* Number counter animation */
 @keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
 .metric-value { animation: countUp 0.5s ease-out; }
@@ -1022,9 +1154,9 @@ footer {
         <div class="metric-sub">named, ranked, profiled</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Est. Market Reach</div>
-        <div class="metric-value" id="metric-reach">~15M</div>
-        <div class="metric-sub">domains under management</div>
+        <div class="metric-label">ARR Potential</div>
+        <div class="metric-value" id="metric-arr">$7.4M</div>
+        <div class="metric-sub">5% conversion · $10/domain/yr</div>
       </div>
     </div>
   </div>
@@ -1038,6 +1170,7 @@ footer {
     <span class="control-label">SORT BY</span>
     <select class="control-select" id="sort-select">
       <option value="domains-desc">Domains ↓</option>
+      <option value="revenue-desc">ARR Potential ↓</option>
       <option value="opp-desc">Opportunity Score ↓</option>
       <option value="country-asc">Country A–Z</option>
     </select>
@@ -1097,7 +1230,7 @@ footer {
           <li>Custom SLA + priority support queue</li>
           <li>Co-branded marketing materials + press release</li>
         </ul>
-        <div class="tier-revenue">Revenue share: 15–20% · White-label available</div>
+        <div class="tier-revenue">ARR Potential: <strong>$5.58M</strong> &nbsp;·&nbsp; 557,500 customers &nbsp;·&nbsp; Rev share 15–20%</div>
       </div>
       <div class="tier-col t2">
         <div class="tier-num">TIER 2</div>
@@ -1120,7 +1253,7 @@ footer {
           <li>Monthly business review cadence</li>
           <li>Volume-based pricing tiers</li>
         </ul>
-        <div class="tier-revenue">Channel program · API integration · Co-marketing</div>
+        <div class="tier-revenue">ARR Potential: <strong>$1.05M</strong> &nbsp;·&nbsp; 105,000 customers &nbsp;·&nbsp; Channel program</div>
       </div>
       <div class="tier-col t3">
         <div class="tier-num">TIER 3</div>
@@ -1141,7 +1274,7 @@ footer {
           <li>Quarterly newsletter updates</li>
           <li>Monitor for market growth triggers</li>
         </ul>
-        <div class="tier-revenue">Self-serve reseller portal · Low-touch motion</div>
+        <div class="tier-revenue">ARR Potential: <strong>$330k</strong> &nbsp;·&nbsp; 33,000 customers &nbsp;·&nbsp; Self-serve reseller</div>
       </div>
     </div>
   </div>
@@ -1380,10 +1513,22 @@ const COUNTRIES = [
 // ═══════════════════════════════════════════════════
 // UTILITIES
 // ═══════════════════════════════════════════════════
+const CONVERSION_RATE = 0.05;  // 5% of total domains become customers
+const PRICE_PER_DOMAIN = 10;   // $10/domain/year
+
+function arr(domains) { return Math.round(domains * CONVERSION_RATE) * PRICE_PER_DOMAIN; }
+function customers(domains) { return Math.round(domains * CONVERSION_RATE); }
+
 function fmt(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   if (n >= 1000)    return (n / 1000).toFixed(0) + 'k';
   return n.toString();
+}
+
+function fmtUSD(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  if (n >= 1000)    return '$' + (n / 1000).toFixed(0) + 'k';
+  return '$' + n.toLocaleString();
 }
 
 function fmtFull(n) {
@@ -1460,6 +1605,11 @@ function buildCard(c, idx) {
       </div>
       <div class="total-domains">${fmt(c.domains)}</div>
       <div class="domains-label">Total Domains</div>
+      <div class="card-revenue-row">
+        <span class="card-rev-label">ARR POTENTIAL</span>
+        <span class="card-rev-val">${fmtUSD(arr(c.domains))}</span>
+        <span class="card-rev-sub">${fmt(customers(c.domains))} customers @ 5%</span>
+      </div>
       <div class="providers-section">
         ${bars}
         ${moreLabel}
@@ -1483,6 +1633,8 @@ function getSortedFiltered() {
 
   if (currentSort === 'domains-desc') {
     list.sort((a, b) => b.domains - a.domains);
+  } else if (currentSort === 'revenue-desc') {
+    list.sort((a, b) => arr(b.domains) - arr(a.domains));
   } else if (currentSort === 'opp-desc') {
     list.sort((a, b) => OPP_ORDER[b.opp] - OPP_ORDER[a.opp] || b.domains - a.domains);
   } else if (currentSort === 'country-asc') {
@@ -1563,10 +1715,57 @@ function openModal(idx) {
 
   const app = c.approach;
 
+  const countryARR = arr(c.domains);
+  const countryCustomers = customers(c.domains);
+  const providerRevRows = c.providers.map(p => {
+    const pArr = arr(p.domains);
+    const pCust = customers(p.domains);
+    return `
+      <div class="rev-provider-row">
+        <div class="rev-prov-name">${p.name}</div>
+        <div class="rev-prov-domains">${fmtFull(p.domains)} domains</div>
+        <div class="rev-prov-cust">${fmtFull(pCust)} customers</div>
+        <div class="rev-prov-arr">${fmtUSD(pArr)}/yr</div>
+      </div>
+    `;
+  }).join('');
+
   body.innerHTML = `
     <div class="modal-section">
       <div class="modal-section-title">Provider Market Share</div>
       ${provRows}
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Revenue Business Case</div>
+      <div class="rev-assumptions">
+        Assumptions: <strong>5% conversion rate</strong> of managed domains &nbsp;·&nbsp; <strong>$10 / domain / year</strong>
+      </div>
+      <div class="rev-summary-row">
+        <div class="rev-summary-box">
+          <div class="rev-summary-label">Total Addressable</div>
+          <div class="rev-summary-val">${fmtFull(c.domains)}</div>
+          <div class="rev-summary-sub">domains in market</div>
+        </div>
+        <div class="rev-summary-arrow">→</div>
+        <div class="rev-summary-box">
+          <div class="rev-summary-label">@ 5% Conversion</div>
+          <div class="rev-summary-val">${fmtFull(countryCustomers)}</div>
+          <div class="rev-summary-sub">paying customers</div>
+        </div>
+        <div class="rev-summary-arrow">→</div>
+        <div class="rev-summary-box rev-summary-highlight">
+          <div class="rev-summary-label">ARR Potential</div>
+          <div class="rev-summary-val">${fmtUSD(countryARR)}</div>
+          <div class="rev-summary-sub">annual recurring revenue</div>
+        </div>
+      </div>
+      <div class="rev-table-header">
+        <span>Provider</span>
+        <span>Domains Under Mgmt</span>
+        <span>Customers (5%)</span>
+        <span>ARR Potential</span>
+      </div>
+      ${providerRevRows}
     </div>
     <div class="modal-section">
       <div class="modal-section-title">GTM Intelligence</div>
