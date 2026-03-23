@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwarmHawk — CEE B2B Partnership GTM</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --bg2: #0e0e16;
+  --card: #12121c;
+  --card2: #1a1a24;
+  --accent: #cbff00;
+  --accent2: #a8d400;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(203,255,0,0.2);
+  --text: #e8e8f0;
+  --text2: #8888a0;
+  --text3: #5a5a70;
+  --high: #cbff00;
+  --med: #f5c842;
+  --low: #ff6b35;
+  --mono: 'Space Mono', monospace;
+  --body: system-ui, -apple-system, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: rgba(203,255,0,0.3); border-radius: 3px; }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  padding: 60px 40px 50px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: -200px;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(203,255,0,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 1px; height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(203,255,0,0.15), transparent);
+  pointer-events: none;
+}
+
+.hero-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.logo-mark {
+  width: 40px; height: 40px;
+  background: var(--accent);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-mark::after {
+  content: 'S';
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: #0a0a0f;
+}
+
+.logo-text {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.logo-sep {
+  color: var(--text3);
+  font-size: 18px;
+}
+
+.doc-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-family: var(--mono);
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.hero-title span { color: var(--accent); }
+
+.hero-subtitle {
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 40px;
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) { .metrics-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .metrics-row { grid-template-columns: 1fr 1fr; } }
+
+.metric-card {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.metric-card:hover { border-color: var(--border2); }
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.metric-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.metric-value {
+  font-family: var(--mono);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.metric-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 6px;
+}
+
+/* ── CONTROLS ── */
+.controls-bar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.controls-bar::before {
+  content: 'CONTROLS';
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+  border-right: 1px solid var(--border);
+  padding-right: 24px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+}
+
+.control-select, .filter-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--card2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+.control-select:hover, .filter-btn:hover {
+  border-color: var(--border2);
+  color: var(--accent);
+}
+
+.control-select:focus { border-color: var(--border2); }
+
+.filter-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 5px 14px;
+  letter-spacing: 0.06em;
+}
+
+.filter-btn.active {
+  background: rgba(203,255,0,0.12);
+  border-color: rgba(203,255,0,0.4);
+  color: var(--accent);
+}
+
+.ml-auto { margin-left: auto; }
+
+.export-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: rgba(203,255,0,0.1);
+  color: var(--accent);
+  border: 1px solid rgba(203,255,0,0.3);
+  border-radius: 4px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.export-btn:hover {
+  background: rgba(203,255,0,0.18);
+  border-color: rgba(203,255,0,0.6);
+}
+
+.export-btn::before { content: '↓'; font-size: 13px; }
+
+/* ── MAIN GRID ── */
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 40px 60px;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text2);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.country-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1200px) { .country-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 860px) { .country-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .country-grid { grid-template-columns: 1fr; } }
+
+/* ── COUNTRY CARD ── */
+.country-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.country-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(203,255,0,0.02), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.country-card:hover {
+  border-color: rgba(203,255,0,0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(203,255,0,0.08);
+}
+
+.country-card:hover::before { opacity: 1; }
+
+.country-card.hidden {
+  display: none;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.flag-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.flag {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.country-name {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.tier-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.opp-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.opp-HIGH { background: rgba(203,255,0,0.12); color: var(--high); border: 1px solid rgba(203,255,0,0.25); }
+.opp-MEDIUM { background: rgba(245,200,66,0.1); color: var(--med); border: 1px solid rgba(245,200,66,0.25); }
+.opp-LOW { background: rgba(255,107,53,0.08); color: var(--low); border: 1px solid rgba(255,107,53,0.2); }
+
+.total-domains {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.domains-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.providers-section {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.provider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.provider-name {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  width: 90px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: visible;
+  position: relative;
+  cursor: pointer;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.6s cubic-bezier(0.2, 0, 0.2, 1);
+  position: relative;
+}
+
+.bar-fill.bar-dim {
+  background: linear-gradient(90deg, rgba(203,255,0,0.4), rgba(168,212,0,0.3));
+}
+
+.provider-pct {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--border2);
+}
+
+.bar-wrap:hover .tooltip { display: block; }
+
+.more-providers {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* ── MODAL ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--card);
+  border: 1px solid rgba(203,255,0,0.2);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 780px;
+  max-height: 88vh;
+  overflow-y: auto;
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+  position: relative;
+}
+
+.modal-backdrop.open .modal {
+  transform: scale(1) translateY(0);
+}
+
+.modal-header {
+  padding: 28px 32px 0;
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 1;
+  border-radius: 14px 14px 0 0;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px; right: 24px;
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  font-size: 16px;
+  transition: all 0.15s;
+  font-family: monospace;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.modal-flag-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.modal-flag { font-size: 40px; line-height: 1; }
+
+.modal-country-name {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.modal-stat {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.modal-stat strong { color: var(--accent); }
+
+.modal-body {
+  padding: 24px 32px 32px;
+}
+
+.modal-section {
+  margin-bottom: 28px;
+}
+
+.modal-section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-provider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+
+.modal-provider-row:hover { border-color: rgba(203,255,0,0.15); }
+
+.modal-provider-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.modal-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+}
+
+.modal-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.8s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.modal-provider-stats {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.modal-pct {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  width: 38px;
+  text-align: right;
+}
+
+.modal-domains {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  width: 90px;
+  text-align: right;
+}
+
+.gtm-box {
+  background: rgba(203,255,0,0.04);
+  border: 1px solid rgba(203,255,0,0.12);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 20px;
+}
+
+.gtm-text {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.approach-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 600px) { .approach-grid { grid-template-columns: 1fr; } }
+
+.approach-item {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.approach-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.approach-value {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* ── STRATEGY PANEL ── */
+.strategy-panel {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 60px 40px;
+}
+
+.strategy-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.strategy-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.strategy-heading {
+  font-family: var(--mono);
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 40px;
+}
+
+.strategy-heading span { color: var(--accent); }
+
+.tier-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 860px) { .tier-cols { grid-template-columns: 1fr; } }
+
+.tier-col {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.tier-col:hover {
+  border-color: rgba(203,255,0,0.2);
+  transform: translateY(-2px);
+}
+
+.tier-col.t1::before { background: var(--accent); }
+.tier-col.t2::before { background: var(--med); }
+.tier-col.t3::before { background: var(--low); }
+
+.tier-col::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+}
+
+.tier-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.t1 .tier-num { color: var(--accent); }
+.t2 .tier-num { color: var(--med); }
+.t3 .tier-num { color: var(--low); }
+
+.tier-name {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.tier-threshold {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 20px;
+}
+
+.tier-countries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.country-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  background: rgba(255,255,255,0.03);
+}
+
+.tier-divider {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 16px;
+}
+
+.tier-detail {
+  list-style: none;
+}
+
+.tier-detail li {
+  font-size: 13px;
+  color: var(--text2);
+  padding: 5px 0;
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.4;
+}
+
+.tier-detail li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.t1 .tier-detail li::before { color: var(--accent); }
+.t2 .tier-detail li::before { color: var(--med); }
+.t3 .tier-detail li::before { color: var(--low); }
+
+.tier-revenue {
+  margin-top: 20px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.t1 .tier-revenue { background: rgba(203,255,0,0.06); color: var(--accent); border: 1px solid rgba(203,255,0,0.15); }
+.t2 .tier-revenue { background: rgba(245,200,66,0.06); color: var(--med); border: 1px solid rgba(245,200,66,0.15); }
+.t3 .tier-revenue { background: rgba(255,107,53,0.05); color: var(--low); border: 1px solid rgba(255,107,53,0.15); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 24px 40px;
+  text-align: center;
+}
+
+.footer-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+}
+
+.footer-text span { color: var(--accent); }
+
+/* ── SCAN LINE ANIMATION ── */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scanline {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(203,255,0,0.08), transparent);
+  pointer-events: none;
+  z-index: 9999;
+  animation: scanline 8s linear infinite;
+}
+
+/* ── GRID DOTS ── */
+.hero::after {
+  content: '';
+  position: absolute;
+  right: 40px; top: 40px;
+  width: 200px; height: 200px;
+  background-image: radial-gradient(circle, rgba(203,255,0,0.12) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  mask-image: radial-gradient(circle, black 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle, black 40%, transparent 80%);
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  .controls-bar, .modal-backdrop, .scanline { display: none !important; }
+  .country-card { break-inside: avoid; }
+  body { background: white; color: black; }
+  .hero, .strategy-panel, footer { background: white; }
+  .metric-card, .country-card, .tier-col { border: 1px solid #ccc; }
+  .metric-value, .total-domains, .logo-text { color: #1a1a1a; }
+  .opp-badge { border: 1px solid #999; }
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  font-family: var(--mono);
+  color: var(--text3);
+  font-size: 13px;
+  display: none;
+}
+
+.empty-state.visible { display: block; }
+
+/* Number counter animation */
+@keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
+.metric-value { animation: countUp 0.5s ease-out; }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<!-- ══════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="logo-row">
+      <div class="logo-mark"></div>
+      <span class="logo-text">SWARMHAWK</span>
+      <span class="logo-sep">/</span>
+      <span class="doc-badge">GTM · CONFIDENTIAL</span>
+    </div>
+    <div class="hero-title">B2B Partnership GTM — <span>CEE Hosting Market</span></div>
+    <div class="hero-subtitle">CENTRAL & EASTERN EUROPE · DOMAIN SECURITY · 2026 EXPANSION PLAN</div>
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-label">Total Domains Addressable</div>
+        <div class="metric-value" data-target="14830000" id="metric-domains">0</div>
+        <div class="metric-sub">across 16 countries</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Countries Mapped</div>
+        <div class="metric-value" data-target="16" id="metric-countries">0</div>
+        <div class="metric-sub">full provider breakdown</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Identified Providers</div>
+        <div class="metric-value" data-target="72" id="metric-providers">0</div>
+        <div class="metric-sub">named, ranked, profiled</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Est. Market Reach</div>
+        <div class="metric-value" id="metric-reach">~15M</div>
+        <div class="metric-sub">domains under management</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════
+     CONTROLS BAR
+══════════════════════════════════════════════════ -->
+<nav class="controls-bar" id="controls">
+  <div class="control-group">
+    <span class="control-label">SORT BY</span>
+    <select class="control-select" id="sort-select">
+      <option value="domains-desc">Domains ↓</option>
+      <option value="opp-desc">Opportunity Score ↓</option>
+      <option value="country-asc">Country A–Z</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <span class="control-label">FILTER</span>
+    <div class="filter-group" id="filter-group">
+      <button class="filter-btn active" data-tier="all">All</button>
+      <button class="filter-btn" data-tier="1">Tier 1</button>
+      <button class="filter-btn" data-tier="2">Tier 2</button>
+      <button class="filter-btn" data-tier="3">Tier 3</button>
+    </div>
+  </div>
+  <button class="export-btn ml-auto" onclick="window.print()">Export PDF</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     COUNTRY CARDS
+══════════════════════════════════════════════════ -->
+<main class="main-content">
+  <div class="section-header">
+    <span class="section-title">Market Intelligence — Country Overview</span>
+    <span class="section-count" id="visible-count">16 markets</span>
+  </div>
+  <div class="country-grid" id="country-grid">
+    <!-- Cards injected by JS -->
+    <div class="empty-state" id="empty-state">No markets match current filter.</div>
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════
+     STRATEGY PANEL
+══════════════════════════════════════════════════ -->
+<section class="strategy-panel">
+  <div class="strategy-inner">
+    <div class="strategy-title">GTM FRAMEWORK</div>
+    <div class="strategy-heading">Partnership <span>Tier Structure</span> — CEE Go-to-Market</div>
+    <div class="tier-cols">
+      <div class="tier-col t1">
+        <div class="tier-num">TIER 1</div>
+        <div class="tier-name">Strategic Partners</div>
+        <div class="tier-threshold">500,000+ domains under management</div>
+        <div class="tier-countries">
+          <span class="country-chip">🇵🇱 Poland</span>
+          <span class="country-chip">🇺🇦 Ukraine</span>
+          <span class="country-chip">🇨🇿 Czech Republic</span>
+          <span class="country-chip">🇷🇴 Romania</span>
+          <span class="country-chip">🇦🇹 Austria</span>
+          <span class="country-chip">🇭🇺 Hungary</span>
+        </div>
+        <div class="tier-divider"></div>
+        <ul class="tier-detail">
+          <li>Direct enterprise sales motion, C-level engagement</li>
+          <li>Revenue share model: 15–20% of scan revenue</li>
+          <li>White-label SwarmHawk under partner brand</li>
+          <li>Dedicated integration engineer assigned</li>
+          <li>Custom SLA + priority support queue</li>
+          <li>Co-branded marketing materials + press release</li>
+        </ul>
+        <div class="tier-revenue">Revenue share: 15–20% · White-label available</div>
+      </div>
+      <div class="tier-col t2">
+        <div class="tier-num">TIER 2</div>
+        <div class="tier-name">Growth Partners</div>
+        <div class="tier-threshold">100,000–500,000 domains under management</div>
+        <div class="tier-countries">
+          <span class="country-chip">🇸🇰 Slovakia</span>
+          <span class="country-chip">🇪🇪 Estonia</span>
+          <span class="country-chip">🇱🇹 Lithuania</span>
+          <span class="country-chip">🇱🇻 Latvia</span>
+          <span class="country-chip">🇧🇬 Bulgaria</span>
+          <span class="country-chip">🇷🇸 Serbia</span>
+        </div>
+        <div class="tier-divider"></div>
+        <ul class="tier-detail">
+          <li>Channel partner program with deal registration</li>
+          <li>API-first integration, hosted documentation</li>
+          <li>Co-marketing: joint webinars, case studies</li>
+          <li>Partner portal with lead tracking dashboard</li>
+          <li>Monthly business review cadence</li>
+          <li>Volume-based pricing tiers</li>
+        </ul>
+        <div class="tier-revenue">Channel program · API integration · Co-marketing</div>
+      </div>
+      <div class="tier-col t3">
+        <div class="tier-num">TIER 3</div>
+        <div class="tier-name">Ecosystem Partners</div>
+        <div class="tier-threshold">&lt;100,000 domains under management</div>
+        <div class="tier-countries">
+          <span class="country-chip">🇭🇷 Croatia</span>
+          <span class="country-chip">🇸🇮 Slovenia</span>
+          <span class="country-chip">🇧🇾 Belarus</span>
+          <span class="country-chip">🇲🇩 Moldova</span>
+        </div>
+        <div class="tier-divider"></div>
+        <ul class="tier-detail">
+          <li>Self-serve reseller portal, instant onboarding</li>
+          <li>Low-touch sales motion, no dedicated AE</li>
+          <li>Standard API access + docs</li>
+          <li>Community Slack + async support</li>
+          <li>Quarterly newsletter updates</li>
+          <li>Monitor for market growth triggers</li>
+        </ul>
+        <div class="tier-revenue">Self-serve reseller portal · Low-touch motion</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-text">
+    <span>SwarmHawk</span> — World's Largest Domain Security Database &nbsp;·&nbsp; B2B Partnership Deck &nbsp;·&nbsp; swarmhawk.com &nbsp;·&nbsp; Confidential 2026
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL
+══════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-header" id="modal-header"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+const COUNTRIES = [
+  {
+    name: "Poland", flag: "🇵🇱", tier: 1,
+    domains: 4500000, opp: "HIGH",
+    providers: [
+      { name: "home.pl / cyberFolks", pct: 45, domains: 2025000 },
+      { name: "OVH Poland",           pct: 15, domains: 675000 },
+      { name: "nazwa.pl",             pct:  8, domains: 360000 },
+      { name: "az.pl",                pct:  5, domains: 225000 },
+      { name: "LH.pl",                pct:  4, domains: 180000 },
+    ],
+    gtm: "Largest CEE market. home.pl/cyberFolks is the #1 target — reseller agreement could unlock 2M+ domain security scans immediately.",
+    approach: { sales: "Direct Enterprise", rev: "15–20% revenue share", integration: "White-label available", priority: "P0 — Immediate" }
+  },
+  {
+    name: "Ukraine", flag: "🇺🇦", tier: 1,
+    domains: 1800000, opp: "HIGH",
+    providers: [
+      { name: "Ukrnames",       pct: 25, domains: 450000 },
+      { name: "Imena.ua",       pct: 18, domains: 324000 },
+      { name: "NIC.UA",         pct: 15, domains: 270000 },
+      { name: "UASolution",     pct:  8, domains: 144000 },
+      { name: "Hosting Ukraine",pct:  6, domains: 108000 },
+    ],
+    gtm: "High vulnerability density post-2022. Strong demand for security tooling. Ukrnames + Imena.ua together cover 43% of market.",
+    approach: { sales: "Direct + Channel", rev: "15–18% revenue share", integration: "API + White-label", priority: "P0 — Q1 2026" }
+  },
+  {
+    name: "Czech Republic", flag: "🇨🇿", tier: 1,
+    domains: 1350000, opp: "HIGH",
+    providers: [
+      { name: "WEDOS",          pct: 35, domains: 472500 },
+      { name: "Forpsi",         pct: 12, domains: 162000 },
+      { name: "Active24",       pct:  9, domains: 121500 },
+      { name: "Zoner.cz",       pct:  7, domains:  94500 },
+      { name: "Master Internet",pct:  5, domains:  67500 },
+    ],
+    gtm: "WEDOS is the dominant registrar. Strong SME market — security upsell natural fit. Active24 operates across CZ+SK.",
+    approach: { sales: "Direct Enterprise", rev: "15–20% revenue share", integration: "White-label available", priority: "P0 — Q1 2026" }
+  },
+  {
+    name: "Austria", flag: "🇦🇹", tier: 1,
+    domains: 1500000, opp: "MEDIUM",
+    providers: [
+      { name: "Easyname",            pct: 28, domains: 420000 },
+      { name: "world4you",           pct: 22, domains: 330000 },
+      { name: "Domainnameshop AT",   pct: 10, domains: 150000 },
+      { name: "Schlundtech",         pct:  8, domains: 120000 },
+      { name: "Netplanet",           pct:  5, domains:  75000 },
+    ],
+    gtm: "Gateway to DACH market. Austrian companies have high compliance requirements (NIS2) — strong security pitch.",
+    approach: { sales: "Direct Enterprise", rev: "15–18% revenue share", integration: "White-label + NIS2 framing", priority: "P1 — Q2 2026" }
+  },
+  {
+    name: "Romania", flag: "🇷🇴", tier: 1,
+    domains: 1100000, opp: "HIGH",
+    providers: [
+      { name: "RCS-RDS / Digi",pct: 30, domains: 330000 },
+      { name: "Hostico",       pct: 12, domains: 132000 },
+      { name: "GTS Telecom",   pct:  8, domains:  88000 },
+      { name: "ROMARG",        pct:  6, domains:  66000 },
+      { name: "Eurodns RO",    pct:  5, domains:  55000 },
+    ],
+    gtm: "Digi/RCS-RDS is telco + hosting — high-leverage partnership. Fast-growing tech sector in Cluj/Bucharest.",
+    approach: { sales: "Direct Telco Sales", rev: "15–20% revenue share", integration: "API + co-brand", priority: "P0 — Q1 2026" }
+  },
+  {
+    name: "Hungary", flag: "🇭🇺", tier: 1,
+    domains: 900000, opp: "HIGH",
+    providers: [
+      { name: "Tárhely.eu",  pct: 35, domains: 315000 },
+      { name: "DotRoll",     pct: 22, domains: 198000 },
+      { name: "Ezit.hu",     pct: 10, domains:  90000 },
+      { name: "Rackforest",  pct:  7, domains:  63000 },
+      { name: "Hostlogic",   pct:  5, domains:  45000 },
+    ],
+    gtm: "Tárhely.eu + DotRoll together control 57% of the market. Both are domestic — prefer local security partners.",
+    approach: { sales: "Local Partner Intro", rev: "15–18% revenue share", integration: "API-first", priority: "P1 — Q2 2026" }
+  },
+  {
+    name: "Slovakia", flag: "🇸🇰", tier: 2,
+    domains: 500000, opp: "HIGH",
+    providers: [
+      { name: "Websupport",     pct: 40, domains: 200000 },
+      { name: "Active24 SK",    pct: 15, domains:  75000 },
+      { name: "Gransy/Subreg", pct: 12, domains:  60000 },
+      { name: "Slovak Telekom", pct:  8, domains:  40000 },
+      { name: "Forpsi SK",      pct:  5, domains:  25000 },
+    ],
+    gtm: "Websupport is the clear leader. Active24 bridge between CZ+SK markets — one deal covers both.",
+    approach: { sales: "Channel Program", rev: "Volume-based pricing", integration: "API integration", priority: "P1 — Q2 2026" }
+  },
+  {
+    name: "Bulgaria", flag: "🇧🇬", tier: 2,
+    domains: 400000, opp: "HIGH",
+    providers: [
+      { name: "SuperHosting.bg",pct: 40, domains: 160000 },
+      { name: "ICN.bg",         pct: 20, domains:  80000 },
+      { name: "SiteGround",     pct: 15, domains:  60000 },
+      { name: "Host.bg",        pct: 10, domains:  40000 },
+      { name: "Superhosting alt",pct: 5, domains:  20000 },
+    ],
+    gtm: "SiteGround founded in Sofia — global reach, local roots. SuperHosting.bg is the go-to for SMEs.",
+    approach: { sales: "Channel + Direct", rev: "Volume-based pricing", integration: "API + co-marketing", priority: "P1 — Q2 2026" }
+  },
+  {
+    name: "Lithuania", flag: "🇱🇹", tier: 2,
+    domains: 350000, opp: "MEDIUM",
+    providers: [
+      { name: "Hostex.lt",       pct: 30, domains: 105000 },
+      { name: "Interneto vizija",pct: 20, domains:  70000 },
+      { name: "Domenai.lt",      pct: 15, domains:  52500 },
+      { name: "Baltic Amadeus",  pct: 10, domains:  35000 },
+      { name: "Telia LT",        pct:  8, domains:  28000 },
+    ],
+    gtm: "Growing fintech/startup ecosystem. Interneto vizija is the most partner-friendly provider.",
+    approach: { sales: "Channel Program", rev: "Volume-based pricing", integration: "API integration", priority: "P2 — Q3 2026" }
+  },
+  {
+    name: "Estonia", flag: "🇪🇪", tier: 2,
+    domains: 300000, opp: "MEDIUM",
+    providers: [
+      { name: "Zone.ee",          pct: 45, domains: 135000 },
+      { name: "Telia Estonia",    pct: 15, domains:  45000 },
+      { name: "Veebimajutus.ee",  pct: 12, domains:  36000 },
+      { name: "Domgate.ee",       pct:  8, domains:  24000 },
+      { name: "Dataplex",         pct:  6, domains:  18000 },
+    ],
+    gtm: "Zone.ee dominates and is tech-forward — good API partnership candidate. Estonia is EU's most digitized country.",
+    approach: { sales: "API-first Outreach", rev: "Volume-based pricing", integration: "Deep API integration", priority: "P1 — Q2 2026" }
+  },
+  {
+    name: "Serbia", flag: "🇷🇸", tier: 2,
+    domains: 300000, opp: "MEDIUM",
+    providers: [
+      { name: "Hosting.rs",   pct: 35, domains: 105000 },
+      { name: "SCHost",       pct: 20, domains:  60000 },
+      { name: "iHost.rs",     pct: 12, domains:  36000 },
+      { name: "Orion Telekom",pct: 10, domains:  30000 },
+      { name: "NetSons",      pct:  6, domains:  18000 },
+    ],
+    gtm: "Emerging tech hub in Belgrade. Hosting.rs is the dominant local player.",
+    approach: { sales: "Channel Program", rev: "Volume-based pricing", integration: "API integration", priority: "P2 — Q3 2026" }
+  },
+  {
+    name: "Latvia", flag: "🇱🇻", tier: 2,
+    domains: 250000, opp: "MEDIUM",
+    providers: [
+      { name: "Tet (Lattelecom)",pct: 35, domains: 87500 },
+      { name: "Zone.lv",         pct: 25, domains: 62500 },
+      { name: "Nano.lv",         pct: 15, domains: 37500 },
+      { name: "Serveris.lv",     pct: 10, domains: 25000 },
+      { name: "Timehost.lv",     pct:  6, domains: 15000 },
+    ],
+    gtm: "Tet is the national telco — enterprise relationships. Zone.lv shares tech DNA with Zone.ee (same group).",
+    approach: { sales: "Channel Program", rev: "Volume-based pricing", integration: "API + bundle", priority: "P2 — Q3 2026" }
+  },
+  {
+    name: "Croatia", flag: "🇭🇷", tier: 3,
+    domains: 200000, opp: "MEDIUM",
+    providers: [
+      { name: "Loopia HR",   pct: 30, domains: 60000 },
+      { name: "Plus Hosting",pct: 20, domains: 40000 },
+      { name: "Avalon",      pct: 15, domains: 30000 },
+      { name: "Domaini.hr",  pct: 10, domains: 20000 },
+      { name: "CARNET",      pct:  8, domains: 16000 },
+    ],
+    gtm: "Post-EU accession compliance push. Loopia is Swedish-owned — enterprise sales channel.",
+    approach: { sales: "Self-serve Reseller", rev: "Standard reseller rates", integration: "Portal onboarding", priority: "P3 — Q4 2026" }
+  },
+  {
+    name: "Belarus", flag: "🇧🇾", tier: 3,
+    domains: 200000, opp: "LOW",
+    providers: [
+      { name: "Hoster.by",    pct: 40, domains: 80000 },
+      { name: "Beget.by",     pct: 20, domains: 40000 },
+      { name: "Activecloud",  pct: 15, domains: 30000 },
+    ],
+    gtm: "Sanctions complexity — deprioritize until regulatory clarity.",
+    approach: { sales: "Deprioritized", rev: "Monitor only", integration: "No active outreach", priority: "P4 — Hold" }
+  },
+  {
+    name: "Slovenia", flag: "🇸🇮", tier: 3,
+    domains: 180000, opp: "LOW",
+    providers: [
+      { name: "Arnes",            pct: 25, domains: 45000 },
+      { name: "Siol.net",         pct: 20, domains: 36000 },
+      { name: "GEN-I",            pct: 15, domains: 27000 },
+      { name: "IskraTEL",         pct: 10, domains: 18000 },
+      { name: "Hostko.si",        pct:  8, domains: 14400 },
+    ],
+    gtm: "Small but affluent market. Arnes is academic — focus on commercial providers.",
+    approach: { sales: "Self-serve Reseller", rev: "Standard reseller rates", integration: "Portal onboarding", priority: "P3 — Q4 2026" }
+  },
+  {
+    name: "Moldova", flag: "🇲🇩", tier: 3,
+    domains: 80000, opp: "LOW",
+    providers: [
+      { name: "Midis Group",pct: 35, domains: 28000 },
+      { name: "CarWeb",     pct: 25, domains: 20000 },
+      { name: "StarNet",    pct: 20, domains: 16000 },
+    ],
+    gtm: "Very small market, low priority. Monitor for future EU accession opportunity.",
+    approach: { sales: "Self-serve Reseller", rev: "Standard reseller rates", integration: "Portal onboarding", priority: "P4 — Monitor" }
+  },
+];
+
+// ═══════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════
+function fmt(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(0) + 'k';
+  return n.toString();
+}
+
+function fmtFull(n) {
+  return n.toLocaleString('en-US');
+}
+
+const OPP_ORDER = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+
+// ═══════════════════════════════════════════════════
+// ANIMATED COUNTER
+// ═══════════════════════════════════════════════════
+function animateCounter(el, target, duration = 1400, suffix = '') {
+  const start = performance.now();
+  const isLarge = target > 10000;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const val = Math.round(target * ease);
+    el.textContent = isLarge ? fmt(val) : val.toLocaleString();
+    if (t < 1) requestAnimationFrame(step);
+    else el.textContent = isLarge ? fmt(target) : target.toLocaleString();
+  }
+  requestAnimationFrame(step);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target, 10);
+    setTimeout(() => animateCounter(el, target), 200);
+  });
+});
+
+// ═══════════════════════════════════════════════════
+// CARD RENDERER
+// ═══════════════════════════════════════════════════
+function buildCard(c, idx) {
+  const top3 = c.providers.slice(0, 3);
+  const rest = c.providers.length - 3;
+  const maxPct = c.providers[0].pct;
+
+  const bars = top3.map((p, i) => `
+    <div class="provider-row">
+      <div class="provider-name">${p.name}</div>
+      <div class="bar-wrap" tabindex="0" aria-label="${p.name}: ${fmtFull(p.domains)} domains">
+        <div class="bar-fill ${i > 0 ? 'bar-dim' : ''}" style="width:${(p.pct / maxPct) * 100}%"></div>
+        <div class="tooltip">${fmtFull(p.domains)} domains</div>
+      </div>
+      <div class="provider-pct">${p.pct}%</div>
+    </div>
+  `).join('');
+
+  const moreLabel = rest > 0 ? `<div class="more-providers">+${rest} more providers</div>` : '';
+
+  return `
+    <div class="country-card"
+         data-country="${idx}"
+         data-tier="${c.tier}"
+         data-domains="${c.domains}"
+         data-opp="${OPP_ORDER[c.opp]}"
+         data-name="${c.name}"
+         role="button"
+         tabindex="0"
+         aria-label="View ${c.name} market detail"
+    >
+      <div class="card-top">
+        <div class="flag-name">
+          <div class="flag">${c.flag}</div>
+          <div>
+            <div class="country-name">${c.name}</div>
+            <span class="tier-badge">TIER ${c.tier}</span>
+          </div>
+        </div>
+        <div class="opp-badge opp-${c.opp}">${c.opp}</div>
+      </div>
+      <div class="total-domains">${fmt(c.domains)}</div>
+      <div class="domains-label">Total Domains</div>
+      <div class="providers-section">
+        ${bars}
+        ${moreLabel}
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER + SORT + FILTER
+// ═══════════════════════════════════════════════════
+let currentSort = 'domains-desc';
+let currentTier = 'all';
+
+function getSortedFiltered() {
+  let list = COUNTRIES.map((c, i) => ({ ...c, _idx: i }));
+
+  if (currentTier !== 'all') {
+    list = list.filter(c => c.tier === parseInt(currentTier));
+  }
+
+  if (currentSort === 'domains-desc') {
+    list.sort((a, b) => b.domains - a.domains);
+  } else if (currentSort === 'opp-desc') {
+    list.sort((a, b) => OPP_ORDER[b.opp] - OPP_ORDER[a.opp] || b.domains - a.domains);
+  } else if (currentSort === 'country-asc') {
+    list.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  return list;
+}
+
+function render() {
+  const grid = document.getElementById('country-grid');
+  const empty = document.getElementById('empty-state');
+  const countEl = document.getElementById('visible-count');
+
+  const list = getSortedFiltered();
+
+  // Clear existing cards (keep empty-state)
+  grid.querySelectorAll('.country-card').forEach(el => el.remove());
+
+  if (list.length === 0) {
+    empty.classList.add('visible');
+    countEl.textContent = '0 markets';
+  } else {
+    empty.classList.remove('visible');
+    countEl.textContent = `${list.length} market${list.length !== 1 ? 's' : ''}`;
+    list.forEach(c => {
+      const div = document.createElement('div');
+      div.innerHTML = buildCard(c, c._idx);
+      const card = div.firstElementChild;
+      grid.insertBefore(card, empty);
+    });
+    // Attach click handlers
+    grid.querySelectorAll('.country-card').forEach(card => {
+      card.addEventListener('click', () => openModal(parseInt(card.dataset.country)));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(parseInt(card.dataset.country)); } });
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════
+function openModal(idx) {
+  const c = COUNTRIES[idx];
+  const hdr = document.getElementById('modal-header');
+  const body = document.getElementById('modal-body');
+  const maxPct = c.providers[0].pct;
+
+  hdr.innerHTML = `
+    <button class="modal-close" id="modal-close-btn" aria-label="Close">✕</button>
+    <div class="modal-flag-row">
+      <div class="modal-flag">${c.flag}</div>
+      <div>
+        <div class="modal-country-name">${c.name}</div>
+        <div class="modal-meta">
+          <span class="modal-stat">Tier <strong>${c.tier}</strong></span>
+          <span class="modal-stat">·</span>
+          <span class="modal-stat">Total domains: <strong>${fmtFull(c.domains)}</strong></span>
+          <span class="modal-stat">·</span>
+          <span class="opp-badge opp-${c.opp}">${c.opp}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const provRows = c.providers.map(p => `
+    <div class="modal-provider-row">
+      <div class="modal-provider-name">${p.name}</div>
+      <div class="modal-bar-wrap">
+        <div class="modal-bar-fill" style="width:${(p.pct / maxPct) * 100}%"></div>
+      </div>
+      <div class="modal-provider-stats">
+        <div class="modal-pct">${p.pct}%</div>
+        <div class="modal-domains">~${fmtFull(p.domains)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const app = c.approach;
+
+  body.innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">Provider Market Share</div>
+      ${provRows}
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">GTM Intelligence</div>
+      <div class="gtm-box">
+        <div class="gtm-text">${c.gtm}</div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Recommended Approach</div>
+      <div class="approach-grid">
+        <div class="approach-item">
+          <div class="approach-label">Sales Motion</div>
+          <div class="approach-value">${app.sales}</div>
+        </div>
+        <div class="approach-item">
+          <div class="approach-label">Revenue Model</div>
+          <div class="approach-value">${app.rev}</div>
+        </div>
+        <div class="approach-item">
+          <div class="approach-label">Integration Path</div>
+          <div class="approach-value">${app.integration}</div>
+        </div>
+        <div class="approach-item">
+          <div class="approach-label">Priority Rating</div>
+          <div class="approach-value">${app.priority}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const backdrop = document.getElementById('modal-backdrop');
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ═══════════════════════════════════════════════════
+// EVENT LISTENERS
+// ═══════════════════════════════════════════════════
+document.getElementById('modal-backdrop').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+document.getElementById('sort-select').addEventListener('change', e => {
+  currentSort = e.target.value;
+  render();
+});
+
+document.getElementById('filter-group').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  currentTier = btn.dataset.tier;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+});
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
