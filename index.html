@@ -745,6 +745,25 @@ h1 span{color:var(--lime)}
 .admin-btn-danger{font-size:10px;padding:4px 10px;background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.2);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
 .admin-btn-sm{font-size:10px;padding:4px 10px;background:rgba(255,255,255,.06);color:var(--grey);border:1px solid rgba(255,255,255,.1);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace}
 .admin-page-nav{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:var(--grey);font-family:'Space Mono',monospace}
+/* ── BATCH UPLOAD ── */
+.batch-drop-zone{border:2px dashed rgba(203,255,0,.25);border-radius:12px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(203,255,0,.02);position:relative}
+.batch-drop-zone:hover,.batch-drop-zone.drag-over{border-color:var(--lime);background:rgba(203,255,0,.06)}
+.batch-drop-zone input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.batch-drop-icon{font-size:32px;margin-bottom:10px}
+.batch-drop-title{font-family:'Space Mono',monospace;font-size:13px;color:var(--white);margin-bottom:4px}
+.batch-drop-sub{font-size:11px;color:var(--grey)}
+.batch-preview{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;margin-top:16px}
+.batch-preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.batch-preview-title{font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);text-transform:uppercase;letter-spacing:1px}
+.batch-preview-count{font-family:'Space Mono',monospace;font-size:11px;color:var(--grey)}
+.batch-domain-list{max-height:180px;overflow-y:auto;font-family:'Space Mono',monospace;font-size:11px;color:var(--grey);line-height:1.8}
+.batch-domain-list .bd-invalid{color:#E74C3C;text-decoration:line-through}
+.batch-result{border-radius:10px;padding:16px;margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.batch-result.success{background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2)}
+.batch-result.error{background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.2)}
+.br-stat{text-align:center}
+.br-val{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--white);display:block}
+.br-lbl{font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px}
 .admin-nav-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.5px;padding:8px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:all .15s;font-weight:700}
 .admin-nav-btn:hover{background:rgba(203,255,0,.12);border-color:rgba(203,255,0,.5);color:var(--lime)}
 .admin-nav-btn.active{background:rgba(203,255,0,.15);border-color:var(--lime);color:var(--lime)}
@@ -2964,6 +2983,7 @@ function renderReportPage(data, domain, isSample) {
           <button onclick="adminNavTo('admin-email-templates-section')" class="admin-nav-btn">✉ Email</button>
           <button onclick="adminNavTo('llm-stats-section')"             class="admin-nav-btn">🧠 LLM</button>
           <button onclick="adminNavTo('admin-report-email-section')"    class="admin-nav-btn">📧 Reports</button>
+          <button onclick="adminNavTo('admin-batch-upload-section')"    class="admin-nav-btn">📤 Batch Upload</button>
         </div>
 
         <!-- Row 1: Core KPIs -->
@@ -3346,6 +3366,36 @@ function renderReportPage(data, domain, isSample) {
           </div>
 
           <div id="ret-save-status" style="display:none;margin-top:10px;font-family:'Space Mono',monospace;font-size:11px;color:#2ECC71">✓ Template saved</div>
+        </div>
+
+        <!-- ── Batch Upload ── -->
+        <div class="admin-section" id="admin-batch-upload-section">
+          <div class="admin-section-title">📤 Batch Domain Upload</div>
+          <div style="font-size:12px;color:var(--grey);margin-bottom:18px">Upload a <strong style="color:var(--white)">.txt</strong> (one domain per line) or <strong style="color:var(--white)">.json</strong> (array of strings or objects with a <code style="color:var(--lime)">domain</code> key) file. Domains are queued at <strong style="color:var(--white)">Priority 1</strong> and processed by the next Tier 1 scan cycle.</div>
+
+          <div class="batch-drop-zone" id="batch-drop-zone" onclick="document.getElementById('batch-file-input').click()">
+            <input type="file" id="batch-file-input" accept=".txt,.json" style="display:none" onchange="batchFileSelected(this.files[0])">
+            <div class="batch-drop-icon">📂</div>
+            <div class="batch-drop-title">Drop your file here or click to browse</div>
+            <div class="batch-drop-sub">Accepted formats: .txt · .json &nbsp;·&nbsp; No size limit</div>
+          </div>
+
+          <div id="batch-preview" style="display:none">
+            <div class="batch-preview">
+              <div class="batch-preview-header">
+                <span class="batch-preview-title" id="batch-preview-filename">file.txt</span>
+                <span class="batch-preview-count" id="batch-preview-count">0 domains parsed</span>
+              </div>
+              <div class="batch-domain-list" id="batch-domain-list"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap">
+              <button class="btn-scan-all" id="batch-submit-btn" onclick="batchSubmit()" style="padding:10px 24px;font-size:12px">🚀 Queue for Scanning</button>
+              <button onclick="batchReset()" style="background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:10px 16px;border-radius:7px;cursor:pointer">✕ Clear</button>
+              <span id="batch-submit-status" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--grey)"></span>
+            </div>
+          </div>
+
+          <div id="batch-result" style="display:none"></div>
         </div>
 
       </div>
@@ -7722,6 +7772,126 @@ function adminInsertVar(variable) {
   el.focus();
   el.setSelectionRange(pos, pos);
 }
+
+// ── BATCH UPLOAD ─────────────────────────────────────────────────────────────
+var batchParsedDomains = [];
+
+function batchFileSelected(file) {
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var content = e.target.result;
+    var fname = file.name.toLowerCase();
+    var raw = [];
+    try {
+      if (fname.endsWith('.json')) {
+        var data = JSON.parse(content);
+        if (!Array.isArray(data)) { toast('JSON must be a top-level array', true); return; }
+        data.forEach(function(item) {
+          if (typeof item === 'string') raw.push(item.trim());
+          else if (item && typeof item === 'object') {
+            var d = item.domain || item.Domain || item.url || '';
+            if (d) raw.push(String(d).trim());
+          }
+        });
+      } else {
+        raw = content.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l && !l.startsWith('#'); });
+      }
+    } catch(err) {
+      toast('Failed to parse file: ' + err.message, true); return;
+    }
+
+    // Client-side light validation
+    var _re = /^[a-z0-9][a-z0-9\-\.]{1,253}[a-z0-9]$/i;
+    var valid = [], invalid = [];
+    raw.forEach(function(d) {
+      d = d.toLowerCase().replace(/^https?:\/\//,'').split('/')[0];
+      if (d && _re.test(d) && d.includes('.')) valid.push(d);
+      else if (d) invalid.push(d);
+    });
+
+    batchParsedDomains = valid;
+
+    document.getElementById('batch-preview-filename').textContent = file.name;
+    document.getElementById('batch-preview-count').textContent =
+      valid.length + ' valid domain' + (valid.length !== 1 ? 's' : '') +
+      (invalid.length ? ' · ' + invalid.length + ' invalid (shown in red)' : '');
+
+    var preview = valid.slice(0, 50).map(function(d){ return '<div>' + safeHtml(d) + '</div>'; }).join('');
+    if (valid.length > 50) preview += '<div style="color:var(--grey);margin-top:4px">… and ' + (valid.length - 50) + ' more</div>';
+    invalid.slice(0, 5).forEach(function(d){ preview += '<div class="bd-invalid">' + safeHtml(d) + '</div>'; });
+
+    document.getElementById('batch-domain-list').innerHTML = preview;
+    document.getElementById('batch-preview').style.display = 'block';
+    document.getElementById('batch-result').style.display = 'none';
+  };
+  reader.readAsText(file);
+}
+
+function safeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function batchSubmit() {
+  if (!batchParsedDomains.length) { toast('No valid domains to submit', true); return; }
+  var btn = document.getElementById('batch-submit-btn');
+  var status = document.getElementById('batch-submit-status');
+  btn.disabled = true; btn.textContent = '⏳ Uploading…';
+  status.textContent = 'Sending ' + batchParsedDomains.length + ' domains to pipeline…';
+
+  try {
+    var fileInput = document.getElementById('batch-file-input');
+    var formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    var res = await fetch(API + '/admin/batch-upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + sessionToken },
+      body: formData,
+    });
+    if (!res.ok) {
+      var err = await res.json().catch(function(){ return {detail: 'Upload failed'}; });
+      throw new Error(err.detail || 'Upload failed');
+    }
+    var d = await res.json();
+
+    document.getElementById('batch-result').innerHTML =
+      '<div class="batch-result success">' +
+        '<div class="br-stat"><span class="br-val">' + d.total_submitted + '</span><span class="br-lbl">Submitted</span></div>' +
+        '<div class="br-stat"><span class="br-val" style="color:#2ECC71">' + d.queued + '</span><span class="br-lbl">Queued</span></div>' +
+        '<div class="br-stat"><span class="br-val" style="color:var(--grey)">' + d.duplicates_skipped + '</span><span class="br-lbl">Already Scanned</span></div>' +
+        '<div class="br-stat"><span class="br-val" style="color:#E74C3C">' + d.invalid + '</span><span class="br-lbl">Invalid</span></div>' +
+      '</div>' +
+      (d.sample_invalid && d.sample_invalid.length ? '<div style="margin-top:10px;font-family:\'Space Mono\',monospace;font-size:10px;color:#E74C3C">Invalid samples: ' + d.sample_invalid.map(safeHtml).join(', ') + '</div>' : '');
+    document.getElementById('batch-result').style.display = 'block';
+    document.getElementById('batch-preview').style.display = 'none';
+    toast('✓ ' + d.queued + ' domains queued for scanning');
+    batchReset();
+  } catch(e) {
+    status.textContent = ''; btn.disabled = false; btn.textContent = '🚀 Queue for Scanning';
+    toast('Upload failed: ' + e.message, true);
+  }
+}
+
+function batchReset() {
+  batchParsedDomains = [];
+  document.getElementById('batch-file-input').value = '';
+  document.getElementById('batch-preview').style.display = 'none';
+  var btn = document.getElementById('batch-submit-btn');
+  if (btn) { btn.disabled = false; btn.textContent = '🚀 Queue for Scanning'; }
+  document.getElementById('batch-submit-status').textContent = '';
+}
+
+// Drag-and-drop wiring (runs after DOM ready)
+document.addEventListener('DOMContentLoaded', function() {
+  var zone = document.getElementById('batch-drop-zone');
+  if (!zone) return;
+  zone.addEventListener('dragover',  function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    var f = e.dataTransfer.files[0];
+    if (f) batchFileSelected(f);
+  });
+});
 
 async function adminLoadReportEmailTemplate() {
   try {
