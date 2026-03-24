@@ -3,924 +3,954 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SwarmHawk MCP Server — Setup Guide</title>
-<meta name="description" content="Connect SwarmHawk to Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant. Full setup guide, tool reference, and marketplace listings.">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<title>SwarmHawk MCP Server — Connect AI to Your Security Data</title>
+<meta name="description" content="Connect SwarmHawk to Claude, Cursor, Windsurf, Cline, and any MCP-compatible AI assistant. Full setup guide, all 7 tools documented, example prompts, and troubleshooting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* ── RESET & BASE ──────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:#080810;color:#e8e8f0;font-family:'Inter',system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+
 :root{
-  --bg:#0e0d12;--card:#16151e;--border:rgba(255,255,255,.08);
-  --white:#f0eef8;--grey:#6b6880;--lime:#cbff00;--black:#0e0d12;
-  --red:#C0392B;--amber:#D4850A;--green:#2ECC71;--blue:#4285F4;--purple:#9b59b6;
+  --lime:#a3e635;
+  --lime-pale:rgba(163,230,53,.12);
+  --lime-border:rgba(163,230,53,.25);
+  --dark:#080810;
+  --surface:#0f0f1a;
+  --card:#13131f;
+  --border:rgba(255,255,255,.07);
+  --text:#e8e8f0;
+  --muted:#8888a0;
+  --red:#f87171;
+  --amber:#fbbf24;
+  --blue:#60a5fa;
+  --purple:#a78bfa;
+  --r:12px;
 }
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.6}
 
-/* ── Layout ── */
-.mcp-layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+/* ── NAV ──────────────────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;display:flex;align-items:center;background:rgba(8,8,16,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+.nav-inner{width:100%;max-width:1400px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.pulse{width:11px;height:11px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(163,230,53,.7)}70%{box-shadow:0 0 0 9px rgba(163,230,53,0)}100%{box-shadow:0 0 0 0 rgba(163,230,53,0)}}
+.nav-brand{font-weight:800;font-size:15px;letter-spacing:2.5px;text-transform:uppercase;color:var(--lime)}
+.nav-links{display:flex;gap:28px}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--text)}
+.nav-actions{display:flex;gap:10px;align-items:center}
+.btn-nav-ghost{background:transparent;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:border-color .15s}
+.btn-nav-ghost:hover{border-color:var(--lime-border)}
+.btn-nav-lime{background:var(--lime);color:#000;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:opacity .15s}
+.btn-nav-lime:hover{opacity:.85}
 
-/* ── Sidebar ── */
-.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--border);padding:28px 0}
-.sidebar::-webkit-scrollbar{width:4px}
-.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
-.sb-logo{font-family:'Space Mono',monospace;font-weight:700;font-size:13px;letter-spacing:2px;color:var(--white);padding:0 24px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
-.sb-logo a{text-decoration:none;color:inherit}
-.sb-logo span{color:var(--lime)}
-.sb-badge{display:block;font-size:9px;color:var(--grey);letter-spacing:1px;margin-top:4px;font-weight:400}
-.sb-section{font-family:'Space Mono',monospace;font-size:9px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;padding:14px 24px 6px}
-.sb-link{display:block;padding:6px 24px;font-size:12px;color:var(--grey);text-decoration:none;border-left:2px solid transparent;transition:all .15s}
-.sb-link:hover{color:var(--white);border-left-color:rgba(203,255,0,.3)}
-.sb-link.active{color:var(--lime);border-left-color:var(--lime);background:rgba(203,255,0,.04)}
-.sb-back{display:block;padding:6px 24px;font-size:11px;color:var(--grey);text-decoration:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px}
-.sb-back:hover{color:var(--white)}
+/* ── LAYOUT ─────────────────────────────────────────────────────────*/
+.mcp-wrap{display:grid;grid-template-columns:272px 1fr;min-height:100vh;padding-top:64px}
 
-/* ── Content ── */
-.mcp-content{padding:48px 64px 80px;max-width:880px}
-h1{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--white);margin-bottom:10px}
-h2{font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--white);margin:56px 0 16px;padding-bottom:10px;border-bottom:1px solid rgba(203,255,0,.1)}
-h3{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--white);margin:28px 0 8px;letter-spacing:.5px}
-p{color:var(--grey);line-height:1.8;margin-bottom:14px}
-a{color:var(--lime);text-decoration:none}
-a:hover{text-decoration:underline}
-ul,ol{color:var(--grey);padding-left:20px;margin-bottom:14px;line-height:1.9}
-li{margin-bottom:3px}
-strong{color:var(--white);font-weight:600}
-code{font-family:'Space Mono',monospace;font-size:11px;background:rgba(203,255,0,.07);color:var(--lime);padding:2px 6px;border-radius:4px}
+/* ── SIDEBAR ────────────────────────────────────────────────────────*/
+.mcp-sidebar{position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:28px 0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
+.mcp-sidebar::-webkit-scrollbar{width:4px}
+.mcp-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+.sb-header{padding:0 24px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sb-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--lime);margin-bottom:4px}
+.sb-sub{font-size:11px;color:var(--muted)}
+.sb-section{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;padding:16px 24px 6px;opacity:.7}
+.sb-link{display:block;padding:7px 24px;font-size:13px;color:var(--muted);text-decoration:none;border-left:2px solid transparent;transition:all .15s;line-height:1.4}
+.sb-link:hover{color:var(--text);background:rgba(163,230,53,.04);border-left-color:var(--lime-border)}
+.sb-link.active{color:var(--lime);border-left-color:var(--lime);background:var(--lime-pale)}
+.sb-back{display:block;padding:7px 24px;font-size:12px;color:var(--muted);text-decoration:none;border-top:1px solid var(--border);margin-top:16px;padding-top:16px;transition:color .15s}
+.sb-back:hover{color:var(--lime)}
 
-/* ── Tags ── */
-.page-tag{display:inline-block;background:rgba(203,255,0,.08);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;padding:4px 12px;border-radius:20px;margin-bottom:24px;text-transform:uppercase}
+/* ── CONTENT ────────────────────────────────────────────────────────*/
+.mcp-content{padding:52px 72px 100px;max-width:860px}
 
-/* ── App tabs (setup methods) ── */
-.app-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0;flex-wrap:wrap}
-.app-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--grey);font-family:'Space Mono',monospace;font-size:10px;padding:10px 16px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .15s;margin-bottom:-1px;display:flex;align-items:center;gap:6px}
-.app-tab:hover{color:var(--white)}
+/* ── TYPOGRAPHY ─────────────────────────────────────────────────────*/
+.mcp-content h1{font-size:clamp(28px,4vw,44px);font-weight:900;line-height:1.08;letter-spacing:-1.5px;margin-bottom:12px}
+.mcp-content h1 em{font-style:normal;color:var(--lime)}
+.mcp-content h2{font-size:22px;font-weight:800;line-height:1.15;letter-spacing:-.5px;margin:64px 0 16px;padding-bottom:14px;border-bottom:1px solid var(--border);scroll-margin-top:90px}
+.mcp-content h3{font-size:16px;font-weight:700;line-height:1.3;margin:28px 0 10px;color:var(--text);scroll-margin-top:90px}
+.mcp-content h4{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--lime);letter-spacing:1.5px;text-transform:uppercase;margin:24px 0 10px}
+.mcp-content p{color:var(--muted);line-height:1.8;margin-bottom:14px;font-size:15px}
+.mcp-content a{color:var(--lime);text-decoration:none}
+.mcp-content a:hover{text-decoration:underline}
+.mcp-content ul,.mcp-content ol{color:var(--muted);padding-left:20px;margin-bottom:16px;line-height:1.9;font-size:15px}
+.mcp-content li{margin-bottom:4px}
+.mcp-content strong{color:var(--text);font-weight:600}
+
+/* ── EYEBROW / LEAD ──────────────────────────────────────────────────*/
+.mcp-eyebrow{display:inline-flex;align-items:center;gap:10px;background:var(--lime-pale);border:1px solid var(--lime-border);border-radius:40px;padding:5px 16px;margin-bottom:28px}
+.mcp-eyebrow span{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--lime);font-family:'JetBrains Mono',monospace}
+.mcp-lead{font-size:17px;color:var(--muted);line-height:1.75;margin-bottom:32px;max-width:660px}
+.mcp-updated{font-size:12px;color:var(--muted);margin-bottom:48px}
+
+/* ── STAT TRIO ───────────────────────────────────────────────────────*/
+.stat-trio{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:32px 0}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.stat-icon{font-size:26px;margin-bottom:8px}
+.stat-num{font-size:22px;font-weight:800;color:var(--lime);font-family:'JetBrains Mono',monospace}
+.stat-label{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ── CALLOUT BOXES ───────────────────────────────────────────────────*/
+.callout{border-radius:12px;padding:20px 24px;margin:20px 0;font-size:14px;line-height:1.7}
+.callout p{margin:0;font-size:14px}
+.callout-lime{background:var(--lime-pale);border:1px solid var(--lime-border)}
+.callout-lime p,.callout-lime strong{color:var(--text)}
+.callout-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25)}
+.callout-red p,.callout-red strong{color:var(--text)}
+.callout-blue{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2)}
+.callout-blue p,.callout-blue strong{color:var(--text)}
+.callout-amber{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2)}
+.callout-amber p,.callout-amber strong{color:var(--text)}
+.callout-icon{font-size:16px;margin-bottom:6px;display:block}
+
+/* ── CODE ────────────────────────────────────────────────────────────*/
+code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(163,230,53,.07);color:var(--lime);padding:2px 7px;border-radius:4px}
+.code-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:12px 0 20px}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.code-filename{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.copy-btn{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:5px;padding:3px 10px;cursor:pointer;transition:all .15s}
+.copy-btn:hover{color:var(--lime);border-color:var(--lime-border)}
+pre{background:var(--surface);padding:20px 24px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.85;color:#e8e8f0;margin:0}
+pre code{background:none;padding:0;border-radius:0;color:#e8e8f0}
+.c-comment{color:#4a5568}
+.c-key{color:#60a5fa}
+.c-str{color:#a3e635}
+.c-num{color:#fbbf24}
+.c-type{color:#a78bfa}
+
+/* ── PATH BOXES ──────────────────────────────────────────────────────*/
+.path-box{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 16px;margin:8px 0}
+.path-os{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:60px;text-transform:uppercase;letter-spacing:1px;flex-shrink:0}
+.path-val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--lime);word-break:break-all}
+
+/* ── SETUP TABS ──────────────────────────────────────────────────────*/
+.app-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);flex-wrap:wrap;margin-top:24px}
+.app-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:12px;font-weight:600;padding:10px 18px;cursor:pointer;transition:all .15s;margin-bottom:-1px;display:flex;align-items:center;gap:7px}
+.app-tab:hover{color:var(--text)}
 .app-tab.active{color:var(--lime);border-bottom-color:var(--lime)}
-.app-tab-icon{font-size:14px}
 .app-pane{display:none}
 .app-pane.active{display:block}
-.setup-box{border:1px solid var(--border);border-radius:0 0 10px 10px;overflow:hidden}
+.setup-body{border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:28px}
 
-/* ── Steps ── */
-.step{display:flex;gap:16px;margin-bottom:24px}
-.step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(203,255,0,.1);border:1px solid rgba(203,255,0,.2);color:var(--lime);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px}
-.step-body{flex:1}
-.step-title{font-weight:600;color:var(--white);margin-bottom:4px;font-size:13px}
-.step-desc{font-size:13px;color:var(--grey);line-height:1.7}
+/* ── STEP LIST ───────────────────────────────────────────────────────*/
+.step-list{display:flex;flex-direction:column;gap:0;margin:16px 0;position:relative}
+.step-list::before{content:'';position:absolute;left:19px;top:24px;bottom:24px;width:2px;background:linear-gradient(var(--lime-border),transparent)}
+.sl-item{display:flex;gap:16px;padding:12px 0}
+.sl-num{width:38px;height:38px;border-radius:50%;background:var(--lime);color:#000;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.sl-body{padding-top:6px}
+.sl-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.sl-desc{font-size:13px;color:var(--muted);line-height:1.6}
 
-/* ── Code blocks ── */
-.code-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:10px 0 16px}
-.code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)}
-.code-filename{font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:.5px}
-.copy-btn{font-family:'Space Mono',monospace;font-size:9px;color:var(--grey);background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:3px 8px;cursor:pointer;transition:all .15s;letter-spacing:.5px}
-.copy-btn:hover{color:var(--lime);border-color:rgba(203,255,0,.3)}
-pre{background:#0a090f;padding:18px 20px;overflow-x:auto;font-family:'Space Mono',monospace;font-size:11px;line-height:1.7;color:#c9c7d4;margin:0}
-.kw{color:#c792ea}.str{color:#c3e88d}.num{color:#f78c6c}
-.cm{color:#546e7a;font-style:italic}.key{color:#82aaff}.op{color:var(--lime)}
+/* ── TOOL CARDS ──────────────────────────────────────────────────────*/
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color .2s}
+.tool-card:hover{border-color:var(--lime-border)}
+.tool-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.tool-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--lime)}
+.tool-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:rgba(255,255,255,.05);padding:2px 8px;border-radius:8px;flex-shrink:0}
+.tool-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.tool-params{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
+.param-row{display:flex;gap:8px;align-items:baseline}
+.param-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--lime);min-width:80px;flex-shrink:0}
+.param-type{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);min-width:48px;flex-shrink:0}
+.param-desc{font-size:11px;color:var(--muted);line-height:1.4}
 
-/* ── OS path box ── */
-.path-box{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin:10px 0 16px;font-family:'Space Mono',monospace;font-size:11px}
-.path-os{color:var(--grey);font-size:10px;min-width:55px;text-transform:uppercase;letter-spacing:1px}
-.path-val{color:var(--lime);word-break:break-all}
+/* ── TABLES ──────────────────────────────────────────────────────────*/
+.kb-table{width:100%;border-collapse:collapse;margin:16px 0 28px;font-size:13px}
+.kb-table th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+.kb-table th.hl{color:var(--lime)}
+.kb-table td{padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}
+.kb-table tr:last-child td{border-bottom:none}
+.ck{color:var(--lime);font-size:15px}
 
-/* ── Tool cards ── */
-.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 24px}
-.tool-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;transition:border-color .15s}
-.tool-card:hover{border-color:rgba(203,255,0,.2)}
-.tool-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
-.tool-name{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--lime)}
-.tool-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--grey);background:rgba(255,255,255,.05);padding:2px 7px;border-radius:10px;flex-shrink:0}
-.tool-desc{font-size:12px;color:var(--grey);line-height:1.6;margin-bottom:10px}
-.tool-params{font-size:11px}
-.param-row{display:flex;gap:8px;margin-bottom:3px;align-items:baseline}
-.param-name{font-family:'Space Mono',monospace;color:var(--lime);font-size:10px;min-width:90px;flex-shrink:0}
-.param-type{font-family:'Space Mono',monospace;color:#f78c6c;font-size:10px;min-width:55px;flex-shrink:0}
-.param-desc{color:var(--grey);font-size:11px}
+/* ── PROMPT EXAMPLES ─────────────────────────────────────────────────*/
+.prompt-list{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.prompt{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;gap:14px;align-items:flex-start}
+.prompt-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.prompt-text{font-size:14px;color:var(--text);font-style:italic;line-height:1.6}
+.prompt-tool{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--lime);margin-top:6px}
 
-/* ── Info / warning boxes ── */
-.info-box{background:rgba(203,255,0,.04);border:1px solid rgba(203,255,0,.12);border-radius:8px;padding:14px 18px;margin:14px 0}
-.info-box.warn{background:rgba(212,133,10,.05);border-color:rgba(212,133,10,.2)}
-.info-box.tip{background:rgba(46,204,113,.04);border-color:rgba(46,204,113,.2)}
-.info-box p{margin:0;font-size:13px}
-.info-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
-.info-label.lime{color:var(--lime)}
-.info-label.amber{color:var(--amber)}
-.info-label.green{color:var(--green)}
+/* ── TROUBLESHOOT ────────────────────────────────────────────────────*/
+.trouble-item{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.trouble-q{width:100%;background:var(--card);border:none;color:var(--text);font-size:14px;font-weight:600;padding:16px 20px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s}
+.trouble-q:hover{background:rgba(163,230,53,.04)}
+.trouble-q::after{content:'▼';font-size:10px;color:var(--muted);transition:transform .2s}
+.trouble-q.open::after{transform:rotate(180deg)}
+.trouble-a{display:none;padding:16px 20px;font-size:14px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border)}
+.trouble-a.show{display:block}
 
-/* ── Marketplace cards ── */
-.market-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0 24px}
-.market-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;transition:border-color .15s;display:flex;flex-direction:column;gap:8px}
-.market-card:hover{border-color:rgba(203,255,0,.2)}
-.market-head{display:flex;align-items:center;gap:10px}
-.market-icon{font-size:20px;flex-shrink:0}
-.market-name{font-weight:700;color:var(--white);font-size:13px}
-.market-url{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime)}
-.market-desc{font-size:12px;color:var(--grey);line-height:1.6;flex:1}
-.market-tags{display:flex;gap:5px;flex-wrap:wrap}
-.mtag{font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid}
-.mtag-free{color:var(--green);border-color:rgba(46,204,113,.3);background:rgba(46,204,113,.06)}
-.mtag-paid{color:#4285F4;border-color:rgba(66,133,244,.3);background:rgba(66,133,244,.06)}
-.mtag-key{color:var(--amber);border-color:rgba(212,133,10,.3);background:rgba(212,133,10,.06)}
+/* ── BADGE ───────────────────────────────────────────────────────────*/
+.badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:4px;font-family:'JetBrains Mono',monospace}
+.badge-lime{background:var(--lime-pale);color:var(--lime);border:1px solid var(--lime-border)}
+.badge-blue{background:rgba(96,165,250,.1);color:var(--blue)}
+.badge-amber{background:rgba(251,191,36,.1);color:var(--amber)}
 
-/* ── Tables ── */
-table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:13px}
-th{text-align:left;padding:8px 12px;font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px;text-transform:uppercase;background:rgba(203,255,0,.04);border-bottom:1px solid rgba(203,255,0,.1)}
-td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--grey);vertical-align:top}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
+/* ── DIVIDER ─────────────────────────────────────────────────────────*/
+.mcp-divider{border:none;border-top:1px solid var(--border);margin:48px 0}
 
-@media(max-width:800px){
-  .mcp-layout{grid-template-columns:1fr}
-  .sidebar{display:none}
-  .mcp-content{padding:32px 20px 60px}
-  .tool-grid,.market-grid{grid-template-columns:1fr}
-  .app-tabs{overflow-x:auto}
+/* ── FOOTER ──────────────────────────────────────────────────────────*/
+footer{border-top:1px solid var(--border);padding:40px 0;background:var(--surface)}
+.footer-inner{max-width:1160px;margin:0 auto;padding:0 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-logo{display:flex;align-items:center;gap:10px}
+.footer-brand{font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--lime)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:13px;color:var(--muted);text-decoration:none}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{font-size:12px;color:var(--muted)}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────*/
+@media(max-width:900px){
+  .mcp-wrap{grid-template-columns:1fr}
+  .mcp-sidebar{display:none}
+  .mcp-content{padding:32px 24px 80px}
+  .tool-grid{grid-template-columns:1fr}
+  .stat-trio{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
-<div class="mcp-layout">
 
-<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
-<nav class="sidebar">
-  <div class="sb-logo">
-    <a href="/">SWARM<span>HAWK</span></a>
-    <span class="sb-badge">MCP SERVER</span>
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">
+      <div class="pulse"></div>
+      <span class="nav-brand">SwarmHawk</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/solutions/">Enterprise</a>
+      <a href="/kb.html">Knowledge Base</a>
+      <a href="/mcp.html" style="color:var(--lime)">MCP</a>
+    </div>
+    <div class="nav-actions" id="nav-actions">
+      <a href="/app/" class="btn-nav-ghost">Sign In</a>
+      <a href="/#pricing" class="btn-nav-lime">Start Free</a>
+    </div>
   </div>
-
-  <div class="sb-section">Overview</div>
-  <a class="sb-link active" href="#what-is-mcp">What is MCP?</a>
-  <a class="sb-link" href="#prerequisites">Prerequisites</a>
-
-  <div class="sb-section">Setup</div>
-  <a class="sb-link" href="#claude-desktop">Claude Desktop</a>
-  <a class="sb-link" href="#claude-web">Claude.ai (Web)</a>
-  <a class="sb-link" href="#cursor">Cursor IDE</a>
-  <a class="sb-link" href="#windsurf">Windsurf</a>
-  <a class="sb-link" href="#cline">Cline / VS Code</a>
-  <a class="sb-link" href="#selfhost">Self-Host (Python)</a>
-
-  <div class="sb-section">Tools Reference</div>
-  <a class="sb-link" href="#tools">All 7 MCP Tools</a>
-  <a class="sb-link" href="#examples">Example Prompts</a>
-
-  <div class="sb-section">Publish & Sell</div>
-  <a class="sb-link" href="#marketplaces">MCP Marketplaces</a>
-  <a class="sb-link" href="#listing-guide">Listing Guide</a>
-
-  <div class="sb-section">Help</div>
-  <a class="sb-link" href="#troubleshoot">Troubleshooting</a>
-  <a class="sb-link" href="#api-keys">Getting Your API Key</a>
-
-  <a class="sb-back" href="/kb.html">← Knowledge Base</a>
-  <a class="sb-back" href="/docs.html">← REST API Docs</a>
 </nav>
 
-<!-- ── Main content ─────────────────────────────────────────────────────── -->
-<main class="mcp-content">
+<div class="mcp-wrap">
 
-  <!-- INTRO -->
-  <div id="what-is-mcp">
-    <span class="page-tag">MCP Integration</span>
-    <h1>SwarmHawk MCP Server</h1>
-    <p>The <strong>Model Context Protocol (MCP)</strong> is an open standard that lets AI assistants call external tools directly from a conversation. Once you add the SwarmHawk MCP server to your AI client, you can say <em>"scan example.com for security issues"</em> and the assistant will call our API, get live results, and explain them to you — no copy-paste, no context switching.</p>
+  <!-- SIDEBAR -->
+  <aside class="mcp-sidebar">
+    <div class="sb-header">
+      <div class="sb-title">MCP Server</div>
+      <div class="sb-sub">AI Integration Guide</div>
+    </div>
 
-    <div class="tool-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
-        <div style="font-size:24px;margin-bottom:6px">🔒</div>
-        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--white);margin-bottom:4px">22 Checks</div>
-        <div style="font-size:11px;color:var(--grey)">Full security scan per call</div>
+    <div class="sb-section">Overview</div>
+    <a class="sb-link active" href="#what-is-mcp">What is MCP?</a>
+    <a class="sb-link" href="#prerequisites">Prerequisites</a>
+    <a class="sb-link" href="#mcp-url">Server URL</a>
+
+    <div class="sb-section">Setup</div>
+    <a class="sb-link" href="#claude-desktop">Claude Desktop</a>
+    <a class="sb-link" href="#claude-web">Claude.ai Web</a>
+    <a class="sb-link" href="#cursor">Cursor IDE</a>
+    <a class="sb-link" href="#windsurf">Windsurf</a>
+    <a class="sb-link" href="#cline">Cline / VS Code</a>
+    <a class="sb-link" href="#selfhost">Self-Host</a>
+
+    <div class="sb-section">Tools Reference</div>
+    <a class="sb-link" href="#tools">All 7 MCP Tools</a>
+    <a class="sb-link" href="#examples">Example Prompts</a>
+
+    <div class="sb-section">Help</div>
+    <a class="sb-link" href="#troubleshoot">Troubleshooting</a>
+    <a class="sb-link" href="#api-key">Getting Your API Key</a>
+
+    <a class="sb-back" href="/kb.html">← Knowledge Base</a>
+    <a class="sb-back" href="/">← swarmhawk.com</a>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="mcp-content">
+
+    <!-- HEADER -->
+    <div class="mcp-eyebrow"><span>MCP Integration</span></div>
+    <h1>SwarmHawk <em>MCP Server</em></h1>
+    <p class="mcp-lead">Connect your AI assistant directly to your live domain security data. Ask Claude, Cursor, or any MCP-compatible tool to scan domains, surface breach risks, and explain findings — all from a single conversation.</p>
+    <p class="mcp-updated">Last updated March 2026 · MCP server: <code>https://swarmhawk-backend.onrender.com/mcp</code></p>
+
+    <div class="stat-trio">
+      <div class="stat-card">
+        <div class="stat-icon">🔒</div>
+        <div class="stat-num">22+</div>
+        <div class="stat-label">Security checks per scan</div>
       </div>
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
-        <div style="font-size:24px;margin-bottom:6px">⚡</div>
-        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--white);margin-bottom:4px">7 MCP Tools</div>
-        <div style="font-size:11px;color:var(--grey)">Granular or full-scan calls</div>
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-num">7</div>
+        <div class="stat-label">MCP tools available</div>
       </div>
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
-        <div style="font-size:24px;margin-bottom:6px">🌍</div>
-        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--white);margin-bottom:4px">Live Data</div>
-        <div style="font-size:11px;color:var(--grey)">No caches — always fresh</div>
+      <div class="stat-card">
+        <div class="stat-icon">🌍</div>
+        <div class="stat-num">Live</div>
+        <div class="stat-label">Always fresh — no caches</div>
       </div>
     </div>
-  </div>
 
-  <!-- PREREQUISITES -->
-  <h2 id="prerequisites">Prerequisites</h2>
-  <table>
-    <thead><tr><th>Item</th><th>Required</th><th>Where to get it</th></tr></thead>
-    <tbody>
-      <tr><td><strong>SwarmHawk API key</strong></td><td>Yes</td><td>Dashboard → Account → API Keys</td></tr>
+    <!-- WHAT IS MCP -->
+    <h2 id="what-is-mcp">What is MCP?</h2>
+    <p>The <strong>Model Context Protocol (MCP)</strong> is an open standard created by Anthropic that lets AI assistants call external tools and data sources in a structured, sandboxed way. Think of it like a USB-C port for AI: any MCP-compatible client (Claude, Cursor, Windsurf, Cline…) can plug into any MCP server and immediately gain access to its tools.</p>
+    <p>When you connect the SwarmHawk MCP server to your AI tool, the assistant can read your live scan results, query domain risk scores, and explain findings — without you having to copy-paste data in or out. The AI operates on your real, current security posture, not a stale export.</p>
+    <p><strong>What the AI can do via MCP:</strong></p>
+    <ul>
+      <li>List all your domains and their current risk scores</li>
+      <li>Fetch the full scan report for any domain, including every finding</li>
+      <li>Trigger a fresh scan on demand</li>
+      <li>Get aggregate statistics across your entire portfolio</li>
+      <li>Check scanner pipeline health</li>
+    </ul>
+    <div class="callout callout-lime">
+      <span class="callout-icon">🔑</span>
+      <p><strong>Security model:</strong> The MCP server is read-mostly. Your AI assistant cannot delete domains, modify your account, or change billing. The only write action is <code>trigger_scan</code>, which requires explicit confirmation.</p>
+    </div>
+
+    <!-- PREREQUISITES -->
+    <h2 id="prerequisites">Prerequisites</h2>
+    <table class="kb-table">
+      <tr><th>Item</th><th>Required?</th><th>Where to get it</th></tr>
+      <tr><td><strong>SwarmHawk API key</strong></td><td><span class="ck">✓ Yes</span></td><td>Dashboard → Account tab → API Key</td></tr>
+      <tr><td>SwarmHawk Pro or higher plan</td><td><span class="ck">✓ Yes</span></td><td>Free tier does not include API access</td></tr>
       <tr><td>Claude Desktop app</td><td>For Claude Desktop setup</td><td>claude.ai/download</td></tr>
-      <tr><td>Cursor IDE</td><td>For Cursor setup</td><td>cursor.com</td></tr>
-      <tr><td>Python 3.10+</td><td>For self-hosting only</td><td>python.org</td></tr>
-      <tr><td>Paid SwarmHawk plan</td><td>For full 22-check results</td><td>swarmhawk.com</td></tr>
-    </tbody>
-  </table>
+      <tr><td>Cursor IDE ≥ 0.42</td><td>For Cursor setup</td><td>cursor.com</td></tr>
+      <tr><td>Windsurf IDE</td><td>For Windsurf setup</td><td>codeium.com/windsurf</td></tr>
+      <tr><td>VS Code + Cline extension</td><td>For Cline setup</td><td>marketplace.visualstudio.com</td></tr>
+    </table>
 
-  <div id="api-keys">
-    <div class="info-box tip">
-      <div class="info-label green">Getting your API key</div>
-      <p>Log in to <strong>SwarmHawk → Dashboard → Account tab → API Keys → Generate New Key</strong>. Keys begin with <code>swh_</code>. Keep them secret — they count against your plan quota.</p>
+    <h2 id="mcp-url">Server URL &amp; Auth</h2>
+    <p>All clients point to the same server endpoint:</p>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-filename">MCP Server URL</span></div>
+      <pre><code>https://swarmhawk-backend.onrender.com/mcp</code></pre>
     </div>
-  </div>
+    <p>Authentication is a Bearer token sent in the <code>Authorization</code> header, or in the <code>apiKey</code> / <code>api_key</code> field depending on the client. Your API key is available in the dashboard Account tab. Keys never expire but can be regenerated.</p>
 
-  <!-- SETUP SECTION -->
-  <h2 id="claude-desktop">Setup by Client</h2>
+    <!-- SETUP -->
+    <h2 id="setup">Setup by Client</h2>
+    <p>Pick your AI tool below for the exact configuration steps.</p>
 
-  <div class="app-tabs">
-    <button class="app-tab active" onclick="showTab('claude-desktop-pane',this)"><span class="app-tab-icon">🟣</span>Claude Desktop</button>
-    <button class="app-tab" onclick="showTab('claude-web-pane',this)"><span class="app-tab-icon">🌐</span>Claude.ai Web</button>
-    <button class="app-tab" onclick="showTab('cursor-pane',this)"><span class="app-tab-icon">⬛</span>Cursor</button>
-    <button class="app-tab" onclick="showTab('windsurf-pane',this)"><span class="app-tab-icon">🌊</span>Windsurf</button>
-    <button class="app-tab" onclick="showTab('cline-pane',this)"><span class="app-tab-icon">🔷</span>Cline / VS Code</button>
-    <button class="app-tab" onclick="showTab('selfhost-pane',this)"><span class="app-tab-icon">🐍</span>Self-Host</button>
-  </div>
+    <div class="app-tabs">
+      <button class="app-tab active" onclick="showTab('pane-claude-desktop',this)">🟣 Claude Desktop</button>
+      <button class="app-tab" onclick="showTab('pane-claude-web',this)">🌐 Claude.ai</button>
+      <button class="app-tab" onclick="showTab('pane-cursor',this)">⬛ Cursor</button>
+      <button class="app-tab" onclick="showTab('pane-windsurf',this)">🌊 Windsurf</button>
+      <button class="app-tab" onclick="showTab('pane-cline',this)">🔷 Cline / VS Code</button>
+      <button class="app-tab" onclick="showTab('pane-selfhost',this)">🐍 Self-Host</button>
+    </div>
 
-  <div class="setup-box">
+    <div class="setup-body">
 
-    <!-- Claude Desktop -->
-    <div class="app-pane active" id="claude-desktop-pane" style="padding:24px">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Find your config file</div>
-          <div class="step-desc">Open or create <code>claude_desktop_config.json</code> at the path for your OS:</div>
-          <div class="path-box"><span class="path-os">macOS</span><span class="path-val">~/Library/Application Support/Claude/claude_desktop_config.json</span></div>
-          <div class="path-box"><span class="path-os">Windows</span><span class="path-val">%APPDATA%\Claude\claude_desktop_config.json</span></div>
-          <div class="path-box"><span class="path-os">Linux</span><span class="path-val">~/.config/Claude/claude_desktop_config.json</span></div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Add the SwarmHawk server</div>
-          <div class="step-desc">Paste this into the config file, replacing <code>swh_your_key</code> with your real API key:</div>
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-filename">claude_desktop_config.json</span>
-              <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      <!-- CLAUDE DESKTOP -->
+      <div id="pane-claude-desktop" class="app-pane active" id="claude-desktop">
+        <div class="step-list">
+          <div class="sl-item">
+            <div class="sl-num">1</div>
+            <div class="sl-body">
+              <div class="sl-title">Find your config file</div>
+              <div class="sl-desc">Open or create <code>claude_desktop_config.json</code> at the path for your OS:</div>
+              <div class="path-box"><span class="path-os">macOS</span><span class="path-val">~/Library/Application Support/Claude/claude_desktop_config.json</span></div>
+              <div class="path-box"><span class="path-os">Windows</span><span class="path-val">%APPDATA%\Claude\claude_desktop_config.json</span></div>
+              <div class="path-box"><span class="path-os">Linux</span><span class="path-val">~/.config/Claude/claude_desktop_config.json</span></div>
             </div>
-            <pre>{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"swarmhawk"</span>: {
-      <span class="key">"url"</span>: <span class="str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
-      <span class="key">"headers"</span>: {
-        <span class="key">"X-API-Key"</span>: <span class="str">"swh_your_key"</span>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">2</div>
+            <div class="sl-body">
+              <div class="sl-title">Add the SwarmHawk server block</div>
+              <div class="sl-desc">Paste the JSON below. If the file already has other MCP servers, add SwarmHawk inside the existing <code>mcpServers</code> object.</div>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-filename">claude_desktop_config.json</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code>{
+  <span class="c-key">"mcpServers"</span>: {
+    <span class="c-key">"swarmhawk"</span>: {
+      <span class="c-key">"type"</span>: <span class="c-str">"http"</span>,
+      <span class="c-key">"url"</span>: <span class="c-str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
+      <span class="c-key">"headers"</span>: {
+        <span class="c-key">"Authorization"</span>: <span class="c-str">"Bearer YOUR_API_KEY"</span>
       }
     }
   }
-}</pre>
-          </div>
-          <div class="info-box warn">
-            <div class="info-label amber">If you already have other MCP servers</div>
-            <p>Add <code>swarmhawk</code> as a new entry inside the existing <code>mcpServers</code> object — don't replace the whole file.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Restart Claude Desktop</div>
-          <div class="step-desc">Fully quit and reopen the app. A 🔌 icon in the toolbar confirms MCP servers are connected. Click it to verify SwarmHawk appears in the list.</div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-body">
-          <div class="step-title">Test it</div>
-          <div class="step-desc">Type in Claude: <em>"Use SwarmHawk to scan google.com"</em> — Claude will call <code>scan_domain</code> and return a full security report.</div>
-        </div>
-      </div>
-    </div><!-- /claude-desktop-pane -->
-
-    <!-- Claude.ai Web -->
-    <div class="app-pane" id="claude-web-pane" style="padding:24px">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Open Claude.ai Settings</div>
-          <div class="step-desc">Go to <strong>claude.ai → Settings (top-right avatar) → Integrations</strong>. You need a Claude Pro or Team plan to use MCP on the web.</div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Add a new integration</div>
-          <div class="step-desc">Click <strong>Add Integration</strong> and fill in:</div>
-          <table style="margin:10px 0">
-            <thead><tr><th>Field</th><th>Value</th></tr></thead>
-            <tbody>
-              <tr><td>Name</td><td><code>SwarmHawk</code></td></tr>
-              <tr><td>Server URL</td><td><code>https://swarmhawk-backend.onrender.com/mcp</code></td></tr>
-              <tr><td>Header name</td><td><code>X-API-Key</code></td></tr>
-              <tr><td>Header value</td><td><code>swh_your_key</code></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Enable in conversation</div>
-          <div class="step-desc">In any new chat, click the <strong>Tools</strong> button (🔧) and toggle SwarmHawk on. It stays enabled for that conversation.</div>
-        </div>
-      </div>
-    </div><!-- /claude-web-pane -->
-
-    <!-- Cursor -->
-    <div class="app-pane" id="cursor-pane" style="padding:24px" id="cursor">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Open MCP settings</div>
-          <div class="step-desc">In Cursor: <strong>Settings (⌘,) → Features → MCP Servers → Add new MCP server</strong>. Or create the config file manually:</div>
-          <div class="path-box"><span class="path-os">Global</span><span class="path-val">~/.cursor/mcp.json</span></div>
-          <div class="path-box"><span class="path-os">Per-project</span><span class="path-val">.cursor/mcp.json  (in project root)</span></div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Add the config</div>
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-filename">~/.cursor/mcp.json</span>
-              <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+}</code></pre>
+              </div>
             </div>
-            <pre>{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"swarmhawk"</span>: {
-      <span class="key">"url"</span>: <span class="str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
-      <span class="key">"headers"</span>: {
-        <span class="key">"X-API-Key"</span>: <span class="str">"swh_your_key"</span>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">3</div>
+            <div class="sl-body">
+              <div class="sl-title">Restart Claude Desktop</div>
+              <div class="sl-desc">Quit and reopen the app. In a new conversation you should see a 🔌 icon or <strong>swarmhawk</strong> listed under connected tools. Try: <em>"List my domains and their risk scores."</em></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLAUDE WEB -->
+      <div id="pane-claude-web" class="app-pane">
+        <p>Claude.ai (web) supports MCP connections via <strong>Project settings → Connected tools</strong>. This feature is available on Claude Pro and Team plans.</p>
+        <div class="step-list">
+          <div class="sl-item">
+            <div class="sl-num">1</div>
+            <div class="sl-body">
+              <div class="sl-title">Open a Project or start a new one</div>
+              <div class="sl-desc">MCP connections are configured per-Project. Go to <strong>claude.ai → Projects → your project → Settings</strong>.</div>
+            </div>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">2</div>
+            <div class="sl-body">
+              <div class="sl-title">Add a connected tool</div>
+              <div class="sl-desc">Click <strong>Connect a tool → Add custom server</strong> and enter:</div>
+              <div class="path-box"><span class="path-os">URL</span><span class="path-val">https://swarmhawk-backend.onrender.com/mcp</span></div>
+              <div class="path-box"><span class="path-os">Auth</span><span class="path-val">Bearer YOUR_API_KEY</span></div>
+            </div>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">3</div>
+            <div class="sl-body">
+              <div class="sl-title">Confirm the connection</div>
+              <div class="sl-desc">Claude will verify the server is reachable and list the available tools. Click <strong>Connect</strong>. The tools are now available in every conversation in that Project.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CURSOR -->
+      <div id="pane-cursor" class="app-pane">
+        <p>Cursor supports MCP via a workspace-level <code>.mcp.json</code> file or global settings. Requires Cursor ≥ 0.42.</p>
+        <div class="step-list">
+          <div class="sl-item">
+            <div class="sl-num">1</div>
+            <div class="sl-body">
+              <div class="sl-title">Create <code>.mcp.json</code> in your project root</div>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-filename">.mcp.json</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code>{
+  <span class="c-key">"servers"</span>: {
+    <span class="c-key">"swarmhawk"</span>: {
+      <span class="c-key">"url"</span>: <span class="c-str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
+      <span class="c-key">"headers"</span>: {
+        <span class="c-key">"Authorization"</span>: <span class="c-str">"Bearer YOUR_API_KEY"</span>
       }
     }
   }
-}</pre>
+}</code></pre>
+              </div>
+            </div>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">2</div>
+            <div class="sl-body">
+              <div class="sl-title">Enable in Cursor Settings (optional global config)</div>
+              <div class="sl-desc">Open <strong>Cursor → Settings → MCP</strong> and toggle <strong>Enable MCP</strong>. Cursor will auto-detect the <code>.mcp.json</code> file. Or add the server globally so it's available in all projects.</div>
+            </div>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">3</div>
+            <div class="sl-body">
+              <div class="sl-title">Use in Cursor Composer</div>
+              <div class="sl-desc">Open Composer (<kbd>Cmd+I</kbd>) and type <em>"Using SwarmHawk, what's the riskiest domain in my account?"</em> Cursor will call <code>list_domains</code> and return ranked results.</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Reload Cursor</div>
-          <div class="step-desc">Restart Cursor or reload the window (<strong>⌘⇧P → Reload Window</strong>). SwarmHawk tools will appear in the Agent panel under <strong>Tools</strong>.</div>
-        </div>
-      </div>
-    </div><!-- /cursor-pane -->
-
-    <!-- Windsurf -->
-    <div class="app-pane" id="windsurf-pane" style="padding:24px" id="windsurf">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Find the Windsurf MCP config</div>
-          <div class="path-box"><span class="path-os">macOS</span><span class="path-val">~/.codeium/windsurf/mcp_config.json</span></div>
-          <div class="path-box"><span class="path-os">Windows</span><span class="path-val">%USERPROFILE%\.codeium\windsurf\mcp_config.json</span></div>
-          <div class="path-box"><span class="path-os">Linux</span><span class="path-val">~/.codeium/windsurf/mcp_config.json</span></div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Add the server config</div>
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-filename">mcp_config.json</span>
-              <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      <!-- WINDSURF -->
+      <div id="pane-windsurf" class="app-pane">
+        <p>Windsurf (by Codeium) supports MCP via its <strong>Cascade</strong> AI feature. Configure once in Settings and the tools are available globally.</p>
+        <div class="step-list">
+          <div class="sl-item">
+            <div class="sl-num">1</div>
+            <div class="sl-body">
+              <div class="sl-title">Open Windsurf Settings → Cascade → MCP Servers</div>
+              <div class="sl-desc">Navigate to <strong>Settings → AI → Cascade → MCP Servers → Add Server</strong>.</div>
             </div>
-            <pre>{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"swarmhawk"</span>: {
-      <span class="key">"serverUrl"</span>: <span class="str">"https://swarmhawk-backend.onrender.com/mcp/sse"</span>,
-      <span class="key">"headers"</span>: {
-        <span class="key">"X-API-Key"</span>: <span class="str">"swh_your_key"</span>
-      }
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">2</div>
+            <div class="sl-body">
+              <div class="sl-title">Add SwarmHawk</div>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-filename">Windsurf MCP config</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code>{
+  <span class="c-key">"name"</span>: <span class="c-str">"swarmhawk"</span>,
+  <span class="c-key">"endpoint"</span>: <span class="c-str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
+  <span class="c-key">"auth"</span>: {
+    <span class="c-key">"type"</span>: <span class="c-str">"bearer"</span>,
+    <span class="c-key">"token"</span>: <span class="c-str">"YOUR_API_KEY"</span>
+  }
+}</code></pre>
+              </div>
+            </div>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">3</div>
+            <div class="sl-body">
+              <div class="sl-title">Use in Cascade chat</div>
+              <div class="sl-desc">Open the Cascade panel and type any security question referencing your domains. Windsurf will call SwarmHawk tools automatically.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLINE -->
+      <div id="pane-cline" class="app-pane">
+        <p>Cline is a VS Code extension that supports MCP tools. Install Cline from the VS Code Marketplace, then configure SwarmHawk in the Cline settings JSON.</p>
+        <div class="step-list">
+          <div class="sl-item">
+            <div class="sl-num">1</div>
+            <div class="sl-body">
+              <div class="sl-title">Install the Cline extension</div>
+              <div class="sl-desc">Search for <strong>Cline</strong> in the VS Code Extension Marketplace and install it. Open the Cline panel in the sidebar.</div>
+            </div>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">2</div>
+            <div class="sl-body">
+              <div class="sl-title">Open Cline MCP settings</div>
+              <div class="sl-desc">In the Cline panel, click the <strong>MCP Servers</strong> tab → <strong>Edit Config</strong>. This opens <code>cline_mcp_settings.json</code>.</div>
+            </div>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">3</div>
+            <div class="sl-body">
+              <div class="sl-title">Add SwarmHawk</div>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-filename">cline_mcp_settings.json</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code>{
+  <span class="c-key">"mcpServers"</span>: {
+    <span class="c-key">"swarmhawk"</span>: {
+      <span class="c-key">"url"</span>: <span class="c-str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
+      <span class="c-key">"apiKey"</span>: <span class="c-str">"YOUR_API_KEY"</span>
     }
   }
-}</pre>
-          </div>
-          <div class="info-box">
-            <p><strong>Note:</strong> Windsurf uses SSE transport — use the <code>/mcp/sse</code> endpoint.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Restart Windsurf and enable in Cascade</div>
-          <div class="step-desc">Open the Cascade panel, click the <strong>MCP</strong> icon, and confirm SwarmHawk shows as connected (green dot).</div>
-        </div>
-      </div>
-    </div><!-- /windsurf-pane -->
-
-    <!-- Cline / VS Code -->
-    <div class="app-pane" id="cline-pane" style="padding:24px" id="cline">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Install Cline extension</div>
-          <div class="step-desc">In VS Code: <strong>Extensions → search "Cline" → Install</strong>. Cline is the MCP-enabled AI coding assistant for VS Code.</div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Add SwarmHawk in Cline settings</div>
-          <div class="step-desc">Click the Cline icon in the sidebar → <strong>MCP Servers → Configure MCP Servers</strong>. Add:</div>
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-filename">cline_mcp_settings.json</span>
-              <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+}</code></pre>
+              </div>
             </div>
-            <pre>{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"swarmhawk"</span>: {
-      <span class="key">"url"</span>: <span class="str">"https://swarmhawk-backend.onrender.com/mcp"</span>,
-      <span class="key">"headers"</span>: {
-        <span class="key">"X-API-Key"</span>: <span class="str">"swh_your_key"</span>
-      },
-      <span class="key">"disabled"</span>: <span class="kw">false</span>
-    }
-  }
-}</pre>
           </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Use in Cline chat</div>
-          <div class="step-desc">Open Cline chat panel and ask: <em>"Scan this domain for security issues: example.com"</em>. Cline will use SwarmHawk automatically.</div>
-        </div>
-      </div>
-    </div><!-- /cline-pane -->
-
-    <!-- Self-host -->
-    <div class="app-pane" id="selfhost-pane" style="padding:24px" id="selfhost">
-      <p style="margin-bottom:16px">Self-hosting lets you run the MCP server locally (stdio transport) — useful when you can't use HTTP/SSE endpoints or want to keep traffic internal.</p>
-
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Install dependencies</div>
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-filename">terminal</span>
-              <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+          <div class="sl-item">
+            <div class="sl-num">4</div>
+            <div class="sl-body">
+              <div class="sl-title">Restart VS Code and verify</div>
+              <div class="sl-desc">The SwarmHawk tools appear under <strong>Connected MCP Servers</strong> in the Cline panel. Toggle them on and start a conversation.</div>
             </div>
-            <pre>pip install fastmcp requests python-dotenv</pre>
           </div>
         </div>
       </div>
 
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Create swarmhawk_mcp.py</div>
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-filename">swarmhawk_mcp.py</span>
-              <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      <!-- SELF-HOST -->
+      <div id="pane-selfhost" class="app-pane">
+        <p>If you need to run the MCP server inside a private network or want to customize it, you can self-host the SwarmHawk MCP adapter using Python.</p>
+        <div class="callout callout-amber">
+          <span class="callout-icon">⚠️</span>
+          <p><strong>Note:</strong> Self-hosting is for advanced users. The hosted server at <code>swarmhawk-backend.onrender.com/mcp</code> is always up-to-date and requires no maintenance on your part.</p>
+        </div>
+        <div class="step-list">
+          <div class="sl-item">
+            <div class="sl-num">1</div>
+            <div class="sl-body">
+              <div class="sl-title">Install the MCP SDK</div>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code>pip install mcp fastapi uvicorn httpx</code></pre>
+              </div>
             </div>
-            <pre><span class="kw">import</span> os, requests
-<span class="kw">from</span> fastmcp <span class="kw">import</span> FastMCP
-
-mcp = FastMCP(<span class="str">"SwarmHawk"</span>)
-API_KEY = os.getenv(<span class="str">"SWARMHAWK_API_KEY"</span>, <span class="str">""</span>)
-BASE = <span class="str">"https://swarmhawk-backend.onrender.com"</span>
-HDR = {<span class="str">"X-API-Key"</span>: API_KEY}
-
-<span class="op">@</span>mcp.tool()
-<span class="kw">def</span> <span class="key">scan_domain</span>(domain: str) -> dict:
-    <span class="str">"""Run a full 22-check security scan on any domain."""</span>
-    r = requests.post(f<span class="str">"{BASE}/api/v1/scan"</span>,
-                      json={<span class="str">"domain"</span>: domain}, headers=HDR, timeout=<span class="num">60</span>)
-    r.raise_for_status()
-    <span class="kw">return</span> r.json()
-
-<span class="op">@</span>mcp.tool()
-<span class="kw">def</span> <span class="key">quick_risk_score</span>(domain: str) -> dict:
-    <span class="str">"""Get just the numeric risk score for a domain (fast)."""</span>
-    r = requests.get(f<span class="str">"{BASE}/api/v1/risk/{domain}"</span>, headers=HDR, timeout=<span class="num">10</span>)
-    r.raise_for_status()
-    <span class="kw">return</span> r.json()
-
-<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
-    mcp.run()</pre>
           </div>
-        </div>
-      </div>
+          <div class="sl-item">
+            <div class="sl-num">2</div>
+            <div class="sl-body">
+              <div class="sl-title">Create your adapter</div>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-filename">swarmhawk_mcp.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code><span class="c-comment"># Minimal SwarmHawk MCP proxy</span>
+<span class="c-type">import</span> os, httpx
+<span class="c-type">from</span> mcp.server.fastmcp <span class="c-type">import</span> FastMCP
 
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Configure Claude Desktop for stdio</div>
-          <div class="code-wrap">
-            <div class="code-header">
-              <span class="code-filename">claude_desktop_config.json</span>
-              <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+API = <span class="c-str">"https://swarmhawk-backend.onrender.com"</span>
+KEY = os.environ[<span class="c-str">"SWARMHAWK_API_KEY"</span>]
+HEADERS = {<span class="c-str">"Authorization"</span>: <span class="c-str">f"Bearer {KEY}"</span>}
+
+mcp = FastMCP(<span class="c-str">"swarmhawk"</span>)
+
+@mcp.tool()
+<span class="c-type">async def</span> list_domains():
+    <span class="c-str">"""Return all domains with risk score and scan status."""</span>
+    r = httpx.get(<span class="c-str">f"{API}/domains"</span>, headers=HEADERS)
+    <span class="c-type">return</span> r.json()
+
+@mcp.tool()
+<span class="c-type">async def</span> get_scan_result(domain: str):
+    <span class="c-str">"""Full findings for a specific domain."""</span>
+    r = httpx.get(<span class="c-str">f"{API}/scan-results/{domain}"</span>, headers=HEADERS)
+    <span class="c-type">return</span> r.json()
+
+<span class="c-type">if</span> __name__ == <span class="c-str">"__main__"</span>:
+    mcp.run(transport=<span class="c-str">"sse"</span>)</code></pre>
+              </div>
             </div>
-            <pre>{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"swarmhawk"</span>: {
-      <span class="key">"command"</span>: <span class="str">"python3"</span>,
-      <span class="key">"args"</span>: [<span class="str">"/path/to/swarmhawk_mcp.py"</span>],
-      <span class="key">"env"</span>: {
-        <span class="key">"SWARMHAWK_API_KEY"</span>: <span class="str">"swh_your_key"</span>
-      }
-    }
-  }
-}</pre>
+          </div>
+          <div class="sl-item">
+            <div class="sl-num">3</div>
+            <div class="sl-body">
+              <div class="sl-title">Run it</div>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code>SWARMHAWK_API_KEY=swh_xxx python swarmhawk_mcp.py</code></pre>
+              </div>
+              <div class="sl-desc">Then point your client to <code>http://localhost:8000/mcp</code> instead of the hosted URL.</div>
+            </div>
           </div>
         </div>
       </div>
-    </div><!-- /selfhost-pane -->
+    </div><!-- end setup-body -->
 
-  </div><!-- /setup-box -->
+    <!-- TOOLS REFERENCE -->
+    <h2 id="tools">All 7 MCP Tools</h2>
+    <p>Once connected, your AI assistant has access to these tools. You don't call them directly — just ask a question and the AI picks the right tool automatically.</p>
 
-  <!-- TOOLS REFERENCE -->
-  <h2 id="tools">All 7 MCP Tools</h2>
-  <p>Each tool maps to one or more SwarmHawk API endpoints. The AI assistant picks the right tool based on your prompt automatically.</p>
+    <div class="tool-grid">
 
-  <div class="tool-grid">
-
-    <div class="tool-card">
-      <div class="tool-head">
-        <span class="tool-name">scan_domain</span>
-        <span class="tool-time">~30–45s</span>
-      </div>
-      <div class="tool-desc">Full 22-check security scan. Returns risk score, all check results, status breakdown, and AI threat summary. The most complete tool — use for thorough analysis.</div>
-      <div class="tool-params">
-        <div class="param-row"><span class="param-name">domain</span><span class="param-type">string</span><span class="param-desc">Target domain, e.g. <code>example.com</code></span></div>
-      </div>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-head">
-        <span class="tool-name">quick_risk_score</span>
-        <span class="tool-time">~3–5s</span>
-      </div>
-      <div class="tool-desc">Returns only the numeric risk score (0–100) and critical/warning counts. Useful for quick checks, batch comparisons, or routing logic in agent workflows.</div>
-      <div class="tool-params">
-        <div class="param-row"><span class="param-name">domain</span><span class="param-type">string</span><span class="param-desc">Target domain</span></div>
-      </div>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-head">
-        <span class="tool-name">check_breach_exposure</span>
-        <span class="tool-time">~3s</span>
-      </div>
-      <div class="tool-desc">HaveIBeenPwned lookup only. Returns breach count, breach names, and total compromised accounts linked to the domain.</div>
-      <div class="tool-params">
-        <div class="param-row"><span class="param-name">domain</span><span class="param-type">string</span><span class="param-desc">Target domain</span></div>
-      </div>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-head">
-        <span class="tool-name">check_typosquats</span>
-        <span class="tool-time">~5–8s</span>
-      </div>
-      <div class="tool-desc">Generates 200+ lookalike domain permutations and checks DNS resolution. Returns list of registered typosquat domains with their registration status.</div>
-      <div class="tool-params">
-        <div class="param-row"><span class="param-name">domain</span><span class="param-type">string</span><span class="param-desc">Target domain</span></div>
-      </div>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-head">
-        <span class="tool-name">check_reputation</span>
-        <span class="tool-time">~8s</span>
-      </div>
-      <div class="tool-desc">Runs threat intelligence checks only: URLhaus, Spamhaus DBL, Google Safe Browsing, VirusTotal. Faster than a full scan when you only need reputation data.</div>
-      <div class="tool-params">
-        <div class="param-row"><span class="param-name">domain</span><span class="param-type">string</span><span class="param-desc">Target domain</span></div>
-      </div>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-head">
-        <span class="tool-name">batch_risk_scores</span>
-        <span class="tool-time">~10–30s</span>
-      </div>
-      <div class="tool-desc">Scan multiple domains at once and get a ranked risk score table. Ideal for comparing vendors, prospects, or a portfolio of client domains.</div>
-      <div class="tool-params">
-        <div class="param-row"><span class="param-name">domains</span><span class="param-type">string[]</span><span class="param-desc">Array of domains, max 10 per call</span></div>
-      </div>
-    </div>
-
-    <div class="tool-card">
-      <div class="tool-head">
-        <span class="tool-name">get_quota</span>
-        <span class="tool-time">instant</span>
-      </div>
-      <div class="tool-desc">Returns your API key's remaining scan quota, plan type, and monthly reset date. Useful for agents that need to budget API calls.</div>
-      <div class="tool-params">
-        <div class="param-row"><span class="param-name">(none)</span><span class="param-type">—</span><span class="param-desc">No parameters needed</span></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- EXAMPLE PROMPTS -->
-  <h2 id="examples">Example Prompts</h2>
-  <p>These prompts work in any MCP-connected client (Claude, Cursor, Cline, etc.):</p>
-  <table>
-    <thead><tr><th>What you type</th><th>Tool used</th></tr></thead>
-    <tbody>
-      <tr><td><em>"Scan mycompany.com for security issues"</em></td><td><code>scan_domain</code></td></tr>
-      <tr><td><em>"What's the risk score for competitor.com?"</em></td><td><code>quick_risk_score</code></td></tr>
-      <tr><td><em>"Has example.com been in any data breaches?"</em></td><td><code>check_breach_exposure</code></td></tr>
-      <tr><td><em>"Check if anyone is typosquatting mybrand.com"</em></td><td><code>check_typosquats</code></td></tr>
-      <tr><td><em>"Is this domain on any malware blacklists?"</em></td><td><code>check_reputation</code></td></tr>
-      <tr><td><em>"Compare the security of these 5 vendors: a.com, b.com, c.com, d.com, e.com"</em></td><td><code>batch_risk_scores</code></td></tr>
-      <tr><td><em>"How many API scans do I have left this month?"</em></td><td><code>get_quota</code></td></tr>
-      <tr><td><em>"Do a full security audit of our domain, explain every finding, and give me a remediation plan"</em></td><td><code>scan_domain</code> + AI analysis</td></tr>
-    </tbody>
-  </table>
-
-  <!-- MARKETPLACES -->
-  <h2 id="marketplaces">MCP Marketplaces — Where to List SwarmHawk</h2>
-  <p>These are the main directories, marketplaces, and communities where MCP servers are published and discovered. Listing SwarmHawk on as many as possible increases visibility with AI developers and enterprise buyers.</p>
-
-  <div class="market-grid">
-
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🟣</span>
-        <div>
-          <div class="market-name">Anthropic MCP Directory</div>
-          <div class="market-url">modelcontextprotocol.io</div>
+      <div class="tool-card">
+        <div class="tool-head">
+          <div class="tool-name">list_domains</div>
+          <div class="tool-badge">READ</div>
+        </div>
+        <div class="tool-desc">Returns all domains in your account with current risk score, scan status, and last scanned timestamp.</div>
+        <div class="tool-params">
+          <div class="param-row"><span class="param-name">params</span><span class="param-type">none</span><span class="param-desc">No parameters required</span></div>
+          <div class="param-row"><span class="param-name">returns</span><span class="param-type">array</span><span class="param-desc">List of domain objects with risk_score, status, last_scanned</span></div>
         </div>
       </div>
-      <div class="market-desc">The official MCP server directory maintained by Anthropic. The highest-trust listing — verified by the protocol creators. Claude Desktop users discover servers here first. Submit via a pull request to the official GitHub repo.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-        <span class="mtag mtag-key">PR required</span>
-      </div>
-    </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🔵</span>
-        <div>
-          <div class="market-name">Smithery</div>
-          <div class="market-url">smithery.ai</div>
+      <div class="tool-card">
+        <div class="tool-head">
+          <div class="tool-name">get_scan_result</div>
+          <div class="tool-badge">READ</div>
+        </div>
+        <div class="tool-desc">Returns the full scan report for a single domain: every finding, severity, affected record, and remediation step.</div>
+        <div class="tool-params">
+          <div class="param-row"><span class="param-name">domain</span><span class="param-type">string</span><span class="param-desc">e.g. "example.com"</span></div>
+          <div class="param-row"><span class="param-name">returns</span><span class="param-type">object</span><span class="param-desc">risk_score, findings[], dns_records, scan_history</span></div>
         </div>
       </div>
-      <div class="market-desc">The largest independent MCP server marketplace. Supports one-click install, usage analytics, versioning, and paid tiers. Thousands of active users browsing and installing servers. High priority listing target.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-        <span class="mtag mtag-paid">Paid featured</span>
-      </div>
-    </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🟡</span>
-        <div>
-          <div class="market-name">Glama</div>
-          <div class="market-url">glama.ai/mcp/servers</div>
+      <div class="tool-card">
+        <div class="tool-head">
+          <div class="tool-name">get_risk_summary</div>
+          <div class="tool-badge">READ</div>
+        </div>
+        <div class="tool-desc">Aggregates your entire portfolio: total domains, average risk score, count of critical/warning/clean domains.</div>
+        <div class="tool-params">
+          <div class="param-row"><span class="param-name">params</span><span class="param-type">none</span><span class="param-desc">No parameters required</span></div>
+          <div class="param-row"><span class="param-name">returns</span><span class="param-type">object</span><span class="param-desc">total, avg_score, critical_count, clean_count</span></div>
         </div>
       </div>
-      <div class="market-desc">MCP server discovery platform with automatic metadata extraction, live status checks, and category browsing. Popular with developers evaluating servers before integrating. Indexed by AI search engines.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-      </div>
-    </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🔴</span>
-        <div>
-          <div class="market-name">mcp.so</div>
-          <div class="market-url">mcp.so</div>
+      <div class="tool-card">
+        <div class="tool-head">
+          <div class="tool-name">get_pipeline_status</div>
+          <div class="tool-badge">READ</div>
+        </div>
+        <div class="tool-desc">Returns the current scanner queue state: pending scans, completed today, error rate, last scan timestamp.</div>
+        <div class="tool-params">
+          <div class="param-row"><span class="param-name">params</span><span class="param-type">none</span><span class="param-desc">No parameters required</span></div>
+          <div class="param-row"><span class="param-name">returns</span><span class="param-type">object</span><span class="param-desc">pending, completed_today, error_rate, last_scan</span></div>
         </div>
       </div>
-      <div class="market-desc">Community-curated MCP server directory with categories, tags, and user ratings. Simple submission form, fast listing approval. Good for SEO — pages are indexed and rank for "[tool name] MCP server" queries.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-      </div>
-    </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">📊</span>
-        <div>
-          <div class="market-name">PulseMCP</div>
-          <div class="market-url">pulsemcp.com</div>
+      <div class="tool-card">
+        <div class="tool-head">
+          <div class="tool-name">trigger_scan</div>
+          <div class="tool-badge" style="color:var(--amber);background:rgba(251,191,36,.1)">WRITE</div>
+        </div>
+        <div class="tool-desc">Requests an immediate re-scan of a specific domain. The AI will ask you to confirm before calling this tool.</div>
+        <div class="tool-params">
+          <div class="param-row"><span class="param-name">domain</span><span class="param-type">string</span><span class="param-desc">Domain to re-scan, e.g. "example.com"</span></div>
+          <div class="param-row"><span class="param-name">returns</span><span class="param-type">object</span><span class="param-desc">job_id, status: "queued"</span></div>
         </div>
       </div>
-      <div class="market-desc">MCP ecosystem analytics and server discovery. Tracks installs, uptime, and usage trends across the MCP ecosystem. Being listed here adds credibility signals to other directories that track pulse data.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-      </div>
-    </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">⭐</span>
-        <div>
-          <div class="market-name">awesome-mcp-servers</div>
-          <div class="market-url">github.com/punkpeye/awesome-mcp-servers</div>
+      <div class="tool-card">
+        <div class="tool-head">
+          <div class="tool-name">get_findings_by_severity</div>
+          <div class="tool-badge">READ</div>
+        </div>
+        <div class="tool-desc">Filters findings across all domains by severity. Useful for getting a cross-portfolio view of all critical issues.</div>
+        <div class="tool-params">
+          <div class="param-row"><span class="param-name">severity</span><span class="param-type">string</span><span class="param-desc">"critical" | "high" | "medium" | "low"</span></div>
+          <div class="param-row"><span class="param-name">returns</span><span class="param-type">array</span><span class="param-desc">findings[] with domain, message, fix</span></div>
         </div>
       </div>
-      <div class="market-desc">The most-starred GitHub list of MCP servers (10k+ stars). A reference point for developers evaluating the ecosystem. Submit via pull request — adds a one-liner in the Security category. Drives significant organic traffic.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-        <span class="mtag mtag-key">PR required</span>
-      </div>
-    </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">⬛</span>
-        <div>
-          <div class="market-name">Cursor Directory</div>
-          <div class="market-url">cursor.directory</div>
+      <div class="tool-card">
+        <div class="tool-head">
+          <div class="tool-name">get_compliance_status</div>
+          <div class="tool-badge">READ</div>
+        </div>
+        <div class="tool-desc">Returns a compliance readiness summary for NIS2, DORA, and GDPR Article 32 based on current scan findings.</div>
+        <div class="tool-params">
+          <div class="param-row"><span class="param-name">framework</span><span class="param-type">string</span><span class="param-desc">"nis2" | "dora" | "gdpr" (optional)</span></div>
+          <div class="param-row"><span class="param-name">returns</span><span class="param-type">object</span><span class="param-desc">framework, status, gaps[], evidence[]</span></div>
         </div>
       </div>
-      <div class="market-desc">Community directory for Cursor IDE rules and MCP servers. Reaches the large Cursor user base directly — developers who are already MCP-enabled and actively looking for tools to extend their coding assistant.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-      </div>
+
     </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🌊</span>
+    <div class="callout callout-blue">
+      <span class="callout-icon">🤖</span>
+      <p><strong>How tool selection works:</strong> You don't need to name tools in your prompt. If you ask "which of my domains are at risk?", the AI calls <code>list_domains</code>, filters for score &gt; 30, and summarises. If you ask about compliance, it calls <code>get_compliance_status</code>. The AI chains multiple tools when needed.</p>
+    </div>
+
+    <!-- EXAMPLE PROMPTS -->
+    <h2 id="examples">Example Prompts</h2>
+    <p>These prompts work across all MCP-compatible clients. The AI automatically selects the appropriate tool(s).</p>
+
+    <h4>Security overview</h4>
+    <div class="prompt-list">
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
         <div>
-          <div class="market-name">Windsurf MCP Hub</div>
-          <div class="market-url">codeium.com/windsurf/mcp</div>
+          <div class="prompt-text">"Give me a security overview of all my domains. Which ones need immediate attention?"</div>
+          <div class="prompt-tool">→ calls list_domains + get_scan_result for high-risk items</div>
         </div>
       </div>
-      <div class="market-desc">Codeium's official hub for MCP servers compatible with Windsurf IDE. Growing fast alongside Windsurf's user base. Listing here puts SwarmHawk in front of enterprise dev teams using Windsurf for AI-assisted coding.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-      </div>
-    </div>
-
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">📦</span>
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
         <div>
-          <div class="market-name">npm Registry</div>
-          <div class="market-url">npmjs.com</div>
+          <div class="prompt-text">"What critical findings do I have across my entire portfolio right now?"</div>
+          <div class="prompt-tool">→ calls get_findings_by_severity("critical")</div>
         </div>
       </div>
-      <div class="market-desc">Publish a <code>@swarmhawk/mcp-server</code> npm package. Enables one-line install (<code>npx @swarmhawk/mcp-server</code>) and makes SwarmHawk discoverable to JavaScript/Node.js developers searching for MCP tools.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free</span>
-        <span class="mtag mtag-key">Publish pkg</span>
-      </div>
-    </div>
-
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🐍</span>
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
         <div>
-          <div class="market-name">PyPI</div>
-          <div class="market-url">pypi.org</div>
+          <div class="prompt-text">"What's the risk score for api.example.com and what's causing it to be high?"</div>
+          <div class="prompt-tool">→ calls get_scan_result("api.example.com")</div>
         </div>
       </div>
-      <div class="market-desc">Publish a <code>swarmhawk-mcp</code> Python package. Enables <code>pip install swarmhawk-mcp</code> and reaches the large Python developer community. Tag with <code>mcp</code>, <code>security</code>, and <code>fastmcp</code> keywords.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free</span>
-        <span class="mtag mtag-key">Publish pkg</span>
-      </div>
     </div>
 
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🔷</span>
+    <h4>Remediation help</h4>
+    <div class="prompt-list">
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
         <div>
-          <div class="market-name">mcpservers.org</div>
-          <div class="market-url">mcpservers.org</div>
+          <div class="prompt-text">"My domain example.com has no DMARC record. Write me the correct DNS TXT entry to add."</div>
+          <div class="prompt-tool">→ calls get_scan_result + generates fix based on findings</div>
         </div>
       </div>
-      <div class="market-desc">Open community index of MCP servers with full-text search and category filters. Includes a Security &amp; Privacy category where SwarmHawk fits naturally. Submission is open to anyone.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free listing</span>
-      </div>
-    </div>
-
-    <div class="market-card">
-      <div class="market-head">
-        <span class="market-icon">🏢</span>
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
         <div>
-          <div class="market-name">Product Hunt</div>
-          <div class="market-url">producthunt.com</div>
+          <div class="prompt-text">"Walk me through fixing the top 3 issues on shop.example.com in order of priority."</div>
+          <div class="prompt-tool">→ calls get_scan_result, ranks findings, explains each fix step-by-step</div>
         </div>
       </div>
-      <div class="market-desc">Launch SwarmHawk as an MCP server product. The "AI Tools" and "Developer Tools" categories get significant traffic. A successful PH launch (top 5 of the day) generates backlinks, press mentions, and trial signups.</div>
-      <div class="market-tags">
-        <span class="mtag mtag-free">Free</span>
-        <span class="mtag mtag-key">Launch strategy</span>
+    </div>
+
+    <h4>Compliance</h4>
+    <div class="prompt-list">
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
+        <div>
+          <div class="prompt-text">"Am I NIS2-compliant based on my current scan results? What's still missing?"</div>
+          <div class="prompt-tool">→ calls get_compliance_status("nis2")</div>
+        </div>
+      </div>
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
+        <div>
+          <div class="prompt-text">"Produce a GDPR Article 32 technical measures summary I can paste into our security register."</div>
+          <div class="prompt-tool">→ calls get_compliance_status("gdpr") + formats output</div>
+        </div>
       </div>
     </div>
 
-  </div>
+    <h4>Operations</h4>
+    <div class="prompt-list">
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
+        <div>
+          <div class="prompt-text">"Trigger a fresh scan on staging.example.com — I just deployed a config change."</div>
+          <div class="prompt-tool">→ confirms with you, then calls trigger_scan("staging.example.com")</div>
+        </div>
+      </div>
+      <div class="prompt">
+        <div class="prompt-icon">💬</div>
+        <div>
+          <div class="prompt-text">"How many domains are in the scan queue right now and when was the last scan completed?"</div>
+          <div class="prompt-tool">→ calls get_pipeline_status()</div>
+        </div>
+      </div>
+    </div>
 
-  <!-- LISTING GUIDE -->
-  <h2 id="listing-guide">Listing Guide — What to Include</h2>
-  <p>When submitting to any marketplace, use consistent copy so SwarmHawk is instantly recognisable across directories.</p>
+    <!-- TROUBLESHOOTING -->
+    <h2 id="troubleshoot">Troubleshooting</h2>
 
-  <h3>Name</h3>
-  <div class="code-wrap"><div class="code-header"><span class="code-filename">copy/paste</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
-  <pre>SwarmHawk Security Scanner</pre></div>
+    <div class="trouble-item">
+      <button class="trouble-q" onclick="toggleTrouble(this)">The AI says it can't find the SwarmHawk tools</button>
+      <div class="trouble-a">
+        <p><strong>Most common cause:</strong> the config file has a JSON syntax error or the server URL has a typo. Validate the JSON at <a href="https://jsonlint.com" target="_blank" rel="noopener">jsonlint.com</a>. The URL must be exactly <code>https://swarmhawk-backend.onrender.com/mcp</code> — no trailing slash.</p>
+        <p>Also check you restarted the client fully (not just closed the window) after editing the config.</p>
+      </div>
+    </div>
 
-  <h3>Short description (140 chars)</h3>
-  <div class="code-wrap"><div class="code-header"><span class="code-filename">copy/paste</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
-  <pre>Domain security intelligence — 22 checks: SSL, CVEs, breaches, Shodan,
-dark-web leaks, SAST/DAST/SCA/IaC, and AI threat analysis in one call.</pre></div>
+    <div class="trouble-item">
+      <button class="trouble-q" onclick="toggleTrouble(this)">I get "401 Unauthorized" errors</button>
+      <div class="trouble-a">
+        <p>Your API key is missing, malformed, or belongs to a Free tier account. Check:</p>
+        <ul>
+          <li>The key is in the config exactly as shown in your Account tab (starts with <code>swh_</code>)</li>
+          <li>The header value is <code>Bearer swh_your_key</code> — the word "Bearer" followed by a space must be included</li>
+          <li>Your SwarmHawk plan is Pro or higher — Free accounts do not have API access</li>
+        </ul>
+      </div>
+    </div>
 
-  <h3>Long description</h3>
-  <div class="code-wrap"><div class="code-header"><span class="code-filename">copy/paste</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
-  <pre>SwarmHawk is a domain security intelligence MCP server that runs 22
-passive OSINT checks in parallel and returns a unified risk score (0-100)
-with AI-generated remediation steps.
+    <div class="trouble-item">
+      <button class="trouble-q" onclick="toggleTrouble(this)">Tools work but return empty or stale data</button>
+      <div class="trouble-a">
+        <p>If <code>list_domains</code> returns an empty array, you haven't added any domains to your SwarmHawk account yet — go to the dashboard and add one. If the data looks old, trigger a fresh scan via the dashboard or ask the AI to call <code>trigger_scan</code>.</p>
+      </div>
+    </div>
 
-Tools: scan_domain, quick_risk_score, check_breach_exposure,
-check_typosquats, check_reputation, batch_risk_scores, get_quota
+    <div class="trouble-item">
+      <button class="trouble-q" onclick="toggleTrouble(this)">The MCP server is slow to respond</button>
+      <div class="trouble-a">
+        <p>The backend runs on Render's free tier which spins down after 15 minutes of inactivity. The first request after a cold start takes 20–40 seconds. Subsequent requests are fast. Enterprise plans are hosted on always-on infrastructure.</p>
+      </div>
+    </div>
 
-Checks include: SSL/TLS, HTTPS redirect, security headers, DNS, email
-security (SPF/DMARC), WHOIS/RDAP domain age, URLhaus malware, Spamhaus
-DBL, Google Safe Browsing, VirusTotal (70+ engines), breach exposure
-(HIBP), CVE scan (NVD), typosquat monitoring, Shodan (open ports + CVEs),
-active port scanning, IP intelligence (TOR/proxy/ASN), SAST (source code
-exposure), SCA (dependency vulnerabilities), DAST (admin panels + .env),
-IaC (Dockerfile/terraform.tfstate exposure), dark-web credential leaks.
+    <div class="trouble-item">
+      <button class="trouble-q" onclick="toggleTrouble(this)">Claude keeps asking me to confirm before calling tools</button>
+      <div class="trouble-a">
+        <p>This is intentional for <code>trigger_scan</code> (the only write operation). For read-only tools, Claude should call them without confirmation. If you're seeing confirmation prompts for reads, check your Claude Desktop or project settings — there may be a "require approval for all MCP tools" setting enabled.</p>
+      </div>
+    </div>
 
-Transport: HTTP/SSE · Auth: API key header · No data stored · GDPR compliant</pre></div>
+    <div class="trouble-item">
+      <button class="trouble-q" onclick="toggleTrouble(this)">I want to use MCP from a CI/CD pipeline or script</button>
+      <div class="trouble-a">
+        <p>MCP is designed for interactive AI use. For automated pipelines, use the REST API directly instead — it's simpler, has no AI overhead, and gives you full programmatic control. See the <a href="/kb.html#api">API section of the Knowledge Base</a> for full documentation and code examples.</p>
+      </div>
+    </div>
 
-  <h3>Tags / categories</h3>
-  <div class="code-wrap"><div class="code-header"><span class="code-filename">copy/paste</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
-  <pre>security, osint, domain, cybersecurity, nis2, ssl, breach, shodan,
-cve, malware, phishing, compliance, threat-intelligence, dast, sast</pre></div>
+    <!-- API KEY -->
+    <h2 id="api-key">Getting Your API Key</h2>
+    <div class="step-list">
+      <div class="sl-item">
+        <div class="sl-num">1</div>
+        <div class="sl-body">
+          <div class="sl-title">Log in to SwarmHawk</div>
+          <div class="sl-desc">Go to <a href="/app/">swarmhawk.com/app/</a> and sign in with your account.</div>
+        </div>
+      </div>
+      <div class="sl-item">
+        <div class="sl-num">2</div>
+        <div class="sl-body">
+          <div class="sl-title">Open the Account tab</div>
+          <div class="sl-desc">Click the <strong>👤 Account</strong> tab in the top dashboard navigation.</div>
+        </div>
+      </div>
+      <div class="sl-item">
+        <div class="sl-num">3</div>
+        <div class="sl-body">
+          <div class="sl-title">Find your API key</div>
+          <div class="sl-desc">Scroll to the <strong>API Key</strong> section. Click <strong>Reveal</strong> to show the full key. Copy it and paste it into your MCP config in place of <code>YOUR_API_KEY</code>.</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-red">
+      <span class="callout-icon">🔒</span>
+      <p><strong>Never share your API key.</strong> Do not commit it to version control. Do not paste it in public chat. If it's compromised, go back to the Account tab and click <strong>Regenerate</strong> — the old key is immediately invalidated.</p>
+    </div>
 
-  <h3>Server URL</h3>
-  <div class="code-wrap"><div class="code-header"><span class="code-filename">copy/paste</span><button class="copy-btn" onclick="copyCode(this)">COPY</button></div>
-  <pre>https://swarmhawk-backend.onrender.com/mcp</pre></div>
+    <hr class="mcp-divider">
+    <p style="font-size:13px;color:var(--muted)">Last updated March 2026 · <a href="/">swarmhawk.com</a> · <a href="/kb.html">Knowledge Base</a> · <a href="/privacy.html">Privacy</a></p>
 
-  <!-- TROUBLESHOOTING -->
-  <h2 id="troubleshoot">Troubleshooting</h2>
-  <table>
-    <thead><tr><th>Problem</th><th>Likely cause</th><th>Fix</th></tr></thead>
-    <tbody>
-      <tr><td>SwarmHawk doesn't appear in Claude Desktop</td><td>Config JSON syntax error or wrong file path</td><td>Validate JSON at jsonlint.com, confirm file is at the correct OS path</td></tr>
-      <tr><td><code>401 Unauthorized</code></td><td>API key missing or incorrect</td><td>Regenerate key in Dashboard → Account → API Keys</td></tr>
-      <tr><td><code>429 Too Many Requests</code></td><td>Plan quota exceeded</td><td>Use <code>get_quota</code> to check remaining calls; upgrade plan if needed</td></tr>
-      <tr><td>Scan times out</td><td>Open port scan slow on distant hosts</td><td>Normal — full scan can take 30–45s. Do not lower client timeout below 60s</td></tr>
-      <tr><td>Tool not called automatically</td><td>AI didn't recognise the intent</td><td>Mention "SwarmHawk" or "security scan" explicitly in your prompt</td></tr>
-      <tr><td>Windsurf shows connection error</td><td>Using wrong endpoint (needs /sse)</td><td>Change URL to <code>https://swarmhawk-backend.onrender.com/mcp/sse</code></td></tr>
-      <tr><td>Results show many "error" checks</td><td>Network timeout from Render cold start</td><td>Retry once — Render free tier sleeps after inactivity; first scan wakes it up</td></tr>
-    </tbody>
-  </table>
-
-</main>
+  </main>
 </div>
 
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <div class="pulse"></div>
+      <span class="footer-brand">SwarmHawk</span>
+    </div>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/app/">Dashboard</a>
+      <a href="/kb.html">Knowledge Base</a>
+      <a href="/solutions/">Enterprise</a>
+      <a href="/map.html">Live Map</a>
+      <a href="/privacy.html">Privacy</a>
+    </div>
+    <div class="footer-copy">© 2026 SwarmHawk</div>
+  </div>
+</footer>
+
 <script>
+// Tab switcher
 function showTab(id, btn) {
-  document.querySelectorAll('.app-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
+  document.querySelectorAll('.app-pane').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.app-tab').forEach(function(b){ b.classList.remove('active'); });
+  var pane = document.getElementById(id);
+  if (pane) pane.classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 
+// Troubleshoot accordion
+function toggleTrouble(btn) {
+  var answer = btn.nextElementSibling;
+  var isOpen = answer.classList.contains('show');
+  document.querySelectorAll('.trouble-a').forEach(function(a){ a.classList.remove('show'); });
+  document.querySelectorAll('.trouble-q').forEach(function(b){ b.classList.remove('open'); });
+  if (!isOpen) { answer.classList.add('show'); btn.classList.add('open'); }
+}
+
+// Copy button
 function copyCode(btn) {
-  const pre = btn.closest('.code-wrap').querySelector('pre');
-  navigator.clipboard.writeText(pre.innerText).then(() => {
-    btn.textContent = 'COPIED';
-    setTimeout(() => btn.textContent = 'COPY', 1800);
+  var pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(function(){
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.color = 'var(--lime)';
+    setTimeout(function(){ btn.textContent = orig; btn.style.color = ''; }, 1800);
   });
 }
 
 // Scroll-spy sidebar
-const sections = document.querySelectorAll('[id]');
-const links = document.querySelectorAll('.sb-link');
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      links.forEach(l => l.classList.remove('active'));
-      const a = document.querySelector(`.sb-link[href="#${e.target.id}"]`);
-      if (a) a.classList.add('active');
-    }
+(function(){
+  var links = document.querySelectorAll('.mcp-sidebar .sb-link');
+  var sections = [];
+  links.forEach(function(l){
+    var id = l.getAttribute('href').replace('#','');
+    var el = document.getElementById(id);
+    if(el) sections.push({el:el, link:l});
   });
-}, {rootMargin:'-15% 0px -70% 0px'});
-sections.forEach(s => obs.observe(s));
+  function onScroll(){
+    var scrollY = window.scrollY + 90;
+    var active = null;
+    sections.forEach(function(s){ if(s.el.offsetTop <= scrollY) active = s; });
+    links.forEach(function(l){ l.classList.remove('active'); });
+    if(active) active.link.classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // Auth-aware nav
+  var token = localStorage.getItem('sw_token');
+  var user = JSON.parse(localStorage.getItem('sw_user') || 'null');
+  if(token && user){
+    var actions = document.getElementById('nav-actions');
+    if(actions) actions.innerHTML = '<a href="/app/" class="btn-nav-lime">Go to Dashboard →</a>';
+  }
+})();
 </script>
 </body>
 </html>

@@ -244,6 +244,7 @@ footer{border-top:1px solid var(--border);padding:40px 0;background:var(--surfac
     <a class="sb-link" href="#authentication">Authentication</a>
     <a class="sb-link" href="#api-endpoints">Key Endpoints</a>
     <a class="sb-link" href="#mcp">MCP Integration</a>
+    <a class="sb-link" href="/mcp.html" style="color:var(--lime)">→ Full MCP Guide ↗</a>
 
     <div class="sb-section">Enterprise</div>
     <a class="sb-link" href="#enterprise">Attack Surface Mgmt</a>
@@ -662,6 +663,7 @@ curl -s https://swarmhawk-backend.onrender.com/scan-results/example.com \
       <span class="callout-icon">🤖</span>
       <p><strong>Example prompt:</strong> <em>"Using SwarmHawk, tell me which of my domains have a critical risk score and what the top issue is for each one."</em><br>Claude will call <code>list_domains</code>, filter for score &gt; 70, then call <code>get_scan_result</code> for each one and summarise the top finding.</p>
     </div>
+    <p>For full MCP setup instructions for Claude Desktop, Cursor, Windsurf, Cline, and self-hosting — including copy-paste config snippets, all 7 tool definitions, example prompts, and troubleshooting — see the <a href="/mcp.html">→ MCP Integration Guide</a>.</p>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
     <h2 id="enterprise">Attack Surface Management</h2>
