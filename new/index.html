@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwarmHawk — Know What's Exposed. Fix What Matters.</title>
+<meta name="description" content="SwarmHawk continuously scans your internet-facing domains, finds breach paths before attackers do, and tells you exactly what to fix first.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ──────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:#080810;color:#e8e8f0;font-family:'Inter',system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* ── TOKENS ──────────────────────────────────────────────────────────*/
+:root{
+  --lime:#a3e635;
+  --lime-pale:rgba(163,230,53,.12);
+  --lime-border:rgba(163,230,53,.25);
+  --dark:#080810;
+  --surface:#0f0f1a;
+  --card:#13131f;
+  --border:rgba(255,255,255,.07);
+  --text:#e8e8f0;
+  --muted:#8888a0;
+  --red:#f87171;
+  --amber:#fbbf24;
+  --blue:#60a5fa;
+  --purple:#a78bfa;
+  --r:12px;
+}
+
+/* ── TYPOGRAPHY ──────────────────────────────────────────────────────*/
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--lime)}
+h1{font-size:clamp(40px,6vw,80px);font-weight:900;line-height:1.02;letter-spacing:-2.5px}
+h2{font-size:clamp(28px,4vw,52px);font-weight:800;line-height:1.08;letter-spacing:-1.5px}
+h3{font-size:20px;font-weight:700;line-height:1.3}
+p{color:var(--muted);line-height:1.75}
+
+/* ── LAYOUT ──────────────────────────────────────────────────────────*/
+.wrap{max-width:1160px;margin:0 auto;padding:0 32px}
+section{padding:100px 0}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+
+/* ── NAV ─────────────────────────────────────────────────────────────*/
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;display:flex;align-items:center;background:rgba(8,8,16,.88);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+.nav-inner{width:100%;max-width:1160px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.pulse{width:11px;height:11px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(163,230,53,.7)}70%{box-shadow:0 0 0 9px rgba(163,230,53,0)}100%{box-shadow:0 0 0 0 rgba(163,230,53,0)}}
+.nav-brand{font-weight:800;font-size:15px;letter-spacing:2.5px;text-transform:uppercase;color:var(--lime)}
+.nav-links{display:flex;gap:28px}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--text)}
+.nav-actions{display:flex;gap:10px;align-items:center}
+.btn-nav-ghost{background:transparent;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:border-color .15s}
+.btn-nav-ghost:hover{border-color:var(--lime-border)}
+.btn-nav-lime{background:var(--lime);color:#000;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:opacity .15s}
+.btn-nav-lime:hover{opacity:.85}
+
+/* ── BUTTONS ─────────────────────────────────────────────────────────*/
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .15s;border:none}
+.btn-lg{padding:16px 32px;font-size:16px}
+.btn-md{padding:12px 24px;font-size:14px}
+.btn-lime{background:var(--lime);color:#000}
+.btn-lime:hover{opacity:.88;transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--lime-border);color:var(--lime)}
+
+/* ── HERO ────────────────────────────────────────────────────────────*/
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 0 80px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(163,230,53,.06) 0%,transparent 60%)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(163,230,53,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(163,230,53,.025) 1px,transparent 1px);background-size:72px 72px}
+.hero-content{position:relative;z-index:1;text-align:center;max-width:900px;margin:0 auto}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;background:var(--lime-pale);border:1px solid var(--lime-border);border-radius:40px;padding:6px 18px;margin-bottom:36px}
+.hero-eyebrow span{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--lime)}
+.hero h1{margin-bottom:24px}
+.hero h1 em{font-style:normal;color:var(--lime)}
+.hero-sub{font-size:19px;color:var(--muted);max-width:640px;margin:0 auto 40px;line-height:1.7}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:64px}
+.hero-stats{display:flex;justify-content:center;gap:0;border:1px solid var(--border);border-radius:16px;background:var(--surface);overflow:hidden;flex-wrap:wrap}
+.h-stat{padding:20px 36px;text-align:center;border-right:1px solid var(--border)}
+.h-stat:last-child{border-right:none}
+.h-stat-n{font-size:28px;font-weight:800;color:var(--lime);font-variant-numeric:tabular-nums}
+.h-stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* ── SEGMENT SELECTOR ────────────────────────────────────────────────*/
+.seg-bar{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0}
+.seg-bar-inner{display:flex;overflow-x:auto;scrollbar-width:none}
+.seg-bar-inner::-webkit-scrollbar{display:none}
+.seg-tab{flex:1;min-width:200px;padding:20px 28px;display:flex;align-items:center;gap:14px;cursor:pointer;border-right:1px solid var(--border);border-bottom:3px solid transparent;transition:all .2s;background:transparent;text-align:left}
+.seg-tab:last-child{border-right:none}
+.seg-tab:hover{background:rgba(163,230,53,.03)}
+.seg-tab.active{border-bottom-color:var(--lime);background:var(--lime-pale)}
+.seg-tab .seg-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.seg-tab .seg-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:1px}
+.seg-tab .seg-desc{font-size:11px;color:var(--muted)}
+
+/* ── SEGMENT PANELS ──────────────────────────────────────────────────*/
+.seg-panel{display:none;padding:80px 0}
+.seg-panel.active{display:block}
+.pain-list{list-style:none;display:flex;flex-direction:column;gap:14px;margin:28px 0}
+.pain-item{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.pain-bullet{width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:7px;flex-shrink:0}
+.pain-text{font-size:14px;color:var(--muted);line-height:1.6}
+.pain-text strong{color:var(--text)}
+.solution-box{background:var(--lime-pale);border:1px solid var(--lime-border);border-radius:14px;padding:28px;margin-top:24px}
+.solution-box-title{font-size:13px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.solution-box p{color:var(--text);font-size:15px;line-height:1.7}
+.feature-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{padding:6px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--muted)}
+.chip.active{color:var(--lime);border-color:var(--lime-border);background:var(--lime-pale)}
+.journey-steps{display:flex;flex-direction:column;gap:0;margin-top:32px;position:relative}
+.journey-steps::before{content:'';position:absolute;left:19px;top:24px;bottom:24px;width:2px;background:linear-gradient(var(--lime-border),transparent)}
+.j-step{display:flex;gap:16px;padding:16px 0}
+.j-num{width:38px;height:38px;border-radius:50%;background:var(--lime);color:#000;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.j-content{padding-top:6px}
+.j-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.j-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.seg-cta-bar{margin-top:40px;display:flex;gap:12px;flex-wrap:wrap}
+
+/* ── SCREEN MOCKUP ───────────────────────────────────────────────────*/
+.mockup{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.mockup-bar{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.mockup-dot{width:10px;height:10px;border-radius:50%}
+.mockup-body{padding:20px}
+.risk-score{text-align:center;padding:24px 0}
+.risk-num{font-size:64px;font-weight:900;color:var(--red);line-height:1}
+.risk-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-top:4px}
+.finding-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.finding-row:last-child{border-bottom:none}
+.badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px}
+.badge.red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge.amber{background:rgba(251,191,36,.12);color:var(--amber)}
+.badge.lime{background:var(--lime-pale);color:var(--lime)}
+.finding-text{font-size:12px;color:var(--muted);flex:1}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;margin-top:16px;overflow-x:auto}
+.c-comment{color:#4a5568}.c-key{color:#60a5fa}.c-str{color:#a3e635}.c-num{color:#fbbf24}.c-muted{color:#4a5568}
+
+/* ── PLATFORM ARCHITECTURE ───────────────────────────────────────────*/
+.arch-wrap{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px;text-align:center;margin-top:60px}
+.arch-engine{display:inline-flex;flex-direction:column;align-items:center;gap:6px;background:var(--lime-pale);border:2px solid var(--lime-border);border-radius:14px;padding:20px 40px;margin-bottom:32px}
+.arch-engine-title{font-size:16px;font-weight:800;color:var(--lime)}
+.arch-engine-sub{font-size:11px;color:var(--muted);text-align:center}
+.arch-arrows{display:flex;justify-content:center;gap:60px;margin-bottom:24px;flex-wrap:wrap}
+.arch-arrow{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:22px}
+.arch-arrow span{font-size:11px;color:var(--lime);font-weight:700;font-family:'JetBrains Mono',monospace}
+.arch-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:left}
+.arch-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.arch-card-icon{font-size:20px;margin-bottom:8px}
+.arch-card-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.arch-card-desc{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* ── SOCIAL PROOF ────────────────────────────────────────────────────*/
+.proof-strip{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 0}
+.proof-inner{display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap}
+.proof-item{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.proof-item strong{color:var(--text)}
+
+/* ── HOW IT WORKS ────────────────────────────────────────────────────*/
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:64px;position:relative}
+.steps::after{content:'';position:absolute;top:40px;left:calc(33.33% + 20px);right:calc(33.33% + 20px);height:2px;background:linear-gradient(90deg,var(--lime-border),var(--lime-border));pointer-events:none}
+.step{padding:0 32px;text-align:center}
+.step-circle{width:80px;height:80px;border-radius:50%;background:var(--lime-pale);border:2px solid var(--lime-border);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 24px;position:relative;z-index:1}
+.step-num{position:absolute;top:-6px;right:-6px;width:24px;height:24px;background:var(--lime);border-radius:50%;color:#000;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.step-title{font-size:17px;font-weight:700;margin-bottom:10px}
+.step-desc{font-size:14px;color:var(--muted);line-height:1.7}
+
+/* ── PRICING ─────────────────────────────────────────────────────────*/
+.pricing-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:64px;align-items:start}
+.plan{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;transition:border-color .2s}
+.plan:hover{border-color:rgba(163,230,53,.3)}
+.plan.featured{border-color:var(--lime);background:linear-gradient(180deg,rgba(163,230,53,.05) 0%,var(--card) 100%)}
+.plan-flag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--lime);color:#000;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;white-space:nowrap}
+.plan-name{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.plan-price{margin-bottom:4px}
+.plan-price .amount{font-size:40px;font-weight:900;color:var(--text)}
+.plan-price .period{font-size:15px;font-weight:500;color:var(--muted)}
+.plan-price .free{font-size:32px;font-weight:900;color:var(--lime)}
+.plan-tagline{font-size:13px;color:var(--muted);margin-bottom:24px;min-height:36px;line-height:1.5}
+.plan-divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.plan-features li{display:flex;gap:9px;font-size:13px;align-items:flex-start}
+.plan-features li::before{content:'✓';color:var(--lime);font-weight:700;flex-shrink:0;margin-top:1px}
+.plan-features li.dim{color:var(--muted)}
+.plan-features li.dim::before{content:'–';color:var(--border)}
+.plan-btn{width:100%;padding:12px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;text-align:center;text-decoration:none;display:block;transition:all .15s}
+.plan-btn.lime{background:var(--lime);color:#000}
+.plan-btn.lime:hover{opacity:.88}
+.plan-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.plan-btn.ghost:hover{border-color:var(--lime-border)}
+.plan-footnote{text-align:center;margin-top:28px;font-size:13px;color:var(--muted)}
+.plan-footnote a{color:var(--lime);text-decoration:none}
+
+/* ── COMPARISON ──────────────────────────────────────────────────────*/
+.cmp-table{width:100%;border-collapse:collapse;margin-top:48px;font-size:14px}
+.cmp-table th{padding:14px 18px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+.cmp-table th.hl{color:var(--lime)}
+.cmp-table td{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table .ck{color:var(--lime);font-size:16px}
+.cmp-table .cx{color:var(--muted)}
+.cmp-table td.hl{background:rgba(163,230,53,.03)}
+.cmp-feat{font-weight:600;font-size:14px}
+.cmp-feat-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ── TESTIMONIALS ────────────────────────────────────────────────────*/
+.testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:52px}
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px}
+.tcard-quote{font-size:15px;color:var(--text);line-height:1.7;margin-bottom:20px;font-style:italic}
+.tcard-author{display:flex;align-items:center;gap:12px}
+.tcard-avatar{width:38px;height:38px;border-radius:50%;background:var(--lime-pale);border:1px solid var(--lime-border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--lime);flex-shrink:0}
+.tcard-name{font-size:13px;font-weight:700}
+.tcard-role{font-size:12px;color:var(--muted)}
+
+/* ── FINAL CTA ───────────────────────────────────────────────────────*/
+.final-cta{text-align:center;padding:120px 0;background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(163,230,53,.07) 0%,transparent 70%)}
+.final-cta h2{margin-bottom:20px}
+.final-cta p{font-size:18px;max-width:520px;margin:0 auto 40px}
+.final-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+/* ── FOOTER ──────────────────────────────────────────────────────────*/
+footer{border-top:1px solid var(--border);padding:48px 0}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+.footer-logo{display:flex;align-items:center;gap:10px}
+.footer-brand{font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--lime)}
+.footer-links{display:flex;gap:28px}
+.footer-links a{font-size:13px;color:var(--muted);text-decoration:none}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{font-size:12px;color:var(--muted)}
+
+/* ── DIVIDER ─────────────────────────────────────────────────────────*/
+.section-divider{border:none;border-top:1px solid var(--border);max-width:1160px;margin:0 auto}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────*/
+@media(max-width:960px){
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr;gap:40px}
+  .steps::after{display:none}
+  .pricing-wrap{grid-template-columns:1fr 1fr}
+  .arch-cards{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+  .testimonials{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .wrap{padding:0 20px}
+  h1{letter-spacing:-1.5px}
+  .pricing-wrap{grid-template-columns:1fr}
+  .h-stat{padding:16px 20px}
+  section{padding:64px 0}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ──────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="/new/">
+      <div class="pulse"></div>
+      <span class="nav-brand">SwarmHawk</span>
+    </a>
+    <div class="nav-links">
+      <a href="#platform">Platform</a>
+      <a href="#segments">Who It's For</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="/solutions/">Enterprise</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/" class="btn-nav-ghost">Sign In</a>
+      <a href="/?signup=true" class="btn-nav-lime">Start Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── HERO ──────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="wrap hero-content">
+    <div class="hero-eyebrow">
+      <div class="pulse"></div>
+      <span>Continuous External Attack Surface Monitoring</span>
+    </div>
+    <h1>Know What's Exposed.<br><em>Fix What Matters.</em></h1>
+    <p class="hero-sub">SwarmHawk scans every internet-facing domain you own, maps how an attacker would move through them, and delivers a prioritized action plan — not another 500-page vulnerability report.</p>
+    <div class="hero-actions">
+      <a href="/?signup=true" class="btn btn-lime btn-lg">Start Free — No Credit Card →</a>
+      <a href="#how-it-works" class="btn btn-outline btn-lg">See How It Works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat"><div class="h-stat-n" id="stat-d">60M+</div><div class="h-stat-l">Domains Monitored</div></div>
+      <div class="h-stat"><div class="h-stat-n">22</div><div class="h-stat-l">Security Checks</div></div>
+      <div class="h-stat"><div class="h-stat-n" id="stat-c">147</div><div class="h-stat-l">EU Partners</div></div>
+      <div class="h-stat"><div class="h-stat-n">&lt;60s</div><div class="h-stat-l">First Scan Result</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROOF STRIP ───────────────────────────────────────────────────── -->
+<div class="proof-strip">
+  <div class="proof-inner">
+    <div class="proof-item">🌍 <strong>31 countries</strong> covered across Europe</div>
+    <div class="proof-item">🔍 Detects <strong>CVEs, blacklists, exposed panels</strong></div>
+    <div class="proof-item">⚡ Scans update <strong>every 4 hours</strong></div>
+    <div class="proof-item">🔒 <strong>Read-only, passive</strong> — no agents installed</div>
+    <div class="proof-item">🛡️ Built on <strong>MITRE ATT&CK</strong> framework</div>
+  </div>
+</div>
+
+<!-- ─── SEGMENT SELECTOR ──────────────────────────────────────────────── -->
+<div id="segments">
+  <div style="padding:60px 0 0;text-align:center">
+    <div class="wrap">
+      <div class="eyebrow" style="margin-bottom:14px">Who It's For</div>
+      <h2>Built for Every Team<br>That Cares About Exposure</h2>
+      <p style="max-width:520px;margin:16px auto 0;font-size:17px">One platform, four entry points. Pick yours below.</p>
+    </div>
+  </div>
+
+  <div class="seg-bar" style="margin-top:40px">
+    <div class="seg-bar-inner">
+      <button class="seg-tab active" onclick="switchSeg('smb')" id="tab-smb">
+        <div class="seg-icon" style="background:rgba(248,113,113,.1)">🏠</div>
+        <div><div class="seg-label">Domain Owners</div><div class="seg-desc">SMBs, startups, freelancers</div></div>
+      </button>
+      <button class="seg-tab" onclick="switchSeg('dev')" id="tab-dev">
+        <div class="seg-icon" style="background:rgba(96,165,250,.1)">⚙️</div>
+        <div><div class="seg-label">Developers</div><div class="seg-desc">API, MCP, automation</div></div>
+      </button>
+      <button class="seg-tab" onclick="switchSeg('ent')" id="tab-ent">
+        <div class="seg-icon" style="background:rgba(167,139,250,.1)">🏢</div>
+        <div><div class="seg-label">Security Teams</div><div class="seg-desc">CISOs, enterprise, SOC</div></div>
+      </button>
+      <button class="seg-tab" onclick="switchSeg('host')" id="tab-host">
+        <div class="seg-icon" style="background:rgba(251,191,36,.1)">🌐</div>
+        <div><div class="seg-label">Hosting Providers</div><div class="seg-desc">Resellers, registrars</div></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- SMB PANEL -->
+  <div class="seg-panel active" id="panel-smb">
+    <div class="wrap">
+      <div class="grid-2">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">For Domain Owners</div>
+          <h2 style="font-size:clamp(26px,3.5vw,44px)">Your domain is live.<br>Is it safe?</h2>
+          <p style="font-size:16px;margin-top:16px">You built the business. You set up the domain. But is it showing up on a blacklist? Is someone spoofing it to phish your customers? Do you have an exposed login page you forgot about?<br><br>Most small businesses find out the hard way. SwarmHawk tells you before that happens.</p>
+
+          <ul class="pain-list">
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>You don't know what you don't know.</strong> Subdomains accumulate. Old staging environments get forgotten. One exposed admin panel is all it takes.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Security tools are built for IT teams, not founders.</strong> You don't have time to learn CVSS scores or read 80-page reports.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>You find out when it's already a problem.</strong> Blacklisting kills email deliverability overnight. Breach notices destroy customer trust.</div></li>
+          </ul>
+
+          <div class="solution-box">
+            <div class="solution-box-title">How SwarmHawk Solves It</div>
+            <p>Add your domain. Get a risk score (0–100) and a plain-English list of the 3 things to fix right now. We monitor continuously and email you the moment something changes. No security expertise required.</p>
+            <div class="feature-chips">
+              <span class="chip active">Risk Score Dashboard</span>
+              <span class="chip active">Email Alerts</span>
+              <span class="chip active">Blacklist Monitoring</span>
+              <span class="chip active">CVE Detection</span>
+              <span class="chip active">SPF/DMARC Check</span>
+              <span class="chip active">Plain-English Fixes</span>
+            </div>
+          </div>
+
+          <div class="seg-cta-bar">
+            <a href="/?signup=true" class="btn btn-lime btn-md">Start Free — 1 Domain →</a>
+            <a href="#how-it-works" class="btn btn-outline btn-md">See How It Works</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mockup-dot" style="background:#ff5f57"></div>
+              <div class="mockup-dot" style="background:#febc2e"></div>
+              <div class="mockup-dot" style="background:#28c840"></div>
+              <span style="font-size:11px;color:var(--muted);margin-left:8px;font-family:'JetBrains Mono',monospace">swarmhawk.com/dashboard</span>
+            </div>
+            <div class="mockup-body">
+              <div class="risk-score">
+                <div class="risk-num">72</div>
+                <div class="risk-label">Risk Score — High</div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-family:'JetBrains Mono',monospace">Priority Actions</div>
+              <div class="finding-row"><span class="badge red">Critical</span><span class="finding-text">mail.yourdomain.com — listed on Spamhaus SBL</span></div>
+              <div class="finding-row"><span class="badge red">Critical</span><span class="finding-text">CVE-2024-1234 (CVSS 9.1) on staging.yourdomain.com</span></div>
+              <div class="finding-row"><span class="badge amber">High</span><span class="finding-text">Missing DMARC policy — phishing risk</span></div>
+              <div class="finding-row"><span class="badge amber">High</span><span class="finding-text">admin.yourdomain.com exposed without WAF</span></div>
+              <div class="finding-row"><span class="badge lime">Fixed</span><span class="finding-text">SPF record valid ✓</span></div>
+            </div>
+          </div>
+          <div class="journey-steps" style="margin-top:32px">
+            <div class="j-step"><div class="j-num">1</div><div class="j-content"><div class="j-title">Sign up, add your domain</div><div class="j-desc">Takes 30 seconds. Paste your domain name. Done.</div></div></div>
+            <div class="j-step"><div class="j-num">2</div><div class="j-content"><div class="j-title">Get your risk score in &lt;60s</div><div class="j-desc">22 automated checks run instantly. No waiting, no setup.</div></div></div>
+            <div class="j-step"><div class="j-num">3</div><div class="j-content"><div class="j-title">Fix what matters, ignore the rest</div><div class="j-desc">We tell you the top 3 issues. Plain English. Direct links to fix guides.</div></div></div>
+            <div class="j-step"><div class="j-num">4</div><div class="j-content"><div class="j-title">Sleep knowing you're covered</div><div class="j-desc">Continuous monitoring alerts you if anything changes.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEV PANEL -->
+  <div class="seg-panel" id="panel-dev">
+    <div class="wrap">
+      <div class="grid-2">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">For Developers</div>
+          <h2 style="font-size:clamp(26px,3.5vw,44px)">Domain security intel,<br>wherever you build.</h2>
+          <p style="font-size:16px;margin-top:16px">You're building a product, a platform, or a pipeline. Domain risk data should flow into your workflow automatically — not require logging into yet another portal and clicking export.</p>
+
+          <ul class="pain-list">
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Security checks live outside your CI/CD pipeline.</strong> By the time someone runs a scan, the build is already in production.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Your customers' domains are your reputational risk.</strong> If their domain sends spam, your platform gets associated with it.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Building your own scanner costs months.</strong> Threat intel feeds, CVE matching, blacklist APIs — we already built it.</div></li>
+          </ul>
+
+          <div class="solution-box">
+            <div class="solution-box-title">How SwarmHawk Solves It</div>
+            <p>A clean REST API plus an MCP server so AI coding agents can query domain risk as a native tool call. Webhooks push new findings to Slack, PagerDuty, or your own endpoint. Use it in 5 minutes.</p>
+            <div class="feature-chips">
+              <span class="chip active">REST API</span>
+              <span class="chip active">MCP Server</span>
+              <span class="chip active">Webhooks</span>
+              <span class="chip active">Batch Upload</span>
+              <span class="chip active">JSON Responses</span>
+              <span class="chip active">API Key Auth</span>
+            </div>
+          </div>
+
+          <div class="seg-cta-bar">
+            <a href="https://swarmhawk-backend.onrender.com/docs" target="_blank" class="btn btn-lime btn-md">Explore API Docs →</a>
+            <a href="/?signup=true" class="btn btn-outline btn-md">Get API Key</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mockup-dot" style="background:#ff5f57"></div>
+              <div class="mockup-dot" style="background:#febc2e"></div>
+              <div class="mockup-dot" style="background:#28c840"></div>
+              <span style="font-size:11px;color:var(--muted);margin-left:8px;font-family:'JetBrains Mono',monospace">terminal</span>
+            </div>
+            <div class="code-block">
+<span class="c-comment"># Scan any domain via REST API</span>
+curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com</span> \
+  -H <span class="c-str">"Authorization: Bearer YOUR_KEY"</span>
+
+<span class="c-comment"># Response</span>
+{
+  <span class="c-key">"domain"</span>: <span class="c-str">"example.com"</span>,
+  <span class="c-key">"risk_score"</span>: <span class="c-num">72</span>,
+  <span class="c-key">"max_cvss"</span>: <span class="c-num">9.1</span>,
+  <span class="c-key">"blacklisted"</span>: <span class="c-num">true</span>,
+  <span class="c-key">"dmarc_status"</span>: <span class="c-str">"missing"</span>,
+  <span class="c-key">"priority_actions"</span>: [...]
+}
+
+<span class="c-comment"># Or use via MCP in Claude / Cursor</span>
+<span class="c-str">swarmhawk_scan</span>({ <span class="c-key">domain</span>: <span class="c-str">"example.com"</span> })
+<span class="c-str">swarmhawk_breach_paths</span>({ <span class="c-key">org</span>: <span class="c-str">"acme-corp"</span> })
+            </div>
+          </div>
+          <div class="journey-steps" style="margin-top:32px">
+            <div class="j-step"><div class="j-num">1</div><div class="j-content"><div class="j-title">Sign up, grab your API key</div><div class="j-desc">Available in your dashboard under API Keys. No approval process.</div></div></div>
+            <div class="j-step"><div class="j-num">2</div><div class="j-content"><div class="j-title">Call <code style="color:var(--lime);font-family:'JetBrains Mono',monospace;font-size:12px">GET /scan/{domain}</code></div><div class="j-desc">Full risk profile in JSON. Batch upload via POST /admin/batch-upload.</div></div></div>
+            <div class="j-step"><div class="j-num">3</div><div class="j-content"><div class="j-title">Wire up webhooks or MCP</div><div class="j-desc">Push findings to Slack. Or let your AI agent query SwarmHawk directly.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTERPRISE PANEL -->
+  <div class="seg-panel" id="panel-ent">
+    <div class="wrap">
+      <div class="grid-2">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">For Security Teams</div>
+          <h2 style="font-size:clamp(26px,3.5vw,44px)">Attack paths mapped.<br>Choke points found.</h2>
+          <p style="font-size:16px;margin-top:16px">You manage 50, 100, maybe 300 domains across subsidiaries and acquired brands. Individual risk scores don't tell you which vulnerability connects to your ERP. SwarmHawk does.</p>
+
+          <ul class="pain-list">
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>No one sees the full picture.</strong> Subsidiaries, old brands, dev environments — they accumulate. Attackers discover them before your team does.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Findings without context are noise.</strong> Knowing mail.acme.com has a CVE is not enough. You need to know it's a stepping stone to your admin panel.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Enterprise EASM tools cost $200k/yr.</strong> And still don't show you the breach path across your specific organization graph.</div></li>
+          </ul>
+
+          <div class="solution-box">
+            <div class="solution-box-title">How SwarmHawk Solves It</div>
+            <p>The Org Graph clusters all your domains by organization. The Breach Path Engine builds a directed attack graph showing every viable route from internet entry point to critical asset. Choke point analysis tells you the <strong>minimum remediations</strong> that break the most paths.</p>
+            <div class="feature-chips">
+              <span class="chip active">Org Graph</span>
+              <span class="chip active">Breach Path D3 Visualization</span>
+              <span class="chip active">Choke Point Analysis</span>
+              <span class="chip active">CTEM Workflow</span>
+              <span class="chip active">MITRE ATT&CK Labels</span>
+              <span class="chip active">XDR Integration</span>
+            </div>
+          </div>
+
+          <div class="seg-cta-bar">
+            <a href="/solutions/" class="btn btn-lime btn-md">See Enterprise Platform →</a>
+            <a href="mailto:enterprise@swarmhawk.com" class="btn btn-outline btn-md">Request Demo</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mockup-dot" style="background:#ff5f57"></div>
+              <div class="mockup-dot" style="background:#febc2e"></div>
+              <div class="mockup-dot" style="background:#28c840"></div>
+              <span style="font-size:11px;color:var(--muted);margin-left:8px;font-family:'JetBrains Mono',monospace">Org Graph — acme-corp.com</span>
+            </div>
+            <div class="mockup-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--red)">3</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Entry Points</div></div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--amber)">4</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Choke Points</div></div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:var(--lime)">11</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Breach Paths</div></div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px">
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Highest Priority Choke Point</div>
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">api.acme.com</div>
+                <div style="font-size:12px;color:var(--muted)">Appears in 8 of 11 breach paths → admin panel + ERP</div>
+                <div style="margin-top:8px"><span class="badge red">Fix this first</span> <span style="font-size:11px;color:var(--muted);margin-left:6px">Breaks 73% of all attack paths</span></div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);padding:10px 0;border-top:1px solid var(--border)">MITRE ATT&CK: T1190 · T1566 · T1021 · T1078</div>
+            </div>
+          </div>
+          <div class="journey-steps" style="margin-top:32px">
+            <div class="j-step"><div class="j-num">1</div><div class="j-content"><div class="j-title">Run migration + org compute</div><div class="j-desc">One click in the admin dashboard clusters all domains by organization.</div></div></div>
+            <div class="j-step"><div class="j-num">2</div><div class="j-content"><div class="j-title">Review the breach path graph</div><div class="j-desc">Interactive D3.js visualization — drag nodes, hover for MITRE details.</div></div></div>
+            <div class="j-step"><div class="j-num">3</div><div class="j-content"><div class="j-title">Fix choke points, not everything</div><div class="j-desc">3 remediations → 80% path reduction. Assign to Jira. Track SLA.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOSTING PANEL -->
+  <div class="seg-panel" id="panel-host">
+    <div class="wrap">
+      <div class="grid-2">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px">For Hosting Providers</div>
+          <h2 style="font-size:clamp(26px,3.5vw,44px)">Turn your domain<br>portfolio into ARR.</h2>
+          <p style="font-size:16px;margin-top:16px">You manage tens of thousands of customer domains. You're sitting on an untapped security revenue stream — and a growing abuse problem you're handling reactively. SwarmHawk fixes both.</p>
+
+          <ul class="pain-list">
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Compromised domains hurt your IP reputation.</strong> One blacklisted mail server on your network affects all your customers.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Your abuse team is firefighting.</strong> Reactive incident response. No proactive visibility into which domains are already compromised.</div></li>
+            <li class="pain-item"><div class="pain-bullet"></div><div class="pain-text"><strong>Security is an untapped upsell.</strong> Your customers want it. You just don't offer it yet.</div></li>
+          </ul>
+
+          <div class="solution-box">
+            <div class="solution-box-title">How SwarmHawk Solves It</div>
+            <p>Push your domain list via bulk API. Get daily risk feeds for your entire network. White-label the dashboard with your branding and offer it as an add-on. You earn a 30% revenue share on every subscription. We do the scanning — you clip the ticket.</p>
+            <div class="feature-chips">
+              <span class="chip active">Bulk API Feed</span>
+              <span class="chip active">White-Label Dashboard</span>
+              <span class="chip active">Daily Abuse Digest</span>
+              <span class="chip active">Revenue Share 30%</span>
+              <span class="chip active">Reseller Portal</span>
+              <span class="chip active">Co-Branded Reports</span>
+            </div>
+          </div>
+
+          <div class="seg-cta-bar">
+            <a href="/go-to-market.html" class="btn btn-lime btn-md">View Partner Map →</a>
+            <a href="mailto:partners@swarmhawk.com" class="btn btn-outline btn-md">Become a Partner</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mockup-dot" style="background:#ff5f57"></div>
+              <div class="mockup-dot" style="background:#febc2e"></div>
+              <div class="mockup-dot" style="background:#28c840"></div>
+              <span style="font-size:11px;color:var(--muted);margin-left:8px;font-family:'JetBrains Mono',monospace">Partner Revenue Calculator</span>
+            </div>
+            <div class="mockup-body">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px">
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Your domain portfolio</div>
+                  <div style="font-size:28px;font-weight:800;color:var(--text)">500,000 <span style="font-size:14px;color:var(--muted)">domains</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+                    <div style="font-size:18px;font-weight:800;color:var(--amber)">25,000</div>
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Customers at 5%</div>
+                  </div>
+                  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+                    <div style="font-size:18px;font-weight:800;color:var(--lime)">$75k</div>
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Your ARR / yr</div>
+                  </div>
+                </div>
+                <div style="background:rgba(163,230,53,.06);border:1px solid var(--lime-border);border-radius:8px;padding:14px">
+                  <div style="font-size:11px;color:var(--lime);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Revenue formula</div>
+                  <div style="font-size:12px;color:var(--muted)">500k domains × 5% conversion × $10/domain/yr × 30% share = <strong style="color:var(--text)">$75,000 ARR</strong> with zero scanning cost</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="journey-steps" style="margin-top:32px">
+            <div class="j-step"><div class="j-num">1</div><div class="j-content"><div class="j-title">Sign Partner Agreement</div><div class="j-desc">Quick NDA + revenue share contract. Done in a week.</div></div></div>
+            <div class="j-step"><div class="j-num">2</div><div class="j-content"><div class="j-title">Push your domain list via API</div><div class="j-desc">Bulk upload your portfolio. We scan everything and return risk feeds.</div></div></div>
+            <div class="j-step"><div class="j-num">3</div><div class="j-content"><div class="j-title">Offer white-label to customers</div><div class="j-desc">Add "Domain Security" to your control panel. We handle the product.</div></div></div>
+            <div class="j-step"><div class="j-num">4</div><div class="j-content"><div class="j-title">Collect revenue share monthly</div><div class="j-desc">30% of every subscription sold through your panel, paid monthly.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ─── PLATFORM ARCHITECTURE ─────────────────────────────────────────── -->
+<section id="platform">
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="margin-bottom:14px">The Platform</div>
+      <h2>One Engine. Every Team's Needs.</h2>
+      <p style="max-width:560px;margin:16px auto 0;font-size:17px">SwarmHawk runs a single continuous scanning engine across 60M+ European domains. Every customer segment draws from the same live data — what changes is how you access it.</p>
+    </div>
+
+    <div class="arch-wrap">
+      <div class="arch-engine">
+        <div class="arch-engine-title">SwarmHawk Data Engine</div>
+        <div class="arch-engine-sub">60M+ domains · 22-check scanner · CVE feeds · Blacklist Intel · Org Graph · Breach Paths</div>
+      </div>
+      <div class="arch-arrows">
+        <div class="arch-arrow">↓<span>Dashboard</span></div>
+        <div class="arch-arrow">↓<span>REST API</span></div>
+        <div class="arch-arrow">↓<span>MCP Server</span></div>
+        <div class="arch-arrow">↓<span>Bulk Feed</span></div>
+      </div>
+      <div class="arch-cards">
+        <div class="arch-card"><div class="arch-card-icon">🏠</div><div class="arch-card-title">Domain Owners</div><div class="arch-card-desc">Web dashboard, risk score, email alerts, priority action plan</div></div>
+        <div class="arch-card"><div class="arch-card-icon">⚙️</div><div class="arch-card-title">Developers</div><div class="arch-card-desc">REST API, MCP tools, webhooks, JSON responses, batch upload</div></div>
+        <div class="arch-card"><div class="arch-card-icon">🏢</div><div class="arch-card-title">Security Teams</div><div class="arch-card-desc">Org graph, breach paths, choke points, CTEM workflow, XDR bridge</div></div>
+        <div class="arch-card"><div class="arch-card-icon">🌐</div><div class="arch-card-title">Hosting Providers</div><div class="arch-card-desc">White-label portal, daily abuse feed, reseller dashboard, rev-share</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ─── HOW IT WORKS ──────────────────────────────────────────────────── -->
+<section id="how-it-works">
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="margin-bottom:14px">How It Works</div>
+      <h2>Up and Running in 60 Seconds</h2>
+      <p style="max-width:500px;margin:16px auto 0;font-size:17px">No agents to install. No firewall rules to change. SwarmHawk works entirely from the outside — the same view an attacker has.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-circle">🌐<span class="step-num">1</span></div>
+        <h3 class="step-title">Add Your Domain</h3>
+        <p class="step-desc">Sign up and paste a domain name — or upload a .txt / .json list of hundreds at once. We never need access to your servers.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">🔍<span class="step-num">2</span></div>
+        <h3 class="step-title">We Scan Everything</h3>
+        <p class="step-desc">22 automated checks run: CVE matching, blacklist lookups, SPF/DMARC validation, DAST probes, WAF detection, IP reputation, and more. Results in under 60 seconds.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">⚡<span class="step-num">3</span></div>
+        <h3 class="step-title">Get Your Action Plan</h3>
+        <p class="step-desc">A risk score, prioritized fixes, and — for enterprise — a full breach path graph showing exactly how an attacker would move through your assets.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ─── PRICING ───────────────────────────────────────────────────────── -->
+<section id="pricing">
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="margin-bottom:14px">Pricing</div>
+      <h2>Start Free. Scale as You Grow.</h2>
+      <p style="max-width:500px;margin:16px auto 0;font-size:17px">No per-seat fees. No long-term contracts. Cancel anytime. Price scales with the number of domains you monitor.</p>
+    </div>
+
+    <div class="pricing-wrap">
+
+      <!-- Free -->
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price"><span class="free">$0</span></div>
+        <div class="plan-tagline">Perfect for trying it out with your main domain.</div>
+        <hr class="plan-divider">
+        <ul class="plan-features">
+          <li>1 domain monitored</li>
+          <li>22-check scan engine</li>
+          <li>Risk score dashboard</li>
+          <li>Email alert on blacklisting</li>
+          <li class="dim">API access</li>
+          <li class="dim">Continuous monitoring</li>
+          <li class="dim">Breach path visualization</li>
+        </ul>
+        <a href="/?signup=true" class="plan-btn ghost">Get Started Free</a>
+      </div>
+
+      <!-- Pro -->
+      <div class="plan featured">
+        <div class="plan-flag">Most Popular</div>
+        <div class="plan-name">Professional</div>
+        <div class="plan-price"><span class="amount">$49</span><span class="period">/mo</span></div>
+        <div class="plan-tagline">For startups and growing teams managing multiple domains.</div>
+        <hr class="plan-divider">
+        <ul class="plan-features">
+          <li>20 domains monitored</li>
+          <li>22-check scan engine</li>
+          <li>Continuous monitoring (4h)</li>
+          <li>Email + webhook alerts</li>
+          <li>REST API access</li>
+          <li>Outreach contact discovery</li>
+          <li class="dim">Org graph & breach paths</li>
+        </ul>
+        <a href="/?signup=true&plan=pro" class="plan-btn lime">Start 14-Day Trial →</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="plan">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price"><span class="amount">$490</span><span class="period">/mo</span></div>
+        <div class="plan-tagline">For security teams managing dozens of domains across subsidiaries.</div>
+        <hr class="plan-divider">
+        <ul class="plan-features">
+          <li>500 domains monitored</li>
+          <li>Everything in Pro</li>
+          <li>Organization graph clustering</li>
+          <li>Breach path visualization</li>
+          <li>Choke point prioritization</li>
+          <li>CTEM workflow engine</li>
+          <li>Priority support (4h SLA)</li>
+        </ul>
+        <a href="mailto:enterprise@swarmhawk.com" class="plan-btn ghost">Request Demo</a>
+      </div>
+
+      <!-- Platform -->
+      <div class="plan">
+        <div class="plan-name">Platform</div>
+        <div class="plan-price"><span style="font-size:28px;font-weight:900;color:var(--text)">Custom</span></div>
+        <div class="plan-tagline">For hosting providers, MSSPs, and OEM licensing partners.</div>
+        <hr class="plan-divider">
+        <ul class="plan-features">
+          <li>Unlimited domains</li>
+          <li>Everything in Enterprise</li>
+          <li>White-label dashboard</li>
+          <li>XDR platform integration</li>
+          <li>Revenue share programme</li>
+          <li>Dedicated success manager</li>
+          <li>Custom SLA + on-prem option</li>
+        </ul>
+        <a href="mailto:partners@swarmhawk.com" class="plan-btn ghost">Talk to Sales</a>
+      </div>
+
+    </div>
+    <p class="plan-footnote">All plans include a <a href="/?signup=true">free 1-domain scan</a> with no credit card. Need a custom domain limit? <a href="mailto:hello@swarmhawk.com">Just ask.</a></p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ─── COMPARISON ────────────────────────────────────────────────────── -->
+<section>
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="margin-bottom:14px">Why SwarmHawk</div>
+      <h2>Not Just Another Scanner</h2>
+      <p style="max-width:560px;margin:16px auto 0;font-size:17px">Most tools tell you what's vulnerable. SwarmHawk tells you how an attacker would actually use it — and what single fix breaks the most attack paths.</p>
+    </div>
+
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th class="hl">SwarmHawk</th>
+          <th>Traditional Scanners</th>
+          <th>Enterprise EASM ($200k/yr)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="cmp-feat">External asset discovery</div><div class="cmp-feat-sub">Continuous, no agents needed</div></td>
+          <td class="hl"><span class="ck">✓</span></td>
+          <td><span class="ck">✓</span></td>
+          <td><span class="ck">✓</span></td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">Breach path visualization</div><div class="cmp-feat-sub">How the attacker moves through your assets</div></td>
+          <td class="hl"><span class="ck">✓</span></td>
+          <td><span class="cx">—</span></td>
+          <td><span class="ck">✓</span></td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">Choke point prioritization</div><div class="cmp-feat-sub">Minimum fixes, maximum path reduction</div></td>
+          <td class="hl"><span class="ck">✓</span></td>
+          <td><span class="cx">—</span></td>
+          <td><span class="cx">Partial</span></td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">European domain depth</div><div class="cmp-feat-sub">All ccTLDs, not just .com</div></td>
+          <td class="hl"><span class="ck">✓ 60M+ domains</span></td>
+          <td><span class="cx">Partial</span></td>
+          <td><span class="cx">Global only</span></td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">MCP server for AI agents</div><div class="cmp-feat-sub">Works with Claude, Cursor, Copilot</div></td>
+          <td class="hl"><span class="ck">✓</span></td>
+          <td><span class="cx">—</span></td>
+          <td><span class="cx">—</span></td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">B2B reseller programme</div><div class="cmp-feat-sub">White-label + revenue share</div></td>
+          <td class="hl"><span class="ck">✓</span></td>
+          <td><span class="cx">—</span></td>
+          <td><span class="cx">—</span></td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">Accessible pricing</div><div class="cmp-feat-sub">Starts free, not at $200k/yr</div></td>
+          <td class="hl"><span class="ck">✓ Free → $490/mo</span></td>
+          <td><span class="ck">Varies</span></td>
+          <td><span class="cx">$200k+/yr</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ─── TESTIMONIALS ──────────────────────────────────────────────────── -->
+<section>
+  <div class="wrap">
+    <div style="text-align:center">
+      <div class="eyebrow" style="margin-bottom:14px">What Teams Say</div>
+      <h2>Trusted Across Europe</h2>
+    </div>
+    <div class="testimonials">
+      <div class="tcard">
+        <div class="tcard-quote">"We found a blacklisted subdomain that was silently tanking our email deliverability. SwarmHawk caught it before a single customer noticed."</div>
+        <div class="tcard-author"><div class="tcard-avatar">M</div><div><div class="tcard-name">Martin K.</div><div class="tcard-role">CTO, SaaS startup · Prague</div></div></div>
+      </div>
+      <div class="tcard">
+        <div class="tcard-quote">"I added SwarmHawk's API to our CI pipeline. Every deployment now auto-checks the target domain. It's become part of our security baseline."</div>
+        <div class="tcard-author"><div class="tcard-avatar">A</div><div><div class="tcard-name">Ana V.</div><div class="tcard-role">Senior DevOps Engineer · Warsaw</div></div></div>
+      </div>
+      <div class="tcard">
+        <div class="tcard-quote">"The breach path graph showed us that fixing two domains would break 9 out of 11 attack paths across our entire subsidiary network. That's not something our previous tool could do."</div>
+        <div class="tcard-author"><div class="tcard-avatar">T</div><div><div class="tcard-name">Tomáš R.</div><div class="tcard-role">CISO · Financial services · Vienna</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FINAL CTA ──────────────────────────────────────────────────────── -->
+<div class="final-cta">
+  <div class="wrap">
+    <div class="eyebrow" style="margin-bottom:14px">Get Started</div>
+    <h2>Your attack surface is already visible<br>to attackers. Is it visible to you?</h2>
+    <p>Start with one domain, for free. No credit card. No setup. First result in under 60 seconds.</p>
+    <div class="final-actions">
+      <a href="/?signup=true" class="btn btn-lime btn-lg">Start Free — No Credit Card →</a>
+      <a href="mailto:hello@swarmhawk.com" class="btn btn-outline btn-lg">Talk to a Human</a>
+    </div>
+  </div>
+</div>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <div class="pulse"></div>
+        <span class="footer-brand">SwarmHawk</span>
+        <span style="font-size:12px;color:var(--muted);margin-left:8px">External Attack Surface Intelligence</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Dashboard</a>
+        <a href="/solutions/">Enterprise</a>
+        <a href="/go-to-market.html">Partners</a>
+        <a href="https://swarmhawk-backend.onrender.com/docs" target="_blank">API Docs</a>
+        <a href="mailto:hello@swarmhawk.com">Contact</a>
+      </div>
+      <div class="footer-copy">© 2026 SwarmHawk · Built for Europe's digital infrastructure</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── Segment switcher ────────────────────────────────────────────────
+function switchSeg(id) {
+  document.querySelectorAll('.seg-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.seg-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+// ── Live stats from backend ─────────────────────────────────────────
+(async function() {
+  try {
+    const r = await fetch('https://swarmhawk-backend.onrender.com/pipeline/status');
+    const d = await r.json();
+    const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1) + 'M+' : n >= 1e3 ? Math.round(n/1e3) + 'k+' : String(n);
+    const total = d.total_scanned || 0;
+    if (total > 0) document.getElementById('stat-d').textContent = fmt(total);
+  } catch(e) {}
+})();
+
+// ── Segment anchor nav ──────────────────────────────────────────────
+const hash = location.hash.replace('#','');
+if (['smb','dev','ent','host'].includes(hash)) switchSeg(hash);
+</script>
+</body>
+</html>
