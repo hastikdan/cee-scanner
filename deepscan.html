@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwarmHawk Deep Scan — Confirmed Exploits, Not Suspected Vulnerabilities</title>
+<meta name="description" content="SwarmHawk discovers 2M+ vulnerable domains per week. Shannon confirms them with working exploits. Together they close the loop from intelligence to proof to sale.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ──────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:#080810;color:#e8e8f0;font-family:'Inter',system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* ── TOKENS ──────────────────────────────────────────────────────────*/
+:root{
+  --lime:#a3e635;
+  --lime-pale:rgba(163,230,53,.12);
+  --lime-border:rgba(163,230,53,.25);
+  --dark:#080810;
+  --surface:#0f0f1a;
+  --card:#13131f;
+  --border:rgba(255,255,255,.07);
+  --text:#e8e8f0;
+  --muted:#8888a0;
+  --red:#f87171;
+  --amber:#fbbf24;
+  --blue:#60a5fa;
+  --purple:#a78bfa;
+  --r:12px;
+}
+/* ── TYPOGRAPHY ──────────────────────────────────────────────────────*/
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--lime)}
+h1{font-size:clamp(40px,6vw,80px);font-weight:900;line-height:1.02;letter-spacing:-2.5px}
+h2{font-size:clamp(28px,4vw,52px);font-weight:800;line-height:1.08;letter-spacing:-1.5px}
+h3{font-size:20px;font-weight:700;line-height:1.3}
+p{color:var(--muted);line-height:1.75}
+/* ── LAYOUT ──────────────────────────────────────────────────────────*/
+.wrap{max-width:1160px;margin:0 auto;padding:0 32px}
+section{padding:100px 0}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+/* ── NAV ─────────────────────────────────────────────────────────────*/
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;display:flex;align-items:center;background:rgba(8,8,16,.88);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+.nav-inner{width:100%;max-width:1160px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.pulse{width:11px;height:11px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(163,230,53,.7)}70%{box-shadow:0 0 0 9px rgba(163,230,53,0)}100%{box-shadow:0 0 0 0 rgba(163,230,53,0)}}
+.nav-brand{font-weight:800;font-size:15px;letter-spacing:2.5px;text-transform:uppercase;color:var(--lime)}
+.nav-links{display:flex;gap:28px}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--text)}
+.nav-actions{display:flex;gap:10px;align-items:center}
+.btn-nav-ghost{background:transparent;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:border-color .15s}
+.btn-nav-ghost:hover{border-color:var(--lime-border)}
+.btn-nav-lime{background:var(--lime);color:#000;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:opacity .15s}
+.btn-nav-lime:hover{opacity:.85}
+/* ── BUTTONS ─────────────────────────────────────────────────────────*/
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .15s;border:none}
+.btn-lg{padding:16px 32px;font-size:16px}
+.btn-md{padding:12px 24px;font-size:14px}
+.btn-lime{background:var(--lime);color:#000}
+.btn-lime:hover{opacity:.88;transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--lime-border);color:var(--lime)}
+/* ── HERO ────────────────────────────────────────────────────────────*/
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 0 80px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(163,230,53,.06) 0%,transparent 60%)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(163,230,53,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(163,230,53,.025) 1px,transparent 1px);background-size:72px 72px}
+.hero-content{position:relative;z-index:1;text-align:center;max-width:960px;margin:0 auto}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;background:var(--lime-pale);border:1px solid var(--lime-border);border-radius:40px;padding:6px 18px;margin-bottom:36px}
+.hero-eyebrow span{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--lime)}
+.hero h1{margin-bottom:24px}
+.hero h1 em{font-style:normal;color:var(--lime)}
+.hero-sub{font-size:19px;color:var(--muted);max-width:680px;margin:0 auto 40px;line-height:1.7}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:64px}
+.hero-combo{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:64px;flex-wrap:wrap}
+.combo-badge{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 28px;text-align:center}
+.combo-badge-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:2px}
+.combo-badge-sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.combo-plus{font-size:28px;font-weight:900;color:var(--lime)}
+.combo-eq{font-size:28px;font-weight:900;color:var(--lime)}
+.combo-result{background:var(--lime-pale);border:2px solid var(--lime-border);border-radius:12px;padding:16px 28px;text-align:center}
+.combo-result-name{font-size:15px;font-weight:800;color:var(--lime);margin-bottom:2px}
+.combo-result-sub{font-size:11px;color:var(--lime);opacity:.7;text-transform:uppercase;letter-spacing:1px}
+/* ── PERPETUAL MOBILE ────────────────────────────────────────────────*/
+.pm-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.pm-title-wrap{text-align:center;margin-bottom:60px}
+.pm-stages{display:grid;grid-template-columns:repeat(6,1fr);gap:0;position:relative;margin-top:48px}
+.pm-stages::before{content:'';position:absolute;top:44px;left:calc(100%/12);right:calc(100%/12);height:2px;background:linear-gradient(90deg,transparent,var(--lime-border),var(--lime-border),var(--lime-border),var(--lime-border),transparent);pointer-events:none}
+.pm-stage{padding:0 16px;text-align:center;position:relative}
+.pm-circle{width:88px;height:88px;border-radius:50%;background:var(--card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px;position:relative;z-index:1;transition:border-color .2s}
+.pm-circle.active{border-color:var(--lime);background:var(--lime-pale)}
+.pm-stage-num{position:absolute;top:-6px;right:-6px;width:24px;height:24px;background:var(--lime);border-radius:50%;color:#000;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.pm-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--lime);margin-bottom:6px}
+.pm-title{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--text)}
+.pm-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.pm-tool{margin-top:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--lime);opacity:.7;letter-spacing:1px}
+.pm-arrow-wrap{display:flex;justify-content:center;margin-top:40px}
+.pm-loop-badge{display:inline-flex;align-items:center;gap:8px;background:var(--lime-pale);border:1px solid var(--lime-border);border-radius:40px;padding:8px 24px}
+.pm-loop-badge span{font-size:13px;font-weight:700;color:var(--lime)}
+/* ── SEGMENT CARDS ───────────────────────────────────────────────────*/
+.seg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:52px}
+.seg-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;transition:border-color .2s}
+.seg-card:hover{border-color:var(--lime-border)}
+.seg-card-icon{font-size:32px;margin-bottom:16px}
+.seg-card-title{font-size:18px;font-weight:800;margin-bottom:8px;color:var(--text)}
+.seg-card-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7}
+.seg-card-pains{list-style:none;margin-bottom:20px;display:flex;flex-direction:column;gap:8px}
+.seg-card-pains li{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.seg-card-pains li::before{content:'✗';color:var(--red);font-weight:700;flex-shrink:0}
+.seg-card-wins{list-style:none;display:flex;flex-direction:column;gap:8px}
+.seg-card-wins li{font-size:13px;color:var(--text);display:flex;gap:8px;align-items:flex-start}
+.seg-card-wins li::before{content:'✓';color:var(--lime);font-weight:700;flex-shrink:0}
+/* ── HOW IT WORKS ────────────────────────────────────────────────────*/
+.hiw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:32px;margin-top:52px}
+.hiw-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px}
+.hiw-card-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.hiw-card.hawk .hiw-card-label{color:var(--blue)}
+.hiw-card.shannon .hiw-card-label{color:var(--purple)}
+.hiw-card-title{font-size:17px;font-weight:700;margin-bottom:10px}
+.hiw-card-desc{font-size:14px;color:var(--muted);line-height:1.7}
+.hiw-card-features{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:6px}
+.hiw-card-features li{font-size:12px;color:var(--muted);display:flex;gap:8px}
+.hiw-card-features li::before{content:'→';color:var(--lime);font-weight:700;flex-shrink:0}
+/* ── PROOF BANNER ────────────────────────────────────────────────────*/
+.proof-banner{background:linear-gradient(135deg,rgba(163,230,53,.08) 0%,rgba(96,165,250,.06) 100%);border:1px solid var(--lime-border);border-radius:20px;padding:48px;text-align:center;margin:64px 0 0}
+.proof-banner h3{font-size:28px;font-weight:800;margin-bottom:12px;color:var(--text)}
+.proof-banner p{font-size:16px;max-width:560px;margin:0 auto 28px;color:var(--muted)}
+/* ── REQUEST FORM ────────────────────────────────────────────────────*/
+.form-section{background:var(--surface);border-top:1px solid var(--border)}
+.form-wrap{max-width:600px;margin:0 auto;text-align:center}
+.form-title-block{margin-bottom:40px}
+.form-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px;text-align:left}
+.form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-row label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.form-row input{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:12px 14px;width:100%;font-family:'Inter',sans-serif;transition:border-color .15s}
+.form-row input:focus{outline:none;border-color:var(--lime-border);background:rgba(163,230,53,.03)}
+.form-row input::placeholder{color:#555}
+.form-submit{width:100%;background:var(--lime);color:#000;font-weight:700;font-size:14px;padding:14px;border:none;border-radius:9px;cursor:pointer;margin-top:8px;transition:opacity .15s;font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.form-submit:hover{opacity:.88}
+.form-submit:disabled{opacity:.45;cursor:not-allowed}
+.form-note{font-size:12px;color:var(--muted);margin-top:12px;text-align:center}
+.form-note a{color:var(--lime);text-decoration:none}
+.form-success{display:none;background:var(--lime-pale);border:1px solid var(--lime-border);border-radius:12px;padding:24px;text-align:center;margin-top:16px}
+.form-success h4{color:var(--lime);font-size:16px;font-weight:800;margin-bottom:6px}
+.form-success p{font-size:13px;color:var(--muted)}
+.form-error{display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:12px}
+.form-error.show{display:block}
+/* ── COMPARISON TABLE ────────────────────────────────────────────────*/
+.cmp-table{width:100%;border-collapse:collapse;margin-top:48px;font-size:14px}
+.cmp-table th{padding:14px 18px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+.cmp-table th.hl{color:var(--lime)}
+.cmp-table td{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table .ck{color:var(--lime);font-size:16px}
+.cmp-table .cx{color:var(--muted)}
+.cmp-table td.hl{background:rgba(163,230,53,.03)}
+.cmp-feat{font-weight:600;font-size:14px}
+.cmp-feat-sub{font-size:12px;color:var(--muted);margin-top:2px}
+/* ── STATS STRIP ─────────────────────────────────────────────────────*/
+.stats-strip{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0}
+.stats-inner{display:flex;justify-content:center;gap:0;flex-wrap:wrap}
+.stat-box{padding:28px 48px;text-align:center;border-right:1px solid var(--border)}
+.stat-box:last-child{border-right:none}
+.stat-n{font-size:36px;font-weight:900;color:var(--lime);line-height:1;font-variant-numeric:tabular-nums}
+.stat-l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+/* ── FINAL CTA ───────────────────────────────────────────────────────*/
+.final-cta{text-align:center;padding:120px 0;background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(163,230,53,.07) 0%,transparent 70%)}
+.final-cta h2{margin-bottom:20px}
+.final-cta p{font-size:18px;max-width:520px;margin:0 auto 40px;color:var(--muted)}
+.final-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+/* ── FOOTER ──────────────────────────────────────────────────────────*/
+footer{border-top:1px solid var(--border);padding:48px 0}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+.footer-logo{display:flex;align-items:center;gap:10px}
+.footer-brand{font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--lime)}
+.footer-links{display:flex;gap:28px}
+.footer-links a{font-size:13px;color:var(--muted);text-decoration:none}
+.footer-links a:hover{color:var(--text)}
+.footer-copy{font-size:12px;color:var(--muted)}
+/* ── RESPONSIVE ──────────────────────────────────────────────────────*/
+@media(max-width:960px){
+  .grid-2,.hiw-grid,.seg-grid{grid-template-columns:1fr}
+  .pm-stages{grid-template-columns:repeat(3,1fr);gap:32px}
+  .pm-stages::before{display:none}
+  .nav-links{display:none}
+  .stats-inner{flex-wrap:wrap}
+  .stat-box{border-right:none;border-bottom:1px solid var(--border);width:50%}
+}
+@media(max-width:600px){
+  .wrap{padding:0 20px}
+  .pm-stages{grid-template-columns:1fr 1fr}
+  .stat-box{width:100%}
+  section{padding:64px 0}
+  .combo-badge,.combo-plus,.combo-eq,.combo-result{width:100%}
+  .hero-combo{flex-direction:column;gap:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ──────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">
+      <div class="pulse"></div>
+      <span class="nav-brand">SwarmHawk</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Platform</a>
+      <a href="/#segments">Who It's For</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#free-scan">Free Scan</a>
+    </div>
+    <div class="nav-actions">
+      <a class="btn-nav-ghost" href="/">Learn More</a>
+      <a class="btn-nav-lime" href="#free-scan">Get Free Deep Scan</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── HERO ──────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="wrap hero-content">
+
+    <div class="hero-eyebrow">
+      <div class="pulse"></div>
+      <span>SwarmHawk × Shannon — Confirmed Exploit Intelligence</span>
+    </div>
+
+    <h1>Suspected Vulnerabilities<br>Are <em>Not Enough.</em></h1>
+    <p class="hero-sub">
+      Every security company sends cold emails saying "we found vulnerabilities on your domain."
+      With SwarmHawk + Shannon, you send proof — a working exploit, a risk score, and a path to remediation.
+      That's the difference between ignored and closed.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#free-scan" class="btn btn-lime btn-lg">Request Free Deep Scan →</a>
+      <a href="#how-it-works" class="btn btn-outline btn-lg">See How It Works</a>
+    </div>
+
+    <!-- Combo diagram -->
+    <div class="hero-combo">
+      <div class="combo-badge">
+        <div class="combo-badge-name">SwarmHawk</div>
+        <div class="combo-badge-sub">2M+ domains/week · 22 checks</div>
+      </div>
+      <div class="combo-plus">+</div>
+      <div class="combo-badge">
+        <div class="combo-badge-name">Shannon AI</div>
+        <div class="combo-badge-sub">Multi-agent · Exploit validation</div>
+      </div>
+      <div class="combo-eq">=</div>
+      <div class="combo-result">
+        <div class="combo-result-name">Confirmed Exploit Intelligence</div>
+        <div class="combo-result-sub">No exploit · No report · No wasted outreach</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── STATS STRIP ───────────────────────────────────────────────────── -->
+<div class="stats-strip">
+  <div class="wrap stats-inner">
+    <div class="stat-box"><div class="stat-n">2M+</div><div class="stat-l">Domains scanned weekly</div></div>
+    <div class="stat-box"><div class="stat-n">22</div><div class="stat-l">Security checks per domain</div></div>
+    <div class="stat-box"><div class="stat-n">3</div><div class="stat-l">Parallel AI exploit agents</div></div>
+    <div class="stat-box"><div class="stat-n">96%</div><div class="stat-l">Shannon benchmark accuracy</div></div>
+  </div>
+</div>
+
+<!-- ─── PERPETUAL MOBILE ──────────────────────────────────────────────── -->
+<section class="pm-section">
+  <div class="wrap">
+
+    <div class="pm-title-wrap">
+      <p class="eyebrow">The Loop</p>
+      <h2>The Perpetual Mobile<br><em>Outreach Machine</em></h2>
+      <p style="max-width:560px;margin:16px auto 0;font-size:16px">
+        Once a domain enters the system, no external input is ever needed again.
+        The machine feeds itself — from discovery to confirmed exploit to closed deal, on repeat.
+      </p>
+    </div>
+
+    <div class="pm-stages">
+
+      <div class="pm-stage">
+        <div class="pm-circle active">
+          🌐
+          <span class="pm-stage-num">1</span>
+        </div>
+        <div class="pm-label">Discovery</div>
+        <div class="pm-title">2M+ Domains / Week</div>
+        <div class="pm-desc">Cloudflare Radar, CT logs, Tranco, Umbrella, Majestic Million — every internet-facing domain ingested continuously.</div>
+        <div class="pm-tool">SwarmHawk</div>
+      </div>
+
+      <div class="pm-stage">
+        <div class="pm-circle active">
+          🎯
+          <span class="pm-stage-num">2</span>
+        </div>
+        <div class="pm-label">Qualification</div>
+        <div class="pm-title">22 Checks · CVSS ≥ 7.0</div>
+        <div class="pm-desc">Full scan: SSL, CVEs, DAST, SAST, email security, IP intel, breach data. High-risk domains auto-queued for outreach.</div>
+        <div class="pm-tool">SwarmHawk</div>
+      </div>
+
+      <div class="pm-stage">
+        <div class="pm-circle active">
+          ✉️
+          <span class="pm-stage-num">3</span>
+        </div>
+        <div class="pm-label">Outreach</div>
+        <div class="pm-title">AI-Drafted Cold Email</div>
+        <div class="pm-desc">Claude drafts a personalised email per prospect citing their specific vulnerabilities. Admin reviews and approves before send.</div>
+        <div class="pm-tool">SwarmHawk + Claude</div>
+      </div>
+
+      <div class="pm-stage">
+        <div class="pm-circle active">
+          🔬
+          <span class="pm-stage-num">4</span>
+        </div>
+        <div class="pm-label">Proof</div>
+        <div class="pm-title">Opt-In Deep Scan</div>
+        <div class="pm-desc">Prospect clicks "get free security audit." Shannon's 3 AI agents confirm whether findings are actually exploitable.</div>
+        <div class="pm-tool">SwarmHawk + Shannon</div>
+      </div>
+
+      <div class="pm-stage">
+        <div class="pm-circle active">
+          ⚡
+          <span class="pm-stage-num">5</span>
+        </div>
+        <div class="pm-label">Close</div>
+        <div class="pm-title">Confirmed Exploit Email</div>
+        <div class="pm-desc">"We confirmed your login endpoint has SQL injection — here's the proof." That email gets replied to. Every. Time.</div>
+        <div class="pm-tool">SwarmHawk + Shannon</div>
+      </div>
+
+      <div class="pm-stage">
+        <div class="pm-circle active">
+          ♾️
+          <span class="pm-stage-num">6</span>
+        </div>
+        <div class="pm-label">Retention</div>
+        <div class="pm-title">Ongoing Monitoring</div>
+        <div class="pm-desc">Signed client enters continuous monitoring. New risks surface. New outreach to their network. The machine loops forever.</div>
+        <div class="pm-tool">SwarmHawk</div>
+      </div>
+
+    </div>
+
+    <div class="pm-arrow-wrap">
+      <div class="pm-loop-badge">
+        <span>♾️ Self-feeding loop — zero external input required after initial discovery</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── WHO IT'S FOR ───────────────────────────────────────────────────── -->
+<section id="segments">
+  <div class="wrap">
+    <p class="eyebrow" style="text-align:center">Customer Segments</p>
+    <h2 style="text-align:center;margin-top:8px">Built for Every<br><em>Security Business</em></h2>
+    <p style="text-align:center;max-width:540px;margin:16px auto 0">
+      Whether you sell, manage, test, or advise on security — the SwarmHawk + Shannon combination compounds your output without adding headcount.
+    </p>
+
+    <div class="seg-grid">
+
+      <!-- MSPs -->
+      <div class="seg-card">
+        <div class="seg-card-icon">🏢</div>
+        <div class="seg-card-title">Managed Security Providers (MSPs)</div>
+        <div class="seg-card-sub">You monitor dozens of client domains. You need to prove value monthly and grow your book without hiring more analysts.</div>
+        <ul class="seg-card-pains">
+          <li>Vulnerability reports generate questions, not renewals</li>
+          <li>Sales team has no proof to show cold prospects</li>
+          <li>Manual scanning can't cover the full client attack surface</li>
+        </ul>
+        <ul class="seg-card-wins">
+          <li>Auto-discover all client subdomains and third-party assets weekly</li>
+          <li>Generate confirmed-exploit reports for prospect outreach</li>
+          <li>Monthly PDF briefings sent automatically to every client</li>
+          <li>CVSS ≥ 7.0 domains auto-queued as upsell opportunities</li>
+        </ul>
+      </div>
+
+      <!-- Pentest firms -->
+      <div class="seg-card">
+        <div class="seg-card-icon">🎯</div>
+        <div class="seg-card-title">Penetration Testing Firms</div>
+        <div class="seg-card-sub">You sell annual pentests and retainers. The gap between engagements is where your clients get breached — and where you lose renewals.</div>
+        <ul class="seg-card-pains">
+          <li>Clients forget the value between annual assessments</li>
+          <li>Proposal pipeline dries up between project cycles</li>
+          <li>Scoping calls take hours before any vulnerability is found</li>
+        </ul>
+        <ul class="seg-card-wins">
+          <li>Use confirmed exploits as conversation starters for new prospects</li>
+          <li>SwarmHawk pre-qualifies targets before your pentesters engage</li>
+          <li>Continuous monitoring fills the gap between annual assessments</li>
+          <li>AI-drafted outreach names the specific CVE before first call</li>
+        </ul>
+      </div>
+
+      <!-- Security consultancies -->
+      <div class="seg-card">
+        <div class="seg-card-icon">🛡️</div>
+        <div class="seg-card-title">Security Consultancies & VARs</div>
+        <div class="seg-card-sub">You advise on tooling, compliance, and architecture. Your clients need to know what's broken before they can fix it.</div>
+        <ul class="seg-card-pains">
+          <li>Clients don't know what they don't know — hard to justify spend</li>
+          <li>GRC and compliance work doesn't surface live vulnerabilities</li>
+          <li>Competitor vendors show up with lower quotes and no substance</li>
+        </ul>
+        <ul class="seg-card-wins">
+          <li>Walk into every QBR with a live risk score for the client's estate</li>
+          <li>NIS2, SOC 2, and ISO 27001 evidence automatically generated</li>
+          <li>Shannon-confirmed exploits make compliance conversations concrete</li>
+          <li>Competitive differentiation: you bring evidence, they bring slide decks</li>
+        </ul>
+      </div>
+
+      <!-- Enterprise security teams -->
+      <div class="seg-card">
+        <div class="seg-card-icon">🏛️</div>
+        <div class="seg-card-title">Enterprise In-House Security Teams</div>
+        <div class="seg-card-sub">You own the attack surface across hundreds of domains, subsidiaries, and cloud assets. You need signal, not noise.</div>
+        <ul class="seg-card-pains">
+          <li>Shadow IT and acquired entities create blind spots</li>
+          <li>Annual pentest findings are stale before the report is delivered</li>
+          <li>Board wants a risk number — you have a 300-page PDF</li>
+        </ul>
+        <ul class="seg-card-wins">
+          <li>Continuous 22-check monitoring across your entire domain estate</li>
+          <li>Risk score dashboard updated every 6 hours — board-ready</li>
+          <li>Shannon validates critical findings before escalation to CISO</li>
+          <li>Automated alerts when risk score spikes by 15+ points</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ───────────────────────────────────────────────────── -->
+<section id="how-it-works" style="background:var(--surface);border-top:1px solid var(--border)">
+  <div class="wrap">
+    <p class="eyebrow" style="text-align:center">Technology</p>
+    <h2 style="text-align:center;margin-top:8px">Two Engines.<br><em>One Verdict.</em></h2>
+    <p style="text-align:center;max-width:540px;margin:16px auto 0">
+      SwarmHawk finds. Shannon proves. Together they produce the only thing that matters in security sales: irrefutable evidence.
+    </p>
+
+    <div class="hiw-grid">
+
+      <div class="hiw-card hawk">
+        <div class="hiw-card-label">SwarmHawk — Discovery & Monitoring</div>
+        <h3 class="hiw-card-title">World's Largest Domain Security Database</h3>
+        <p class="hiw-card-desc">Continuously ingests 2M+ domains per week from 5 global sources. Runs 22 security checks per domain — from SSL to CVEs to dark web breach data — on a rolling weekly schedule.</p>
+        <ul class="hiw-card-features">
+          <li>Tier 1: Passive CVE detection via NVD (every 4 hours)</li>
+          <li>Tier 1.5: SPF/DMARC/WHOIS/blacklist enrichment (per discovery)</li>
+          <li>Tier 2: Full 22-check scan — DAST, SAST, SCA, IP intel (weekly)</li>
+          <li>Multi-agent DAST: 3 Claude agents analyse probe findings in parallel</li>
+          <li>Risk score 0–100 updated continuously, alerts on spikes ≥ 15 pts</li>
+        </ul>
+      </div>
+
+      <div class="hiw-card shannon">
+        <div class="hiw-card-label">Shannon AI — Exploit Validation</div>
+        <h3 class="hiw-card-title">No Exploit. No Report.</h3>
+        <p class="hiw-card-desc">Shannon is an autonomous AI pentester built on the Anthropic Claude Agent SDK. It takes SwarmHawk's high-confidence findings and confirms whether they are actually exploitable — with a working proof-of-concept.</p>
+        <ul class="hiw-card-features">
+          <li>5 parallel agents: Injection, XSS, SSRF, Auth, AuthZ</li>
+          <li>White-box + live exploitation against running application</li>
+          <li>96.15% accuracy on the XBOW security benchmark (hint-free)</li>
+          <li>Only confirmed exploits included in final report</li>
+          <li>Handles 2FA, SSO, API key auth automatically</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Comparison table -->
+    <table class="cmp-table" style="margin-top:52px">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>Traditional Scanner</th>
+          <th>SwarmHawk Alone</th>
+          <th class="hl">SwarmHawk + Shannon</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="cmp-feat">Discovery scope</div><div class="cmp-feat-sub">How many domains tracked</div></td>
+          <td class="cx">Domains you own</td>
+          <td class="ck">2M+ globally / week</td>
+          <td class="hl ck">2M+ globally / week</td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">Vulnerability detection</div><div class="cmp-feat-sub">CVEs, misconfigs, DAST</div></td>
+          <td class="ck">✓</td>
+          <td class="ck">✓ 22 checks</td>
+          <td class="hl ck">✓ 22 checks + AI analysis</td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">Exploit confirmation</div><div class="cmp-feat-sub">Is it actually exploitable?</div></td>
+          <td class="cx">✗ Assumed</td>
+          <td class="cx">✗ Risk score only</td>
+          <td class="hl ck">✓ Working PoC per finding</td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">Outreach automation</div><div class="cmp-feat-sub">Turn findings into pipeline</div></td>
+          <td class="cx">✗ Manual</td>
+          <td class="ck">✓ AI-drafted emails</td>
+          <td class="hl ck">✓ Evidence-backed emails</td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">False positive rate</div><div class="cmp-feat-sub">Findings that don't hold up</div></td>
+          <td class="cx">High (30–50%)</td>
+          <td>Low (risk-scored)</td>
+          <td class="hl ck">Zero — exploit or nothing</td>
+        </tr>
+        <tr>
+          <td><div class="cmp-feat">Continuous monitoring</div><div class="cmp-feat-sub">Rescans over time</div></td>
+          <td class="cx">Annual / on-demand</td>
+          <td class="ck">✓ Every 6 hours</td>
+          <td class="hl ck">✓ Every 6 hours</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="proof-banner">
+      <h3>The only outreach email that gets a reply</h3>
+      <p>
+        "We scanned your domain <strong>company.com</strong> and confirmed a working SQL injection on your login endpoint at /api/auth.
+        Risk score: 87/100. We can fix this. Reply to schedule a call."
+      </p>
+      <a href="#free-scan" class="btn btn-lime btn-md">Get This Email For Your Prospects →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── FREE SCAN REQUEST FORM ────────────────────────────────────────── -->
+<section id="free-scan" class="form-section">
+  <div class="wrap">
+    <div class="form-wrap">
+
+      <div class="form-title-block">
+        <p class="eyebrow" style="margin-bottom:8px">Free Deep Scan</p>
+        <h2>See What an Attacker<br><em>Would Actually Do</em></h2>
+        <p style="margin-top:16px;font-size:16px">
+          Enter your domain. We'll run our 22-check scan plus 3 parallel AI exploit agents
+          and email you a confirmed-finding report — free, no sales call required.
+        </p>
+      </div>
+
+      <div class="form-box">
+        <div id="form-error" class="form-error"></div>
+        <div class="form-row">
+          <label>Your Domain</label>
+          <input type="text" id="f-domain" placeholder="yourdomain.com" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label>Work Email</label>
+          <input type="email" id="f-email" placeholder="you@company.com">
+        </div>
+        <div class="form-row">
+          <label>Company Name <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+          <input type="text" id="f-company" placeholder="Acme Security">
+        </div>
+        <button class="form-submit" id="f-submit" onclick="submitDeepScan()">RUN FREE DEEP SCAN →</button>
+        <p class="form-note">
+          By submitting you confirm you are authorised to request a security scan of this domain.
+          Results delivered within 30 minutes. Read our <a href="/privacy.html">privacy policy</a>.
+        </p>
+      </div>
+
+      <div id="form-success" class="form-success">
+        <h4>✓ Scan Queued</h4>
+        <p>Your deep scan is running. Results will be emailed to you within 30 minutes.<br>
+        No sales call. No obligation. Just evidence.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── FINAL CTA ──────────────────────────────────────────────────────── -->
+<section class="final-cta">
+  <div class="wrap">
+    <p class="eyebrow" style="margin-bottom:12px">Start Today</p>
+    <h2>Add Your Domains.<br><em>The Machine Does the Rest.</em></h2>
+    <p>Monitor your own attack surface and turn competitor vulnerabilities into your sales pipeline — simultaneously.</p>
+    <div class="final-actions">
+      <a href="#free-scan" class="btn btn-lime btn-lg">Get Free Deep Scan →</a>
+      <a href="/" class="btn btn-outline btn-lg">Explore SwarmHawk Platform</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-logo">
+      <div class="pulse"></div>
+      <span class="footer-brand">SwarmHawk</span>
+    </div>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/docs.html">Docs</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="https://github.com/KeygraphHQ/shannon" target="_blank" rel="noopener">Shannon on GitHub</a>
+    </div>
+    <span class="footer-copy">© 2026 SwarmHawk. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+const API = 'https://swarmhawk-backend.onrender.com';
+
+async function submitDeepScan() {
+  const domain  = document.getElementById('f-domain').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const company = document.getElementById('f-company').value.trim();
+  const errEl   = document.getElementById('form-error');
+  const btn     = document.getElementById('f-submit');
+
+  errEl.classList.remove('show');
+
+  if (!domain) { showErr('Please enter a domain.'); return; }
+  if (!email)  { showErr('Please enter your work email.'); return; }
+
+  // Basic domain validation
+  if (!/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(domain)) {
+    showErr('Please enter a valid domain (e.g. yourdomain.com).'); return;
+  }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+    showErr('Please enter a valid email address.'); return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'SCANNING…';
+
+  try {
+    const res = await fetch(`${API}/deepscan/request`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({domain, contact_email: email, company_name: company}),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showErr(data.detail || 'Something went wrong. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'RUN FREE DEEP SCAN →';
+      return;
+    }
+    document.getElementById('form-success').style.display = 'block';
+    document.querySelector('.form-box').style.display = 'none';
+  } catch(e) {
+    showErr('Network error — please try again.');
+    btn.disabled = false;
+    btn.textContent = 'RUN FREE DEEP SCAN →';
+  }
+}
+
+function showErr(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+</script>
+</body>
+</html>

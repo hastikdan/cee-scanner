@@ -1696,6 +1696,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
     <div class="db-tabs">
       <button class="db-tab active" onclick="dbShowTab('domains',this)">🌐 Domains</button>
       <button class="db-tab" onclick="dbShowTab('account',this);dbLoadAccount()">👤 Account</button>
+      <button class="db-tab" id="deepscan-tab-btn" onclick="dbShowTab('deepscan',this);loadDeepScans()" style="display:none">🔬 Deep Scans</button>
       <button class="db-tab" id="marketing-tab-btn" onclick="dbShowTab('marketing',this)" style="display:none">📣 Marketing</button>
       <button class="db-tab" id="admin-tab-btn" onclick="dbShowTabAdmin('admin',this)" style="display:none">⚙️ Admin</button>
     </div>
@@ -2045,6 +2046,35 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
       </div>
     </div>
 
+
+    <!-- ── TAB: DEEP SCANS ──────────────────────────────────── -->
+    <div class="db-page" id="db-deepscan">
+      <div class="db-inner">
+        <div class="db-header">
+          <div>
+            <h2 class="db-title">🔬 Deep Scans</h2>
+            <p style="color:var(--grey);font-size:13px;margin-top:4px">Confirmed exploit intelligence — Shannon-powered multi-agent DAST results</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-scan-all" onclick="loadDeepScans()">↻ Refresh</button>
+            <a href="/deepscan" target="_blank" style="background:rgba(163,230,53,.1);border:1px solid rgba(163,230,53,.25);color:var(--lime);font-family:'Space Mono',monospace;font-size:10px;padding:8px 16px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;letter-spacing:1px">🌐 DEEPSCAN PAGE →</a>
+          </div>
+        </div>
+
+        <!-- Info banner -->
+        <div style="background:rgba(163,230,53,.06);border:1px solid rgba(163,230,53,.2);border-radius:12px;padding:20px 24px;margin-bottom:28px;display:flex;align-items:flex-start;gap:16px">
+          <div style="font-size:24px;flex-shrink:0">🔬</div>
+          <div>
+            <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);letter-spacing:2px;font-weight:700;margin-bottom:4px">SHANNON-INSPIRED MULTI-AGENT DAST</div>
+            <p style="font-size:13px;color:var(--grey);line-height:1.6;margin:0">Deep Scans run 3 parallel Claude agents (Injection, Auth, Config) over DAST probe results to produce AI-enhanced findings. Request a Deep Scan from any domain card below. Results are emailed and stored here.</p>
+          </div>
+        </div>
+
+        <div id="db-deepscan-list" style="display:flex;flex-direction:column;gap:16px">
+          <div style="color:var(--grey);font-size:13px;padding:24px 0">Loading deep scans…</div>
+        </div>
+      </div>
+    </div>
 
     <!-- ── TAB: ADMIN ───────────────────────────────────────── -->
     <div class="db-page" id="db-admin">
@@ -2962,7 +2992,7 @@ function renderDomains() {
         </div>
         <div class="card-actions">
           <span class="${d.paid?'badge-paid':'badge-free'}">${d.paid?'✓ ANNUAL':'FREE'}</span>
-          ${!scanning?`<button class="btn-report" onclick="openReport('${d.id}','${d.domain}',${d.paid})">VIEW REPORT</button>${!d.paid?`<button class="btn-upgrade" onclick="checkout('${d.id}','${d.domain}')">€50/yr →</button>`:''}`:''}
+          ${!scanning?`<button class="btn-report" onclick="openReport('${d.id}','${d.domain}',${d.paid})">VIEW REPORT</button>${d.paid?`<button onclick="requestDeepScan('${d.id}','${d.domain}')" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:#a78bfa;font-family:'Space Mono',monospace;font-size:10px;padding:6px 12px;border-radius:5px;cursor:pointer;letter-spacing:1px;white-space:nowrap" id="ds-btn-${d.id}">🔬 DEEP SCAN</button>``:<button class="btn-upgrade" onclick="checkout('${d.id}','${d.domain}')">€50/yr →</button>`}`:''}
         </div>
       </div>
       ${d.risk_score!==null?`<div class="stats-row">
@@ -4165,6 +4195,7 @@ function dbRenderDomainsTable(filter) {
       '<td style="font-size:11px;color:var(--grey)">'+(d.country||'EU')+'</td>' +
       '<td style="display:flex;gap:6px;flex-wrap:wrap" onclick="event.stopPropagation()">' +
         '<button class="db-btn-sm" onclick="dbOpenDomainReport(\''+d.id+'\',\''+d.domain+'\')">View Report</button>' +
+        (d.paid ? '<button id="ds-btn-'+d.id+'" onclick="requestDeepScan(\''+d.id+'\',\''+d.domain+'\')" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:#a78bfa;font-family:Space Mono,monospace;font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;letter-spacing:1px">🔬 Deep Scan</button>' : '') +
       '</td>' +
       '</tr>' +
       '<tr id="ddetail-'+d.id+'" style="display:none"><td colspan="7" style="padding:0">' +
@@ -4179,6 +4210,84 @@ function dbRenderDomainsTable(filter) {
 
 function dbFilterDomains(val) {
   dbRenderDomainsTable(val);
+}
+
+// ── Deep Scan functions ────────────────────────────────────────────────────
+
+async function requestDeepScan(domainId, domainName) {
+  var btn = document.getElementById('ds-btn-' + domainId);
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Queuing…'; }
+  try {
+    var data = await api('/domains/' + domainId + '/deepscan', {method: 'POST'});
+    toast('🔬 Deep Scan queued for ' + domainName + ' — results will be emailed to you');
+    if (btn) { btn.textContent = '✓ Queued'; btn.style.color = 'var(--lime)'; btn.style.borderColor = 'rgba(163,230,53,.3)'; }
+    // Refresh deep scans tab in background
+    setTimeout(loadDeepScans, 3000);
+  } catch(e) {
+    var msg = (e && e.message) ? e.message : 'Error queuing deep scan';
+    toast('✗ ' + msg);
+    if (btn) { btn.disabled = false; btn.textContent = '🔬 Deep Scan'; }
+  }
+}
+
+async function loadDeepScans() {
+  var el = document.getElementById('db-deepscan-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--grey);font-size:13px;padding:16px 0">Loading…</div>';
+
+  // Aggregate deep scans across all user domains
+  var domains = dbDomains || [];
+  var paidDomains = domains.filter(function(d){ return d.paid; });
+
+  if (!paidDomains.length) {
+    el.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;text-align:center">' +
+      '<div style="font-size:32px;margin-bottom:12px">🔬</div>' +
+      '<div style="font-size:15px;font-weight:700;margin-bottom:8px;color:var(--white)">No Annual Domains Yet</div>' +
+      '<p style="font-size:13px;color:var(--grey);max-width:360px;margin:0 auto 20px">Deep Scan is available on the Annual plan ($50/year). Upgrade any domain to unlock confirmed exploit intelligence.</p>' +
+      '<a href="/deepscan" target="_blank" style="display:inline-block;background:var(--lime);color:var(--black);font-family:Space Mono,monospace;font-size:11px;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none;letter-spacing:1px">LEARN MORE →</a>' +
+    '</div>';
+    return;
+  }
+
+  var allScans = [];
+  for (var i = 0; i < paidDomains.length; i++) {
+    try {
+      var res = await api('/domains/' + paidDomains[i].id + '/deepscans');
+      (res.deepscans || []).forEach(function(s){ s._domain_name = paidDomains[i].domain; });
+      allScans = allScans.concat(res.deepscans || []);
+    } catch(e) { /* skip */ }
+  }
+
+  allScans.sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
+
+  if (!allScans.length) {
+    el.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;text-align:center">' +
+      '<div style="font-size:32px;margin-bottom:12px">🔬</div>' +
+      '<div style="font-size:15px;font-weight:700;margin-bottom:8px;color:var(--white)">No Deep Scans Yet</div>' +
+      '<p style="font-size:13px;color:var(--grey);max-width:360px;margin:0 auto 20px">Click the <strong style="color:#a78bfa">🔬 Deep Scan</strong> button on any Annual domain to trigger your first confirmed exploit analysis.</p>' +
+    '</div>';
+    return;
+  }
+
+  el.innerHTML = allScans.map(function(s) {
+    var statusColor = s.status === 'completed' ? 'var(--lime)' : s.status === 'failed' ? '#f87171' : '#fbbf24';
+    var statusLabel = s.status === 'completed' ? '✓ COMPLETED' : s.status === 'failed' ? '✗ FAILED' : s.status === 'scanning' ? '⟳ SCANNING' : '○ PENDING';
+    var score = s.risk_score !== null && s.risk_score !== undefined ? s.risk_score : '—';
+    var scoreColor = (s.risk_score >= 70) ? '#f87171' : (s.risk_score >= 40) ? '#fbbf24' : 'var(--lime)';
+    var created = s.created_at ? new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    var findings = s.key_findings ? '<div style="font-size:12px;color:var(--grey);white-space:pre-line;line-height:1.7;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">'+s.key_findings+'</div>' : '';
+    return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px">' +
+      '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+        '<div style="font-family:Space Mono,monospace;font-size:13px;font-weight:700;color:var(--white)">' + (s._domain_name || s.domain) + '</div>' +
+        '<span style="font-family:Space Mono,monospace;font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:#a78bfa">🔬 DEEP SCAN</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:10px;color:'+statusColor+'">'+statusLabel+'</span>' +
+        (s.risk_score !== null && s.risk_score !== undefined ? '<span style="margin-left:auto;font-size:20px;font-weight:900;color:'+scoreColor+';font-family:Space Mono,monospace">'+score+'</span>' : '') +
+        (s.critical_count ? '<span style="font-family:Space Mono,monospace;font-size:10px;color:#f87171;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);padding:3px 9px;border-radius:20px">'+s.critical_count+' CRITICAL</span>' : '') +
+      '</div>' +
+      '<div style="font-size:11px;color:#555;margin-top:6px;font-family:Space Mono,monospace">'+created+'</div>' +
+      findings +
+    '</div>';
+  }).join('');
 }
 
 var _domainDetailOpen = {};
@@ -7852,6 +7961,9 @@ async function submitSignUp() {
 
 // After login: show admin tabs immediately from localStorage, then confirm with /me
 function refreshAdminAccess() {
+  // Show Deep Scans tab for all authenticated users
+  var _ds = document.getElementById('deepscan-tab-btn');
+  if (_ds) _ds.style.display = '';
   // Optimistic: show instantly if localStorage says admin
   if (currentUser && currentUser.is_admin) {
     var _a = document.getElementById('admin-tab-btn');
