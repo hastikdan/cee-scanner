@@ -2984,6 +2984,7 @@ function renderReportPage(data, domain, isSample) {
           <button onclick="adminNavTo('llm-stats-section')"             class="admin-nav-btn">🧠 LLM</button>
           <button onclick="adminNavTo('admin-report-email-section')"    class="admin-nav-btn">📧 Reports</button>
           <button onclick="adminNavTo('admin-batch-upload-section')"    class="admin-nav-btn">📤 Batch Upload</button>
+          <button onclick="adminNavTo('admin-enterprise-section')"     class="admin-nav-btn">🏢 Enterprise</button>
         </div>
 
         <!-- Row 1: Core KPIs -->
@@ -3396,6 +3397,34 @@ function renderReportPage(data, domain, isSample) {
           </div>
 
           <div id="batch-result" style="display:none"></div>
+        </div>
+
+        <!-- ── Enterprise Org Graph ── -->
+        <div class="admin-section" id="admin-enterprise-section">
+          <div class="admin-section-title">🏢 Enterprise — Org Graph & Breach Paths</div>
+          <div style="font-size:12px;color:var(--grey);margin-bottom:20px">
+            Clusters all scanned domains into organizations, computes breach path graphs, choke points, and blast radius. Run after bulk imports or weekly to refresh risk scores.
+          </div>
+
+          <!-- Compute trigger card -->
+          <div style="background:rgba(163,230,53,0.04);border:1px solid rgba(163,230,53,0.2);border-radius:10px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+            <div>
+              <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--lime);font-weight:700;margin-bottom:4px">Full Org Graph Compute</div>
+              <div style="font-size:12px;color:var(--grey)">Re-clusters all domains → recomputes all breach paths. Runs in background (~2–5 min).</div>
+            </div>
+            <button id="ent-compute-btn" onclick="enterpriseCompute()" style="background:var(--lime);color:#000;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:10px 22px;border:none;border-radius:7px;cursor:pointer;white-space:nowrap">
+              ⚡ Run Org Compute
+            </button>
+          </div>
+          <div id="ent-compute-status" style="display:none;font-family:'Space Mono',monospace;font-size:11px;margin-bottom:20px"></div>
+
+          <!-- Live org stats -->
+          <div id="ent-stats-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
+
+          <!-- Top risky orgs table -->
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Top Organizations by Risk</div>
+          <div id="ent-orgs-table" style="font-size:12px;color:var(--grey)">Click "Run Org Compute" or load below.</div>
+          <button onclick="enterpriseLoadOrgs()" style="margin-top:12px;background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--grey);font-family:'Space Mono',monospace;font-size:11px;padding:8px 16px;border-radius:7px;cursor:pointer">🔄 Load Org Data</button>
         </div>
 
       </div>
@@ -7878,6 +7907,94 @@ function batchReset() {
   var btn = document.getElementById('batch-submit-btn');
   if (btn) { btn.disabled = false; btn.textContent = '🚀 Queue for Scanning'; }
   document.getElementById('batch-submit-status').textContent = '';
+}
+
+// ── Enterprise Org Graph ─────────────────────────────────────────────────────
+async function enterpriseCompute() {
+  var btn = document.getElementById('ent-compute-btn');
+  var status = document.getElementById('ent-compute-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Starting…';
+  status.style.display = 'block';
+  status.style.color = 'var(--grey)';
+  status.textContent = 'Sending request…';
+  try {
+    var token = localStorage.getItem('swarmhawk_token');
+    var r = await fetch(API + '/enterprise/compute', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var d = await r.json();
+    if (r.ok) {
+      status.style.color = 'var(--lime)';
+      status.textContent = '✓ ' + (d.status || 'Org graph computation started') + ' — runs in background, check back in ~2–5 minutes.';
+      btn.textContent = '✓ Running in background';
+    } else {
+      status.style.color = '#ef4444';
+      status.textContent = '✗ ' + (d.detail || JSON.stringify(d));
+      btn.disabled = false;
+      btn.textContent = '⚡ Run Org Compute';
+    }
+  } catch(e) {
+    status.style.color = '#ef4444';
+    status.textContent = '✗ Network error: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = '⚡ Run Org Compute';
+  }
+}
+
+async function enterpriseLoadOrgs() {
+  var el = document.getElementById('ent-orgs-table');
+  var grid = document.getElementById('ent-stats-grid');
+  el.textContent = 'Loading…';
+  try {
+    var token = localStorage.getItem('swarmhawk_token');
+    var headers = { 'Authorization': 'Bearer ' + token };
+    var [statsRes, orgsRes] = await Promise.all([
+      fetch(API + '/enterprise/stats', { headers }),
+      fetch(API + '/enterprise/orgs?limit=10', { headers })
+    ]);
+    if (statsRes.ok) {
+      var s = await statsRes.json();
+      grid.innerHTML = [
+        ['🏢 Total Orgs', s.total_orgs || 0],
+        ['⚡ Entry Points', s.total_entry_points || 0],
+        ['🎯 Critical Assets', s.total_critical_assets || 0],
+        ['🔗 Breach Paths', s.total_attack_paths || 0],
+      ].map(function(x) {
+        return '<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px">' +
+          '<div style="font-size:10px;color:var(--grey);font-family:\'Space Mono\',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">' + x[0] + '</div>' +
+          '<div style="font-size:22px;font-weight:800;color:var(--lime)">' + x[1].toLocaleString() + '</div>' +
+          '</div>';
+      }).join('');
+    }
+    if (orgsRes.ok) {
+      var orgs = (await orgsRes.json()).orgs || [];
+      if (!orgs.length) { el.textContent = 'No organizations computed yet. Run Org Compute first.'; return; }
+      el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+        '<thead><tr style="border-bottom:1px solid var(--border)">' +
+        ['Organization','Domains','Risk Score','Entry Pts','Choke Pts','Breach Paths'].map(function(h){
+          return '<th style="text-align:left;padding:8px 10px;font-family:\'Space Mono\',monospace;font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px">' + h + '</th>';
+        }).join('') +
+        '</tr></thead><tbody>' +
+        orgs.map(function(o) {
+          var risk = o.org_risk_score || 0;
+          var col = risk >= 70 ? '#ef4444' : risk >= 40 ? '#f59e0b' : 'var(--lime)';
+          return '<tr style="border-bottom:1px solid rgba(255,255,255,.04)">' +
+            '<td style="padding:9px 10px;color:var(--white);font-weight:600">' + safeHtml(o.registered_domain || o.name || '—') + '</td>' +
+            '<td style="padding:9px 10px">' + (o.domain_count || 0) + '</td>' +
+            '<td style="padding:9px 10px"><span style="color:' + col + ';font-weight:700">' + risk + '</span></td>' +
+            '<td style="padding:9px 10px">' + (o.entry_points || 0) + '</td>' +
+            '<td style="padding:9px 10px">' + (o.choke_points || 0) + '</td>' +
+            '<td style="padding:9px 10px">' + (o.attack_paths || 0) + '</td>' +
+            '</tr>';
+        }).join('') + '</tbody></table>';
+    } else {
+      el.textContent = 'No org data yet. Run Org Compute first.';
+    }
+  } catch(e) {
+    el.textContent = 'Error: ' + e.message;
+  }
 }
 
 // Drag-and-drop wiring (runs after DOM ready)
