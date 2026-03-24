@@ -1197,13 +1197,15 @@ async function submitSignUp() {
   }
 }
 
-// If already logged in → swap nav to "Go to Dashboard"
+// If already logged in → swap nav to "Go to Dashboard" + Log Out
 (function(){
   var token = localStorage.getItem('sw_token');
-  var user  = JSON.parse(localStorage.getItem('sw_user') || 'null');
-  if (token && user) {
+  var user  = localStorage.getItem('sw_user');
+  if (token && user && user !== 'null') {
     var actions = document.querySelector('.nav-actions');
-    if (actions) actions.innerHTML = '<a href="/app/" class="btn-nav-lime">Go to Dashboard →</a>';
+    if (actions) actions.innerHTML =
+      '<a href="/app/" class="btn-nav-lime">Go to Dashboard \u2192</a>' +
+      '<button class="btn-nav-ghost" style="margin-left:8px" onclick="localStorage.removeItem(\'sw_token\');localStorage.removeItem(\'sw_user\');location.reload()">Log Out</button>';
   }
 })();
 </script>
