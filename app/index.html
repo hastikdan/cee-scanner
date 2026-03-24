@@ -2752,16 +2752,14 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function activateScanner() {
-  document.getElementById('nav-signin').style.display='none';
-  document.getElementById('nav-user').style.display='flex';
-  document.getElementById('nav-name').textContent=currentUser?.name||currentUser?.email||'';
-  if (currentUser?.avatar) document.getElementById('nav-avatar').src=currentUser.avatar;
-  // Show "Open Dashboard" button in business section
+  var ns = document.getElementById('nav-signin'); if (ns) ns.style.display='none';
+  var nu = document.getElementById('nav-user');   if (nu) nu.style.display='flex';
+  var nn = document.getElementById('nav-name');   if (nn) nn.textContent=currentUser?.name||currentUser?.email||'';
+  if (currentUser?.avatar) { var na=document.getElementById('nav-avatar'); if (na) na.src=currentUser.avatar; }
   var openBtn = document.getElementById('hero-cta-open');
   if (openBtn) openBtn.style.display='block';
   loadDomains();
   if (!pollTimer) pollTimer=setInterval(loadDomains,15000);
-  // Open full dashboard
   openDashboard();
 }
 
