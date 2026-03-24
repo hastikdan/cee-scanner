@@ -2722,13 +2722,33 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
 
 
 <script>
-// ── Auth gate — show landing (sign-in) if no session, otherwise stay hidden
+// ── Auth gate — runs synchronously after #dashboard is parsed ─────────────
 (function() {
   var token = localStorage.getItem('sw_token');
   var user  = localStorage.getItem('sw_user');
-  if (!token || !user || user === 'null') {
+  var hasSession = token && user && user !== 'null';
+
+  if (hasSession) {
+    // Show dashboard immediately — do NOT wait for DOMContentLoaded
+    var db = document.getElementById('dashboard');
+    if (db) {
+      db.style.display        = 'flex';
+      db.style.position       = 'fixed';
+      db.style.inset          = '0';
+      db.style.top            = '0';
+      db.style.right          = '0';
+      db.style.bottom         = '0';
+      db.style.left           = '0';
+      db.style.zIndex         = '9999';
+      db.style.background     = '#080810';
+      db.style.overflow       = 'hidden';
+      db.style.flexDirection  = 'column';
+      document.body.style.overflow = 'hidden';
+    }
+  } else {
+    // No session — show landing so user can sign in
     var l = document.getElementById('landing');
-    if (l) l.style.display = '';  // reveal the sign-in/sign-up landing
+    if (l) l.style.display = '';
   }
 })();
 </script>
