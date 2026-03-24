@@ -2722,12 +2722,13 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
 
 
 <script>
-// ── Auth guard — runs immediately, before DOM renders ──────────────────
+// ── Auth gate — show landing (sign-in) if no session, otherwise stay hidden
 (function() {
   var token = localStorage.getItem('sw_token');
   var user  = localStorage.getItem('sw_user');
   if (!token || !user || user === 'null') {
-    window.location.replace('https://www.swarmhawk.com/');
+    var l = document.getElementById('landing');
+    if (l) l.style.display = '';  // reveal the sign-in/sign-up landing
   }
 })();
 </script>
