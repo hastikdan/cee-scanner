@@ -914,22 +914,66 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
 </div>
 
 <!-- ─── FOOTER ────────────────────────────────────────────────────────── -->
-<footer>
+<footer style="background:var(--surface);border-top:1px solid var(--border);padding:64px 0 32px;margin-top:0">
   <div class="wrap">
-    <div class="footer-inner">
-      <div class="footer-logo">
-        <div class="pulse"></div>
-        <span class="footer-brand">SwarmHawk</span>
-        <span style="font-size:12px;color:var(--muted);margin-left:8px">External Attack Surface Intelligence</span>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px">
+
+      <!-- Brand -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div class="pulse"></div>
+          <span style="font-weight:800;font-size:15px;letter-spacing:2.5px;text-transform:uppercase;color:var(--lime);font-family:'JetBrains Mono',monospace">SwarmHawk</span>
+        </div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;max-width:280px">The world's largest domain security database. Continuous vulnerability tracking across every domain on the internet — 22 checks · AI analysis · 31 countries.</p>
+        <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--lime);border:1px solid var(--lime-border);border-radius:4px;padding:3px 8px">NIS2 Ready</span>
+          <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--lime);border:1px solid var(--lime-border);border-radius:4px;padding:3px 8px">DORA Aligned</span>
+          <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--lime);border:1px solid var(--lime-border);border-radius:4px;padding:3px 8px">GDPR Compliant</span>
+        </div>
       </div>
-      <div class="footer-links">
-        <a href="/">Dashboard</a>
-        <a href="/solutions/">Enterprise</a>
-        <a href="/go-to-market.html">Partners</a>
-        <a href="https://swarmhawk-backend.onrender.com/docs" target="_blank">API Docs</a>
-        <a href="mailto:hello@swarmhawk.com">Contact</a>
+
+      <!-- Product -->
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text);margin-bottom:16px;font-family:'JetBrains Mono',monospace">Product</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a href="/app/" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Dashboard</a>
+          <a href="/map.html" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Live Threat Map</a>
+          <a href="/solutions/" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Enterprise</a>
+          <a href="/go-to-market.html" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Partner Map</a>
+        </div>
       </div>
-      <div class="footer-copy">© 2026 SwarmHawk · Built for Europe's digital infrastructure</div>
+
+      <!-- Resources -->
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text);margin-bottom:16px;font-family:'JetBrains Mono',monospace">Resources</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a href="https://swarmhawk-backend.onrender.com/docs" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">API Docs</a>
+          <a href="/mcp.html" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">MCP Setup Guide</a>
+          <a href="/kb.html" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Knowledge Base</a>
+          <a href="https://github.com/hastikdan/swarmhawk" target="_blank" rel="noopener" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">GitHub</a>
+        </div>
+      </div>
+
+      <!-- Legal -->
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text);margin-bottom:16px;font-family:'JetBrains Mono',monospace">Legal</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a href="/privacy.html" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Privacy Policy</a>
+          <a href="/terms.html" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Terms of Service</a>
+          <a href="/gdpr.html" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">GDPR</a>
+          <a href="mailto:hello@swarmhawk.com" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='var(--muted)'">Contact</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div style="border-top:1px solid var(--border);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="font-size:12px;color:var(--muted)">© 2026 SwarmHawk · www.swarmhawk.com · Built for Europe's digital infrastructure</div>
+      <div style="display:flex;gap:16px">
+        <a href="/map.html" style="font-size:12px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px" onmouseover="this.style.color='var(--lime)'" onmouseout="this.style.color='var(--muted)'">🗺️ Live Threat Map</a>
+        <a href="mailto:hello@swarmhawk.com" style="font-size:12px;color:var(--muted);text-decoration:none" onmouseover="this.style.color='var(--lime)'" onmouseout="this.style.color='var(--muted)'">hello@swarmhawk.com</a>
+      </div>
     </div>
   </div>
 </footer>
