@@ -2837,7 +2837,7 @@ function showNavPage(page, btn) {
 function showPage(page) { showNavPage(page, null); }
 
 function showApp() { activateScanner(); }
-function logout() { clearInterval(pollTimer); localStorage.removeItem('sw_token'); localStorage.removeItem('sw_user'); window.location.href='/'; }
+function logout() { clearInterval(pollTimer); localStorage.removeItem('sw_token'); localStorage.removeItem('sw_user'); window.location.href='https://www.swarmhawk.com/'; }
 
 async function api(path,opts={}) {
   const res=await fetch(`${API}${path}`,{...opts,headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`,...(opts.headers||{})}});
@@ -4087,7 +4087,6 @@ function closeDashboard() {
 }
 
 function dbLogout() {
-  closeDashboard();
   logout();
 }
 
