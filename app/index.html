@@ -1702,7 +1702,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
     <div class="db-nav-right">
       <span id="db-user-name" onclick="dbNavToUserPanel()" title="Go to Admin panel" style="font-size:13px;color:var(--grey);cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--lime)'" onmouseout="this.style.color='var(--grey)'"></span>
       <img id="db-avatar" class="user-avatar" onclick="dbNavToUserPanel()" title="Go to Admin panel" src="" alt="" style="display:none;cursor:pointer">
-      <button class="btn-sm" onclick="dbLogout()">Logout</button>
+      <button type="button" class="btn-sm" onclick="dbLogout()">Logout</button>
     </div>
   </div>
 
@@ -2837,7 +2837,15 @@ function showNavPage(page, btn) {
 function showPage(page) { showNavPage(page, null); }
 
 function showApp() { activateScanner(); }
-function logout() { clearInterval(pollTimer); localStorage.removeItem('sw_token'); localStorage.removeItem('sw_user'); window.location.href='https://www.swarmhawk.com/'; }
+function logout() {
+  clearInterval(pollTimer);
+  pollTimer = null;
+  sessionToken = '';
+  currentUser = null;
+  localStorage.removeItem('sw_token');
+  localStorage.removeItem('sw_user');
+  window.location.replace('https://www.swarmhawk.com/');
+}
 
 async function api(path,opts={}) {
   const res=await fetch(`${API}${path}`,{...opts,headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`,...(opts.headers||{})}});
@@ -4075,6 +4083,7 @@ function openDashboard() {
     }
   }
 
+  refreshAdminAccess();
   dbLoadAll();
 }
 
@@ -7992,33 +8001,38 @@ async function submitSignUp() {
 }
 
 // After login: show admin tabs immediately from localStorage, then confirm with /me
-function refreshAdminAccess() {
+function _grantAdminTabs() {
+  var adminBtn     = document.getElementById('admin-tab-btn');
+  var marketingBtn = document.getElementById('marketing-tab-btn');
+  if (adminBtn)     adminBtn.style.display     = '';
+  if (marketingBtn) marketingBtn.style.display = '';
+  currentUser = Object.assign(currentUser || {}, { is_admin: true });
+  localStorage.setItem('sw_user', JSON.stringify(currentUser));
+}
+
+function refreshAdminAccess(retryCount) {
+  retryCount = retryCount || 0;
   // Show Deep Scans tab for all authenticated users
   var _ds = document.getElementById('deepscan-tab-btn');
   if (_ds) _ds.style.display = '';
   // Optimistic: show instantly if localStorage says admin
   if (currentUser && currentUser.is_admin) {
-    var _a = document.getElementById('admin-tab-btn');
-    var _m = document.getElementById('marketing-tab-btn');
-    if (_a) _a.style.display = '';
-    if (_m) _m.style.display = '';
+    _grantAdminTabs();
   }
   if (!sessionToken) return;
-  // Authoritative confirmation from backend
+  // Authoritative confirmation from backend — retry up to 3× if Render is sleeping
   fetch(API + '/me', { headers: {'Authorization': 'Bearer ' + sessionToken} })
-    .then(function(r){ return r.json(); })
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
     .then(function(u){
-      var adminBtn = document.getElementById('admin-tab-btn');
-      var marketingBtn = document.getElementById('marketing-tab-btn');
-      if (!adminBtn) return;
-      // Only grant admin — never revoke mid-session (login response is authoritative)
-      if (u.is_admin) {
-        adminBtn.style.display = '';
-        if (marketingBtn) marketingBtn.style.display = '';
-        currentUser = Object.assign(currentUser || {}, { is_admin: true });
-        localStorage.setItem('sw_user', JSON.stringify(currentUser));
+      if (u && u.is_admin) { _grantAdminTabs(); }
+    })
+    .catch(function(err) {
+      // Retry on network errors (Render cold-start can take 30-60s)
+      if (retryCount < 3) {
+        var delay = [5000, 15000, 30000][retryCount];
+        setTimeout(function(){ refreshAdminAccess(retryCount + 1); }, delay);
       }
-    }).catch(function(){});
+    });
 }
 
 // ═══════════════════════════════════════════════════════════════════════
