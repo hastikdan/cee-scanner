@@ -2851,12 +2851,10 @@ async function api(path,opts={}) {
 async function loadDomains() {
   try {
     const data=await api('/domains'); domains=data.domains||[]; renderDomains();
-    // Also refresh dashboard if it's open
-    if (document.getElementById('dashboard').style.display !== 'none') {
-      dbDomains = domains;
-      dbRenderOverview();
-      dbRenderDomainsTable();
-    }
+    // Always sync to dbDomains — in /app/ we are always in dashboard context
+    dbDomains = domains;
+    dbRenderOverview();
+    dbRenderDomainsTable();
     if (!domains.some(d=>d.status==='scanning')){clearInterval(pollTimer);pollTimer=null;}
   } catch(e){console.error('Load failed:',e);}
 }
@@ -4118,6 +4116,14 @@ async function dbLoadAll() {
     nis2Load();
   } catch(e) {
     console.error('dbLoadAll:', e);
+    var el = document.getElementById('db-domains-table');
+    if (el) {
+      var msg = (e && e.message && e.message.indexOf('401') > -1)
+        ? 'Session expired. <a href="#" onclick="dbLogout();return false" style="color:var(--lime)">Sign in again →</a>'
+        : 'Could not load domains: ' + (e && e.message ? e.message : 'network error') +
+          ' &nbsp;<button class="db-btn-sm" onclick="dbLoadAll()">Retry</button>';
+      el.innerHTML = '<div class="db-empty" style="padding:40px;color:#f87171">' + msg + '</div>';
+    }
   }
 }
 
