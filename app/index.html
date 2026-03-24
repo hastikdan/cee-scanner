@@ -2688,6 +2688,16 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
 
 
 <script>
+// ── Auth guard — runs immediately, before DOM renders ──────────────────
+(function() {
+  var token = localStorage.getItem('sw_token');
+  var user  = localStorage.getItem('sw_user');
+  if (!token || !user || user === 'null') {
+    window.location.replace('https://www.swarmhawk.com/');
+  }
+})();
+</script>
+<script>
 const API = 'https://swarmhawk-backend.onrender.com';
 const MCP_URL = 'https://swarmhawk-backend.onrender.com/mcp';
 function safeHtmlErr(msg){ var s=document.createElement('span'); s.textContent=msg; return s.outerHTML; }
@@ -2731,7 +2741,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(location.search);
   if (p.get('payment') === 'success') { document.getElementById('success-banner').style.display='block'; setTimeout(()=>document.getElementById('success-banner').style.display='none',6000); history.replaceState({},'',location.pathname); }
   if (sessionToken && currentUser) { activateScanner(); refreshAdminAccess(); }
-  else { window.location.href = '/'; }
   var scanParam = p.get('scan');
   if (scanParam) { history.replaceState({},'',location.pathname); setTimeout(function(){ openReportPage(scanParam, false); }, 400); }
   // Handle email verification redirect
