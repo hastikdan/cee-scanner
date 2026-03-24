@@ -2769,13 +2769,14 @@ function mktSeg(id, btn) {
   } catch(e){}
 })();
 let sessionToken = localStorage.getItem('sw_token') || '';
-let currentUser = JSON.parse(localStorage.getItem('sw_user') || 'null');
+let currentUser = null;
+try { currentUser = JSON.parse(localStorage.getItem('sw_user') || 'null'); } catch(e) { currentUser = {}; }
 let domains = []; let pollTimer = null;
 
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(location.search);
   if (p.get('payment') === 'success') { var _sb=document.getElementById('success-banner'); if(_sb){_sb.style.display='flex';setTimeout(()=>_sb.style.display='none',7000);} history.replaceState({},'',location.pathname); }
-  if (sessionToken && currentUser) { activateScanner(); refreshAdminAccess(); }
+  if (sessionToken) { activateScanner(); refreshAdminAccess(); }
   var scanParam = p.get('scan');
   if (scanParam) { history.replaceState({},'',location.pathname); setTimeout(function(){ openReportPage(scanParam, false); }, 400); }
   // Handle email verification redirect
@@ -4030,7 +4031,13 @@ function openDashboard() {
   if (!db) { console.error('dashboard element not found'); return; }
 
   if (landing) landing.style.display = 'none';
-  db.style.cssText = 'display:flex !important;position:fixed;inset:0;z-index:9999;background:#0e0d12;overflow:hidden;flex-direction:column';
+  db.style.display = 'flex';
+  db.style.position = 'fixed';
+  db.style.inset = '0';
+  db.style.zIndex = '9999';
+  db.style.background = '#080810';
+  db.style.overflow = 'hidden';
+  db.style.flexDirection = 'column';
   document.body.style.overflow = 'hidden';
 
   // Set greeting
