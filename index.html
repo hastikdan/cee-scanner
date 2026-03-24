@@ -701,6 +701,142 @@ h1 span{color:var(--lime)}
 
 @keyframes scanPulse{0%,100%{opacity:1}50%{opacity:.4}}
 
+/* ── NEW MARKETING LANDING ── */
+/* uses existing --lime, --black, --white, --grey, --card, --border vars */
+.mkt-wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+.mkt-hero{min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 28px 60px;position:relative;overflow:hidden}
+.mkt-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 55% at 50% 0%,rgba(203,255,0,.055) 0%,transparent 65%);pointer-events:none}
+.mkt-eyebrow{display:inline-flex;align-items:center;gap:9px;background:rgba(203,255,0,.07);border:1px solid rgba(203,255,0,.18);border-radius:40px;padding:6px 18px;margin-bottom:32px}
+.mkt-eyebrow span{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--lime)}
+.mkt-h1{font-family:'Space Mono',monospace;font-size:clamp(32px,5.5vw,70px);font-weight:700;line-height:1.05;letter-spacing:-1.5px;color:var(--white);margin-bottom:20px}
+.mkt-h1 em{font-style:normal;color:var(--lime)}
+.mkt-sub{font-size:18px;color:var(--grey);max-width:600px;margin:0 auto 36px;line-height:1.7}
+.mkt-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
+.mkt-btn-lime{background:var(--lime);color:var(--black);border:none;border-radius:9px;padding:15px 30px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:opacity .15s}
+.mkt-btn-lime:hover{opacity:.85}
+.mkt-btn-ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:15px 30px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:border-color .15s}
+.mkt-btn-ghost:hover{border-color:rgba(203,255,0,.35)}
+.mkt-stats{display:flex;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:var(--card);overflow:hidden;flex-wrap:wrap;justify-content:center}
+.mkt-stat{padding:18px 32px;text-align:center;border-right:1px solid rgba(255,255,255,.06)}
+.mkt-stat:last-child{border-right:none}
+.mkt-stat-n{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--lime)}
+.mkt-stat-l{font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+/* proof strip */
+.mkt-proof{background:var(--card);border-top:1px solid rgba(203,255,0,.06);border-bottom:1px solid rgba(203,255,0,.06);padding:20px 0}
+.mkt-proof-inner{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;align-items:center}
+.mkt-proof-item{font-size:13px;color:var(--grey);display:flex;align-items:center;gap:7px}
+.mkt-proof-item strong{color:var(--white)}
+/* section header */
+.mkt-section{padding:88px 0}
+.mkt-section-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--lime);margin-bottom:14px}
+.mkt-h2{font-family:'Space Mono',monospace;font-size:clamp(24px,3.5vw,46px);font-weight:700;letter-spacing:-1px;line-height:1.1;color:var(--white);margin-bottom:14px}
+.mkt-h2-sub{font-size:16px;color:var(--grey);max-width:540px;line-height:1.7}
+/* segment selector */
+.seg-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);flex-wrap:nowrap;overflow-x:auto}
+.seg-tabs::-webkit-scrollbar{display:none}
+.stab{flex:1;min-width:190px;padding:18px 22px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;background:transparent;text-align:left}
+.stab:hover{background:rgba(203,255,0,.03)}
+.stab.on{border-bottom-color:var(--lime);background:rgba(203,255,0,.04)}
+.stab-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.stab-title{font-size:13px;font-weight:700;color:var(--white);margin-bottom:1px;font-family:'Space Mono',monospace}
+.stab-desc{font-size:11px;color:var(--grey)}
+.spanel{display:none;padding:60px 0}
+.spanel.on{display:block}
+.mkt-2col{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.pain-list{list-style:none;display:flex;flex-direction:column;gap:11px;margin:24px 0}
+.pain-li{display:flex;gap:11px;padding:13px 15px;background:var(--card);border:1px solid rgba(255,255,255,.05);border-radius:9px;font-size:13px;color:var(--grey);line-height:1.6}
+.pain-li strong{color:var(--white)}
+.pain-li::before{content:'✗';color:#E74C3C;font-weight:700;flex-shrink:0;margin-top:1px}
+.sol-box{background:rgba(203,255,0,.05);border:1px solid rgba(203,255,0,.18);border-radius:12px;padding:22px;margin-top:20px}
+.sol-box-tag{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px}
+.sol-box p{font-size:14px;color:var(--white);line-height:1.7}
+.mkt-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.mkt-chip{padding:5px 13px;background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:20px;font-size:11px;font-weight:600;color:var(--grey)}
+.mkt-chip.on{color:var(--lime);border-color:rgba(203,255,0,.25);background:rgba(203,255,0,.06)}
+.seg-ctas{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+/* journey steps */
+.jsteps{display:flex;flex-direction:column;gap:0;position:relative}
+.jsteps::before{content:'';position:absolute;left:18px;top:22px;bottom:22px;width:2px;background:linear-gradient(rgba(203,255,0,.2),transparent)}
+.jstep{display:flex;gap:14px;padding:14px 0}
+.jnum{width:36px;height:36px;border-radius:50%;background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.jtitle{font-size:14px;font-weight:700;color:var(--white);margin-bottom:3px}
+.jdesc{font-size:12px;color:var(--grey);line-height:1.6}
+/* mockup */
+.mkt-mockup{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden}
+.mkt-mock-bar{background:#0a0a10;padding:11px 15px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,255,255,.05)}
+.mkt-mock-dot{width:9px;height:9px;border-radius:50%}
+.mkt-mock-body{padding:18px}
+.mkt-risk-big{text-align:center;padding:18px 0 10px}
+.mkt-risk-num{font-family:'Space Mono',monospace;font-size:56px;font-weight:700;color:#E74C3C;line-height:1}
+.mkt-risk-lbl{font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:2px;margin-top:3px}
+.mkt-find-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.mkt-find-row:last-child{border-bottom:none}
+.mkt-badge{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border-radius:4px;white-space:nowrap}
+.mkt-badge.red{background:rgba(192,57,43,.18);color:#E74C3C}
+.mkt-badge.amb{background:rgba(212,133,10,.15);color:#D4850A}
+.mkt-badge.grn{background:rgba(26,122,74,.15);color:#2ECC71}
+.mkt-find-text{font-size:11px;color:var(--grey);flex:1;line-height:1.4}
+.mkt-code{background:#0a0a10;border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:18px;font-family:'Space Mono',monospace;font-size:11px;line-height:1.9;margin-top:14px;overflow-x:auto;color:var(--grey)}
+.mkt-code .ck{color:#60a5fa}.mkt-code .cs{color:var(--lime)}.mkt-code .cn{color:#D4850A}.mkt-code .cc{color:#444}
+/* architecture */
+.arch-box{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:40px;text-align:center;margin-top:48px}
+.arch-engine-pill{display:inline-flex;flex-direction:column;align-items:center;background:rgba(203,255,0,.07);border:1px solid rgba(203,255,0,.2);border-radius:12px;padding:18px 36px;margin-bottom:28px}
+.arch-engine-title{font-family:'Space Mono',monospace;font-size:14px;color:var(--lime);font-weight:700}
+.arch-engine-sub{font-size:11px;color:var(--grey);margin-top:4px}
+.arch-arrows-row{display:flex;justify-content:center;gap:56px;margin-bottom:20px;flex-wrap:wrap}
+.arch-arr{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:18px;color:rgba(255,255,255,.1)}
+.arch-arr span{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:1px}
+.arch-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;text-align:left}
+.arch-card{background:#0f0f18;border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:14px}
+.arch-card-icon{font-size:18px;margin-bottom:7px}
+.arch-card-title{font-family:'Space Mono',monospace;font-size:11px;color:var(--white);font-weight:700;margin-bottom:4px}
+.arch-card-desc{font-size:11px;color:var(--grey);line-height:1.5}
+/* how it works */
+.mkt-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:56px}
+.mkt-step{padding:0 28px;text-align:center;position:relative}
+.mkt-step:not(:last-child)::after{content:'›';position:absolute;right:-10px;top:36px;font-size:24px;color:rgba(203,255,0,.25)}
+.mkt-step-circle{width:72px;height:72px;border-radius:50%;background:rgba(203,255,0,.07);border:2px solid rgba(203,255,0,.18);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 20px;position:relative}
+.mkt-step-n{position:absolute;top:-6px;right:-6px;width:22px;height:22px;background:var(--lime);border-radius:50%;color:var(--black);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.mkt-step-title{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;margin-bottom:8px;color:var(--white)}
+.mkt-step-desc{font-size:13px;color:var(--grey);line-height:1.7}
+/* pricing */
+.mkt-pricing{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px;align-items:start}
+.mkt-plan{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:24px;position:relative;transition:border-color .18s}
+.mkt-plan:hover{border-color:rgba(203,255,0,.25)}
+.mkt-plan.featured{border-color:var(--lime);background:rgba(203,255,0,.04)}
+.mkt-plan-flag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--lime);color:var(--black);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 12px;border-radius:20px;white-space:nowrap}
+.mkt-plan-name{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px}
+.mkt-plan-price .amt{font-family:'Space Mono',monospace;font-size:36px;font-weight:700;color:var(--white)}
+.mkt-plan-price .per{font-size:13px;color:var(--grey)}
+.mkt-plan-price .free{font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--lime)}
+.mkt-plan-tagline{font-size:12px;color:var(--grey);margin-top:6px;margin-bottom:20px;min-height:34px;line-height:1.5}
+.mkt-plan hr{border:none;border-top:1px solid rgba(255,255,255,.06);margin:0 0 18px}
+.mkt-plan ul{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:24px}
+.mkt-plan li{font-size:12px;color:var(--grey);display:flex;gap:8px;align-items:flex-start}
+.mkt-plan li::before{content:'✓';color:var(--lime);font-weight:700;flex-shrink:0}
+.mkt-plan li.dim{color:rgba(255,255,255,.18)}
+.mkt-plan li.dim::before{content:'–';color:rgba(255,255,255,.1)}
+.mkt-plan-btn{width:100%;padding:11px;border-radius:7px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;border:none;text-align:center;text-decoration:none;display:block;transition:all .15s}
+.mkt-plan-btn.lime{background:var(--lime);color:var(--black)}
+.mkt-plan-btn.lime:hover{opacity:.88}
+.mkt-plan-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--white)}
+.mkt-plan-btn.ghost:hover{border-color:rgba(203,255,0,.35)}
+/* faq (reuse existing .faq-item styles, just wrap in mkt-faq) */
+.mkt-faq{margin-top:48px}
+/* horizontal rule */
+.mkt-hr{border:none;border-top:1px solid rgba(255,255,255,.05);max-width:1140px;margin:0 auto}
+@media(max-width:900px){
+  .mkt-2col{grid-template-columns:1fr}
+  .mkt-steps{grid-template-columns:1fr;gap:36px}
+  .mkt-step::after{display:none}
+  .mkt-pricing{grid-template-columns:1fr 1fr}
+  .arch-cards{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .mkt-pricing{grid-template-columns:1fr}
+  .seg-tabs{flex-wrap:nowrap}
+  .mkt-wrap{padding:0 16px}
+}
 /* ── AUTH MODALS ── */
 .auth-modal-overlay{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .auth-modal{background:#13121A;border:1px solid rgba(203,255,0,.2);border-radius:14px;padding:36px;width:420px;max-width:92vw;position:relative}
@@ -804,11 +940,463 @@ h1 span{color:var(--lime)}
   </div>
 </nav>
 
-<!-- MAIN LANDING (always visible) -->
+<!-- MAIN LANDING (always visible when logged out, hidden when logged in) -->
 <div id="landing">
 
-  <!-- SECTION 1: FOR AI DEVELOPERS (MCP) -->
-  <div class="landing-section" id="section-mcp">
+<!-- ── HERO ─────────────────────────────────────────────────────────────── -->
+<div class="mkt-hero">
+  <div class="mkt-hero-bg"></div>
+  <div class="mkt-eyebrow"><div class="logo-dot"></div><span>Continuous External Attack Surface Monitoring</span></div>
+  <h1 class="mkt-h1">Know What's Exposed.<br><em>Fix What Matters.</em></h1>
+  <p class="mkt-sub">SwarmHawk scans every internet-facing domain you own, maps how an attacker would move through them, and gives you a prioritised action plan — not another 500-page report.</p>
+  <div class="mkt-actions">
+    <button class="mkt-btn-lime" onclick="showSignUp()">Start Free — No Credit Card →</button>
+    <button class="mkt-btn-ghost" onclick="document.getElementById('mkt-how').scrollIntoView({behavior:'smooth'})">How It Works</button>
+  </div>
+  <div class="mkt-stats">
+    <div class="mkt-stat"><div class="mkt-stat-n" id="mkt-stat-d">60M+</div><div class="mkt-stat-l">Domains Monitored</div></div>
+    <div class="mkt-stat"><div class="mkt-stat-n">22</div><div class="mkt-stat-l">Security Checks</div></div>
+    <div class="mkt-stat"><div class="mkt-stat-n">31</div><div class="mkt-stat-l">EU Countries</div></div>
+    <div class="mkt-stat"><div class="mkt-stat-n">&lt;60s</div><div class="mkt-stat-l">First Scan</div></div>
+  </div>
+</div>
+
+<!-- ── PROOF STRIP ──────────────────────────────────────────────────────── -->
+<div class="mkt-proof">
+  <div class="mkt-proof-inner">
+    <div class="mkt-proof-item">🔍 Detects <strong>CVEs, blacklists, exposed panels</strong></div>
+    <div class="mkt-proof-item">⚡ Rescans every <strong>4 hours</strong></div>
+    <div class="mkt-proof-item">🔒 <strong>Read-only, passive</strong> — no agents needed</div>
+    <div class="mkt-proof-item">🛡️ Maps to <strong>MITRE ATT&CK</strong> techniques</div>
+    <div class="mkt-proof-item">🌍 <strong>NIS2 &amp; DORA</strong> audit evidence</div>
+  </div>
+</div>
+
+<!-- ── SEGMENTS ─────────────────────────────────────────────────────────── -->
+<div class="mkt-section" id="mkt-segments">
+  <div class="mkt-wrap" style="text-align:center;margin-bottom:40px">
+    <div class="mkt-section-label">Who It's For</div>
+    <h2 class="mkt-h2">Built for Every Team That Cares About Exposure</h2>
+    <p class="mkt-h2-sub" style="margin:0 auto">One platform, four entry points. Pick yours below.</p>
+  </div>
+
+  <div class="seg-tabs">
+    <button class="stab on" onclick="mktSeg('smb',this)" id="stab-smb">
+      <div class="stab-icon" style="background:rgba(192,57,43,.12)">🏠</div>
+      <div><div class="stab-title">Domain Owners</div><div class="stab-desc">SMBs, startups, freelancers</div></div>
+    </button>
+    <button class="stab" onclick="mktSeg('dev',this)" id="stab-dev">
+      <div class="stab-icon" style="background:rgba(66,133,244,.12)">⚙️</div>
+      <div><div class="stab-title">Developers</div><div class="stab-desc">API, MCP, automation</div></div>
+    </button>
+    <button class="stab" onclick="mktSeg('ent',this)" id="stab-ent">
+      <div class="stab-icon" style="background:rgba(167,139,250,.12)">🏢</div>
+      <div><div class="stab-title">Security Teams</div><div class="stab-desc">CISOs, enterprise, SOC</div></div>
+    </button>
+    <button class="stab" onclick="mktSeg('host',this)" id="stab-host">
+      <div class="stab-icon" style="background:rgba(212,133,10,.12)">🌐</div>
+      <div><div class="stab-title">Hosting Providers</div><div class="stab-desc">Resellers, registrars</div></div>
+    </button>
+  </div>
+
+  <!-- SMB -->
+  <div class="spanel on mkt-wrap" id="spanel-smb">
+    <div class="mkt-2col" style="padding-top:20px">
+      <div>
+        <div class="mkt-section-label">For Domain Owners</div>
+        <h2 class="mkt-h2" style="font-size:clamp(22px,3vw,38px)">Your domain is live.<br>Is it safe?</h2>
+        <p style="font-size:14px;color:var(--grey);margin-top:12px;line-height:1.7">Most businesses find out about blacklisting, spoofing, or exposed admin panels when it's already a problem. SwarmHawk tells you before that happens — in plain English.</p>
+        <ul class="pain-list">
+          <li class="pain-li"><strong>You don't know what you don't know.</strong> Forgotten subdomains and old staging sites accumulate. One exposed panel is all it takes.</li>
+          <li class="pain-li"><strong>Security tools are built for IT teams.</strong> You don't have time to decode CVSS scores or read 80-page reports.</li>
+          <li class="pain-li"><strong>You find out when it's already a problem.</strong> Blacklisting kills email deliverability. A breach notice destroys customer trust overnight.</li>
+        </ul>
+        <div class="sol-box">
+          <div class="sol-box-tag">How SwarmHawk Solves It</div>
+          <p>Add your domain. Get a risk score (0–100) and a plain-English list of the 3 things to fix right now. We monitor continuously and email you the moment something changes.</p>
+          <div class="mkt-chips">
+            <span class="mkt-chip on">Risk Score</span><span class="mkt-chip on">Email Alerts</span><span class="mkt-chip on">Blacklist Monitor</span><span class="mkt-chip on">CVE Detection</span><span class="mkt-chip on">SPF/DMARC Check</span>
+          </div>
+        </div>
+        <div class="seg-ctas">
+          <button class="mkt-btn-lime" onclick="showSignUp()">Start Free — 1 Domain →</button>
+          <button class="mkt-btn-ghost" onclick="document.getElementById('mkt-how').scrollIntoView({behavior:'smooth'})">How It Works</button>
+        </div>
+      </div>
+      <div>
+        <div class="mkt-mockup">
+          <div class="mkt-mock-bar">
+            <div class="mkt-mock-dot" style="background:#ff5f57"></div><div class="mkt-mock-dot" style="background:#febc2e"></div><div class="mkt-mock-dot" style="background:#28c840"></div>
+            <span style="font-size:10px;color:var(--grey);margin-left:8px;font-family:'Space Mono',monospace">swarmhawk.com/dashboard</span>
+          </div>
+          <div class="mkt-mock-body">
+            <div class="mkt-risk-big"><div class="mkt-risk-num">72</div><div class="mkt-risk-lbl">Risk Score — High</div></div>
+            <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Priority Actions</div>
+            <div class="mkt-find-row"><span class="mkt-badge red">Critical</span><span class="mkt-find-text">mail.yourdomain.com listed on Spamhaus SBL</span></div>
+            <div class="mkt-find-row"><span class="mkt-badge red">Critical</span><span class="mkt-find-text">CVE-2024-1234 (CVSS 9.1) on staging.yourdomain.com</span></div>
+            <div class="mkt-find-row"><span class="mkt-badge amb">High</span><span class="mkt-find-text">Missing DMARC policy — phishing risk</span></div>
+            <div class="mkt-find-row"><span class="mkt-badge amb">High</span><span class="mkt-find-text">admin.yourdomain.com exposed without WAF</span></div>
+            <div class="mkt-find-row"><span class="mkt-badge grn">Fixed</span><span class="mkt-find-text">SPF record valid ✓</span></div>
+          </div>
+        </div>
+        <div class="jsteps" style="margin-top:28px">
+          <div class="jstep"><div class="jnum">1</div><div><div class="jtitle">Sign up, add your domain</div><div class="jdesc">30 seconds. Paste a domain. Done.</div></div></div>
+          <div class="jstep"><div class="jnum">2</div><div><div class="jtitle">Get your risk score in &lt;60s</div><div class="jdesc">22 automated checks run instantly. No waiting, no setup.</div></div></div>
+          <div class="jstep"><div class="jnum">3</div><div><div class="jtitle">Fix what matters, ignore the rest</div><div class="jdesc">Top 3 issues. Plain English. Direct fix guides.</div></div></div>
+          <div class="jstep"><div class="jnum">4</div><div><div class="jtitle">Sleep knowing you're covered</div><div class="jdesc">Continuous monitoring alerts you if anything changes.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEVELOPERS -->
+  <div class="spanel mkt-wrap" id="spanel-dev">
+    <div class="mkt-2col" style="padding-top:20px">
+      <div>
+        <div class="mkt-section-label">For Developers</div>
+        <h2 class="mkt-h2" style="font-size:clamp(22px,3vw,38px)">Domain security intel,<br>wherever you build.</h2>
+        <p style="font-size:14px;color:var(--grey);margin-top:12px;line-height:1.7">Domain risk data should flow into your workflow automatically — not require logging into yet another portal and clicking export.</p>
+        <ul class="pain-list">
+          <li class="pain-li"><strong>Security checks live outside your CI/CD.</strong> By the time someone runs a scan, the build is already in production.</li>
+          <li class="pain-li"><strong>Your customers' domains are your risk.</strong> If their domain sends spam, your platform gets associated with it.</li>
+          <li class="pain-li"><strong>Building your own scanner costs months.</strong> CVE matching, blacklist APIs, threat intel feeds — we already built it.</li>
+        </ul>
+        <div class="sol-box">
+          <div class="sol-box-tag">How SwarmHawk Solves It</div>
+          <p>A clean REST API plus an MCP server so Claude, Cursor, or any AI agent can query domain risk as a native tool call. Webhooks push findings to your stack.</p>
+          <div class="mkt-chips">
+            <span class="mkt-chip on">REST API</span><span class="mkt-chip on">MCP Server</span><span class="mkt-chip on">Webhooks</span><span class="mkt-chip on">Batch Upload</span><span class="mkt-chip on">JSON Responses</span>
+          </div>
+        </div>
+        <div class="seg-ctas">
+          <a class="mkt-btn-lime" href="https://swarmhawk-backend.onrender.com/docs" target="_blank">Explore API Docs →</a>
+          <button class="mkt-btn-ghost" onclick="showSignUp()">Get API Key Free</button>
+        </div>
+      </div>
+      <div>
+        <div class="mkt-mockup">
+          <div class="mkt-mock-bar">
+            <div class="mkt-mock-dot" style="background:#ff5f57"></div><div class="mkt-mock-dot" style="background:#febc2e"></div><div class="mkt-mock-dot" style="background:#28c840"></div>
+            <span style="font-size:10px;color:var(--grey);margin-left:8px;font-family:'Space Mono',monospace">terminal</span>
+          </div>
+          <div class="mkt-code">
+<span class="cc"># Scan any domain via REST API</span>
+curl https://swarmhawk-backend.onrender.com<span class="cs">/scan/example.com</span> \
+  -H <span class="cs">"Authorization: Bearer YOUR_KEY"</span>
+
+<span class="cc"># Response</span>
+{
+  <span class="ck">"domain"</span>: <span class="cs">"example.com"</span>,
+  <span class="ck">"risk_score"</span>: <span class="cn">72</span>,
+  <span class="ck">"max_cvss"</span>: <span class="cn">9.1</span>,
+  <span class="ck">"blacklisted"</span>: <span class="cn">true</span>,
+  <span class="ck">"priority_actions"</span>: [...]
+}
+
+<span class="cc"># Or query via MCP in Claude / Cursor</span>
+<span class="cs">swarmhawk_scan</span>({ <span class="ck">domain</span>: <span class="cs">"example.com"</span> })
+          </div>
+        </div>
+        <div class="jsteps" style="margin-top:28px">
+          <div class="jstep"><div class="jnum">1</div><div><div class="jtitle">Sign up, grab your API key</div><div class="jdesc">In your dashboard under API Keys. No approval process.</div></div></div>
+          <div class="jstep"><div class="jnum">2</div><div><div class="jtitle">Call GET /scan/{domain}</div><div class="jdesc">Full risk profile in JSON. Batch upload via POST /admin/batch-upload.</div></div></div>
+          <div class="jstep"><div class="jnum">3</div><div><div class="jtitle">Wire webhooks or MCP</div><div class="jdesc">Push findings to Slack, or let your AI agent query SwarmHawk directly.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTERPRISE -->
+  <div class="spanel mkt-wrap" id="spanel-ent">
+    <div class="mkt-2col" style="padding-top:20px">
+      <div>
+        <div class="mkt-section-label">For Security Teams</div>
+        <h2 class="mkt-h2" style="font-size:clamp(22px,3vw,38px)">Attack paths mapped.<br>Choke points found.</h2>
+        <p style="font-size:14px;color:var(--grey);margin-top:12px;line-height:1.7">You manage 50–300 domains across subsidiaries. Individual risk scores don't tell you which vulnerability is a stepping stone to your ERP. SwarmHawk does.</p>
+        <ul class="pain-list">
+          <li class="pain-li"><strong>No one sees the full picture.</strong> Subsidiaries, old brands, dev environments accumulate. Attackers discover them first.</li>
+          <li class="pain-li"><strong>Findings without context are noise.</strong> Knowing mail.acme.com has a CVE isn't enough — you need to see the chain to your admin panel.</li>
+          <li class="pain-li"><strong>Enterprise EASM tools cost $200k/yr.</strong> And still don't show the breach path through your specific asset graph.</li>
+        </ul>
+        <div class="sol-box">
+          <div class="sol-box-tag">How SwarmHawk Solves It</div>
+          <p>The Org Graph clusters all your domains by organisation. The Breach Path Engine shows every route from entry point to critical asset. Choke point analysis: fix 3 domains, break 80% of paths.</p>
+          <div class="mkt-chips">
+            <span class="mkt-chip on">Org Graph</span><span class="mkt-chip on">Breach Path Viz</span><span class="mkt-chip on">Choke Points</span><span class="mkt-chip on">CTEM Workflow</span><span class="mkt-chip on">XDR Bridge</span>
+          </div>
+        </div>
+        <div class="seg-ctas">
+          <a class="mkt-btn-lime" href="/solutions/">See Enterprise Platform →</a>
+          <a class="mkt-btn-ghost" href="mailto:enterprise@swarmhawk.com">Request Demo</a>
+        </div>
+      </div>
+      <div>
+        <div class="mkt-mockup">
+          <div class="mkt-mock-bar">
+            <div class="mkt-mock-dot" style="background:#ff5f57"></div><div class="mkt-mock-dot" style="background:#febc2e"></div><div class="mkt-mock-dot" style="background:#28c840"></div>
+            <span style="font-size:10px;color:var(--grey);margin-left:8px;font-family:'Space Mono',monospace">Org Graph — acme-corp.com</span>
+          </div>
+          <div class="mkt-mock-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:14px">
+              <div style="background:#0a0a10;border:1px solid rgba(255,255,255,.05);border-radius:7px;padding:11px;text-align:center"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:#E74C3C">3</div><div style="font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:1px">Entry Points</div></div>
+              <div style="background:#0a0a10;border:1px solid rgba(255,255,255,.05);border-radius:7px;padding:11px;text-align:center"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:#D4850A">4</div><div style="font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:1px">Choke Points</div></div>
+              <div style="background:#0a0a10;border:1px solid rgba(255,255,255,.05);border-radius:7px;padding:11px;text-align:center"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--lime)">11</div><div style="font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:1px">Breach Paths</div></div>
+            </div>
+            <div style="background:rgba(203,255,0,.05);border:1px solid rgba(203,255,0,.15);border-radius:8px;padding:13px">
+              <div style="font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Top Choke Point</div>
+              <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--white);font-weight:700;margin-bottom:3px">api.acme.com</div>
+              <div style="font-size:11px;color:var(--grey)">On 8 of 11 breach paths → admin panel + ERP</div>
+              <div style="margin-top:8px"><span class="mkt-badge red">Fix This First</span> <span style="font-size:10px;color:var(--grey);margin-left:6px">Breaks 73% of all attack paths</span></div>
+            </div>
+            <div style="font-size:10px;color:var(--grey);padding:10px 0;border-top:1px solid rgba(255,255,255,.04);margin-top:10px;font-family:'Space Mono',monospace">MITRE: T1190 · T1566 · T1021 · T1078</div>
+          </div>
+        </div>
+        <div class="jsteps" style="margin-top:28px">
+          <div class="jstep"><div class="jnum">1</div><div><div class="jtitle">Run org graph compute</div><div class="jdesc">One click clusters all domains by organisation.</div></div></div>
+          <div class="jstep"><div class="jnum">2</div><div><div class="jtitle">Review the breach path graph</div><div class="jdesc">Interactive D3.js visualisation. Hover for MITRE details.</div></div></div>
+          <div class="jstep"><div class="jnum">3</div><div><div class="jtitle">Fix choke points, not everything</div><div class="jdesc">3 remediations → 80% path reduction. Track in Jira.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOSTING -->
+  <div class="spanel mkt-wrap" id="spanel-host">
+    <div class="mkt-2col" style="padding-top:20px">
+      <div>
+        <div class="mkt-section-label">For Hosting Providers</div>
+        <h2 class="mkt-h2" style="font-size:clamp(22px,3vw,38px)">Turn your domain<br>portfolio into ARR.</h2>
+        <p style="font-size:14px;color:var(--grey);margin-top:12px;line-height:1.7">You manage tens of thousands of customer domains. You're sitting on an untapped security revenue stream — and a growing abuse problem you're handling reactively.</p>
+        <ul class="pain-list">
+          <li class="pain-li"><strong>Compromised domains hurt your IP reputation.</strong> One blacklisted mail server affects all your customers.</li>
+          <li class="pain-li"><strong>Your abuse team is firefighting.</strong> Reactive incident response. No proactive visibility.</li>
+          <li class="pain-li"><strong>Security is an untapped upsell.</strong> Your customers want it. You just don't offer it yet.</li>
+        </ul>
+        <div class="sol-box">
+          <div class="sol-box-tag">How SwarmHawk Solves It</div>
+          <p>Push your domain list via bulk API. Get daily risk feeds for your entire network. White-label the dashboard and offer it as an add-on. You earn 30% revenue share on every subscription. We do the scanning — you clip the ticket.</p>
+          <div class="mkt-chips">
+            <span class="mkt-chip on">Bulk API Feed</span><span class="mkt-chip on">White-Label</span><span class="mkt-chip on">Daily Abuse Digest</span><span class="mkt-chip on">30% Rev Share</span><span class="mkt-chip on">Reseller Portal</span>
+          </div>
+        </div>
+        <div class="seg-ctas">
+          <a class="mkt-btn-lime" href="/go-to-market.html">View Partner Map →</a>
+          <a class="mkt-btn-ghost" href="mailto:partners@swarmhawk.com">Become a Partner</a>
+        </div>
+      </div>
+      <div>
+        <div class="mkt-mockup">
+          <div class="mkt-mock-bar">
+            <div class="mkt-mock-dot" style="background:#ff5f57"></div><div class="mkt-mock-dot" style="background:#febc2e"></div><div class="mkt-mock-dot" style="background:#28c840"></div>
+            <span style="font-size:10px;color:var(--grey);margin-left:8px;font-family:'Space Mono',monospace">Partner Revenue</span>
+          </div>
+          <div class="mkt-mock-body" style="display:flex;flex-direction:column;gap:11px">
+            <div style="background:#0a0a10;border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:14px"><div style="font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--white)">500,000 <span style="font-size:12px;color:var(--grey)">domains</span></div><div style="font-size:10px;color:var(--grey);margin-top:3px">Your portfolio</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+              <div style="background:#0a0a10;border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#D4850A">25k</div><div style="font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:1px">Customers @ 5%</div></div>
+              <div style="background:#0a0a10;border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--lime)">$75k</div><div style="font-size:9px;color:var(--grey);text-transform:uppercase;letter-spacing:1px">Your ARR / yr</div></div>
+            </div>
+            <div style="background:rgba(203,255,0,.04);border:1px solid rgba(203,255,0,.14);border-radius:8px;padding:13px;font-size:11px;color:var(--grey);line-height:1.6">500k domains × 5% × $10/yr × 30% share = <strong style="color:var(--white)">$75k ARR</strong> with zero scanning cost</div>
+          </div>
+        </div>
+        <div class="jsteps" style="margin-top:28px">
+          <div class="jstep"><div class="jnum">1</div><div><div class="jtitle">Sign Partner Agreement</div><div class="jdesc">Quick NDA + revenue share contract. Done in a week.</div></div></div>
+          <div class="jstep"><div class="jnum">2</div><div><div class="jtitle">Push your domain list via API</div><div class="jdesc">Bulk upload your portfolio. We scan, you get risk feeds.</div></div></div>
+          <div class="jstep"><div class="jnum">3</div><div><div class="jtitle">Offer white-label to customers</div><div class="jdesc">Add "Domain Security" to your control panel. We handle the product.</div></div></div>
+          <div class="jstep"><div class="jnum">4</div><div><div class="jtitle">Collect 30% revenue share</div><div class="jdesc">Paid monthly on every subscription through your panel.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="mkt-hr">
+
+<!-- ── PLATFORM ARCHITECTURE ───────────────────────────────────────────── -->
+<div class="mkt-section">
+  <div class="mkt-wrap" style="text-align:center">
+    <div class="mkt-section-label">The Platform</div>
+    <h2 class="mkt-h2">One Engine. Every Team's Needs.</h2>
+    <p class="mkt-h2-sub" style="margin:0 auto">SwarmHawk runs a single continuous scanning engine across 60M+ European domains. Every segment draws from the same live data — what changes is how you access it.</p>
+    <div class="arch-box">
+      <div class="arch-engine-pill">
+        <div class="arch-engine-title">SwarmHawk Data Engine</div>
+        <div class="arch-engine-sub">60M+ domains · 22-check scanner · CVE feeds · Blacklist Intel · Org Graph · Breach Paths</div>
+      </div>
+      <div class="arch-arrows-row">
+        <div class="arch-arr">↓<span>Dashboard</span></div>
+        <div class="arch-arr">↓<span>REST API</span></div>
+        <div class="arch-arr">↓<span>MCP Server</span></div>
+        <div class="arch-arr">↓<span>Bulk Feed</span></div>
+      </div>
+      <div class="arch-cards">
+        <div class="arch-card"><div class="arch-card-icon">🏠</div><div class="arch-card-title">Domain Owners</div><div class="arch-card-desc">Web dashboard, risk score, email alerts, priority action plan</div></div>
+        <div class="arch-card"><div class="arch-card-icon">⚙️</div><div class="arch-card-title">Developers</div><div class="arch-card-desc">REST API, MCP tools, webhooks, JSON responses, batch upload</div></div>
+        <div class="arch-card"><div class="arch-card-icon">🏢</div><div class="arch-card-title">Security Teams</div><div class="arch-card-desc">Org graph, breach paths, choke points, CTEM workflow, XDR</div></div>
+        <div class="arch-card"><div class="arch-card-icon">🌐</div><div class="arch-card-title">Hosting Providers</div><div class="arch-card-desc">White-label portal, abuse feed, reseller dashboard, rev-share</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="mkt-hr">
+
+<!-- ── HOW IT WORKS ────────────────────────────────────────────────────── -->
+<div class="mkt-section" id="mkt-how">
+  <div class="mkt-wrap" style="text-align:center">
+    <div class="mkt-section-label">How It Works</div>
+    <h2 class="mkt-h2">Up and Running in 60 Seconds</h2>
+    <p class="mkt-h2-sub" style="margin:0 auto">No agents to install. No firewall rules to change. SwarmHawk works entirely from the outside — the same view an attacker has.</p>
+    <div class="mkt-steps">
+      <div class="mkt-step">
+        <div class="mkt-step-circle">🌐<span class="mkt-step-n">1</span></div>
+        <div class="mkt-step-title">Add Your Domain</div>
+        <p class="mkt-step-desc">Sign up and paste a domain — or upload a .txt/.json list of hundreds at once. We never need access to your servers.</p>
+      </div>
+      <div class="mkt-step">
+        <div class="mkt-step-circle">🔍<span class="mkt-step-n">2</span></div>
+        <div class="mkt-step-title">We Scan Everything</div>
+        <p class="mkt-step-desc">22 automated checks: CVEs, blacklists, SPF/DMARC, DAST probes, WAF detection, IP reputation, dark web intel. Results in &lt;60s.</p>
+      </div>
+      <div class="mkt-step">
+        <div class="mkt-step-circle">⚡<span class="mkt-step-n">3</span></div>
+        <div class="mkt-step-title">Get Your Action Plan</div>
+        <p class="mkt-step-desc">A risk score, prioritised fixes in plain English, and — for enterprise — a full breach path graph showing exactly how an attacker moves through your assets.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="mkt-hr">
+
+<!-- ── PRICING ─────────────────────────────────────────────────────────── -->
+<div class="mkt-section" id="mkt-pricing">
+  <div class="mkt-wrap" style="text-align:center">
+    <div class="mkt-section-label">Pricing</div>
+    <h2 class="mkt-h2">Start Free. Scale as You Grow.</h2>
+    <p class="mkt-h2-sub" style="margin:0 auto">No per-seat fees. No long-term contracts. Cancel anytime.</p>
+    <div class="mkt-pricing">
+      <div class="mkt-plan">
+        <div class="mkt-plan-name">Free</div>
+        <div class="mkt-plan-price"><span class="free">$0</span></div>
+        <div class="mkt-plan-tagline">Try it with your main domain, no commitment.</div>
+        <hr>
+        <ul>
+          <li>1 domain monitored</li>
+          <li>22-check scan engine</li>
+          <li>Risk score dashboard</li>
+          <li>Email alert on blacklisting</li>
+          <li class="dim">API access</li>
+          <li class="dim">Continuous monitoring</li>
+          <li class="dim">Breach path visualization</li>
+        </ul>
+        <button class="mkt-plan-btn ghost" onclick="showSignUp()">Get Started Free</button>
+      </div>
+      <div class="mkt-plan featured">
+        <div class="mkt-plan-flag">Most Popular</div>
+        <div class="mkt-plan-name">Professional</div>
+        <div class="mkt-plan-price"><span class="amt">$49</span><span class="per">/mo</span></div>
+        <div class="mkt-plan-tagline">For startups managing multiple domains.</div>
+        <hr>
+        <ul>
+          <li>20 domains monitored</li>
+          <li>22-check scan engine</li>
+          <li>Continuous monitoring (4h)</li>
+          <li>Email + webhook alerts</li>
+          <li>REST API access</li>
+          <li>Outreach contact discovery</li>
+          <li class="dim">Org graph &amp; breach paths</li>
+        </ul>
+        <button class="mkt-plan-btn lime" onclick="showSignUp()">Start 14-Day Trial →</button>
+      </div>
+      <div class="mkt-plan">
+        <div class="mkt-plan-name">Enterprise</div>
+        <div class="mkt-plan-price"><span class="amt">$490</span><span class="per">/mo</span></div>
+        <div class="mkt-plan-tagline">For security teams managing dozens of domains.</div>
+        <hr>
+        <ul>
+          <li>500 domains monitored</li>
+          <li>Everything in Pro</li>
+          <li>Organization graph</li>
+          <li>Breach path visualization</li>
+          <li>Choke point analysis</li>
+          <li>CTEM workflow engine</li>
+          <li>Priority support (4h SLA)</li>
+        </ul>
+        <a class="mkt-plan-btn ghost" href="mailto:enterprise@swarmhawk.com">Request Demo</a>
+      </div>
+      <div class="mkt-plan">
+        <div class="mkt-plan-name">Platform</div>
+        <div class="mkt-plan-price"><span class="amt" style="font-size:26px">Custom</span></div>
+        <div class="mkt-plan-tagline">For hosting providers, MSSPs, OEM licensing.</div>
+        <hr>
+        <ul>
+          <li>Unlimited domains</li>
+          <li>White-label dashboard</li>
+          <li>XDR platform integration</li>
+          <li>Revenue share programme</li>
+          <li>Dedicated success manager</li>
+          <li>Custom SLA + on-prem</li>
+          <li>STIX/TAXII threat intel feed</li>
+        </ul>
+        <a class="mkt-plan-btn ghost" href="mailto:partners@swarmhawk.com">Talk to Sales</a>
+      </div>
+    </div>
+    <p style="margin-top:20px;font-size:12px;color:var(--grey)">All plans include a free 1-domain scan. Need a custom domain limit? <a href="mailto:hello@swarmhawk.com" style="color:var(--lime);text-decoration:none">Just ask.</a></p>
+  </div>
+</div>
+
+<hr class="mkt-hr">
+
+<!-- ── FAQ ─────────────────────────────────────────────────────────────── -->
+<div class="mkt-section">
+  <div class="mkt-wrap">
+    <div style="text-align:center;margin-bottom:40px">
+      <div class="mkt-section-label">FAQ</div>
+      <h2 class="mkt-h2">Frequently Asked Questions</h2>
+    </div>
+      <div class="faq-section">
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">What exactly does SwarmHawk scan? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">SwarmHawk runs 22 automated security checks on any domain — including SSL/TLS validity, DNS configuration (SPF, DMARC, DKIM), WHOIS/RDAP domain age, IP intelligence, open ports via Shodan, data breach exposure (12B+ accounts), blacklist status across VirusTotal, Spamhaus, URLhaus and Google Safe Browsing, CVE vulnerabilities in detected software, source code exposure (SAST), dependency vulnerabilities (SCA), admin surface scanning (DAST), IaC file exposure, typosquat monitoring, dark-web credential intelligence, and an AI-generated threat summary. Every scan queries live data — no cached results.</div>
+        </div>
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">Do I need technical knowledge to use it? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">No. SwarmHawk is built for business owners and compliance teams, not just security engineers. Enter your domain, get a plain-English report with a risk score (0–100), colour-coded findings, and a prioritised action list.</div>
+        </div>
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">How is SwarmHawk different from free tools like SSL Labs or MXToolbox? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">Free tools check one thing at a time. SwarmHawk runs 22 checks in parallel, cross-references results across 20 intelligence sources, calculates a unified risk score, and generates an AI briefing with remediation steps. It also tracks your domain over time, sends monthly PDF reports, and provides NIS2/DORA audit evidence — none of which free tools offer.</div>
+        </div>
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">Is my data safe? Who can see my scan results? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">Scan results are stored securely in your private account — no other user can access them. We query public-facing data only (the same data any attacker can see), so we never need credentials or access to your systems. We do not sell or share your data with third parties. All API traffic is encrypted over HTTPS.</div>
+        </div>
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">Can I cancel anytime? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">Yes. No long-term contracts. Cancel anytime from your account settings. The free plan has no expiry — your domain stays monitored indefinitely on the free tier.</div>
+        </div>
+        <div class="faq-item" onclick="faqToggle(this)">
+          <div class="faq-q">What does the Enterprise / breach path feature require? <span class="faq-arrow">▼</span></div>
+          <div class="faq-a">The Enterprise plan includes the Org Graph and Breach Path Engine. After subscribing, run one Org Compute job from the admin dashboard — it clusters all your monitored domains into organisations and computes breach paths automatically. No additional setup required.</div>
+        </div>
+      </div>
+  </div>
+</div>
+
+<!-- ── FINAL CTA ────────────────────────────────────────────────────────── -->
+<div style="text-align:center;padding:88px 28px;background:radial-gradient(ellipse 70% 50% at 50% 100%,rgba(203,255,0,.06) 0%,transparent 70%)">
+  <div class="mkt-section-label">Get Started</div>
+  <h2 class="mkt-h2">Your attack surface is already visible<br>to attackers. Is it visible to you?</h2>
+  <p style="font-size:16px;color:var(--grey);max-width:480px;margin:16px auto 36px;line-height:1.7">Start with one domain, for free. No credit card. No setup. First result in under 60 seconds.</p>
+  <div class="mkt-actions">
+    <button class="mkt-btn-lime" onclick="showSignUp()">Start Free — No Credit Card →</button>
+    <a class="mkt-btn-ghost" href="mailto:hello@swarmhawk.com">Talk to a Human</a>
+  </div>
+</div>
+
+  <!-- Legacy landing sections — hidden, preserved for nav-page routing -->
+  <div class="landing-section" id="section-mcp" style="display:none">
     <div class="section-inner">
       <div class="section-label-tag">🤖 For AI Developers</div>
       <div class="split-layout">
@@ -1363,6 +1951,38 @@ python3 swarmhawk_mcp.py --http</pre></div>
 const API = 'https://swarmhawk-backend.onrender.com';
 const MCP_URL = 'https://swarmhawk-backend.onrender.com/mcp';
 function safeHtmlErr(msg){ var s=document.createElement('span'); s.textContent=msg; return s.outerHTML; }
+
+// ── Marketing segment switcher ──────────────────────────────────────────
+function mktSeg(id, btn) {
+  document.querySelectorAll('.stab').forEach(function(t){ t.classList.remove('on'); });
+  document.querySelectorAll('.spanel').forEach(function(p){ p.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  var panel = document.getElementById('spanel-' + id);
+  if (panel) panel.classList.add('on');
+}
+
+// Auto-open signup if ?signup=true in URL
+(function(){
+  var p = new URLSearchParams(location.search);
+  if (p.get('signup') === 'true') {
+    history.replaceState({}, '', location.pathname);
+    window.addEventListener('DOMContentLoaded', function(){ showSignUp(); });
+  }
+})();
+
+// Load live domain count into hero stat
+(async function(){
+  try {
+    var r = await fetch(API + '/pipeline/status');
+    var d = await r.json();
+    var n = d.total_scanned || 0;
+    if (n > 0) {
+      var fmt = n >= 1e6 ? (n/1e6).toFixed(1)+'M+' : n >= 1e3 ? Math.round(n/1e3)+'k+' : String(n);
+      var el = document.getElementById('mkt-stat-d');
+      if (el) el.textContent = fmt;
+    }
+  } catch(e){}
+})();
 let sessionToken = localStorage.getItem('sw_token') || '';
 let currentUser = JSON.parse(localStorage.getItem('sw_user') || 'null');
 let domains = []; let pollTimer = null;
