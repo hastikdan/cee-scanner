@@ -252,7 +252,34 @@ footer{border-top:1px solid var(--border);padding:48px 0}
   .h-stat{padding:16px 20px}
   section{padding:64px 0}
 }
+
+/* ── AUTH MODALS ─────────────────────────────────────────────────────*/
+.auth-modal-overlay{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.auth-modal{background:#13131f;border:1px solid rgba(163,230,53,.2);border-radius:16px;padding:36px;width:420px;max-width:92vw;position:relative;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.auth-modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#8888a0;font-size:20px;cursor:pointer;line-height:1;transition:color .15s}
+.auth-modal-close:hover{color:#e8e8f0}
+.auth-modal-title{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;font-weight:700}
+.auth-modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.auth-field label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.auth-field input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#e8e8f0;font-size:14px;padding:11px 14px;width:100%;box-sizing:border-box;font-family:'Inter',sans-serif;transition:border-color .15s}
+.auth-field input:focus{outline:none;border-color:rgba(163,230,53,.4);background:rgba(163,230,53,.03)}
+.auth-field input::placeholder{color:#555}
+.auth-btn-primary{width:100%;background:var(--lime);color:#000;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;padding:13px;border:none;border-radius:9px;cursor:pointer;margin-top:6px;transition:opacity .15s}
+.auth-btn-primary:hover{opacity:.88}
+.auth-btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:11px;font-family:'JetBrains Mono',monospace}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.auth-google-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:11px 16px;background:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;color:#3c4043;cursor:pointer;margin-bottom:4px;font-family:'Inter',sans-serif;transition:box-shadow .15s}
+.auth-google-btn:hover{box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.auth-switch{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}
+.auth-switch button{background:none;border:none;color:var(--lime);cursor:pointer;font-size:12px;text-decoration:underline}
+.auth-error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:7px;padding:10px 14px;font-size:12px;color:#f87171;margin-bottom:12px;display:none}
+.auth-error.show{display:block}
+.auth-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--lime);color:#000;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:12px 24px;border-radius:9px;z-index:30000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.auth-toast.show{opacity:1}
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -271,8 +298,8 @@ footer{border-top:1px solid var(--border);padding:48px 0}
       <a href="/solutions/">Enterprise</a>
     </div>
     <div class="nav-actions">
-      <a href="/" class="btn-nav-ghost">Sign In</a>
-      <a href="/?signup=true" class="btn-nav-lime">Start Free</a>
+      <button class="btn-nav-ghost" onclick="showSignIn()">Sign In</button>
+      <button class="btn-nav-lime" onclick="showSignUp()">Start Free</button>
     </div>
   </div>
 </nav>
@@ -289,7 +316,7 @@ footer{border-top:1px solid var(--border);padding:48px 0}
     <h1>Know What's Exposed.<br><em>Fix What Matters.</em></h1>
     <p class="hero-sub">SwarmHawk scans every internet-facing domain you own, maps how an attacker would move through them, and delivers a prioritized action plan — not another 500-page vulnerability report.</p>
     <div class="hero-actions">
-      <a href="/?signup=true" class="btn btn-lime btn-lg">Start Free — No Credit Card →</a>
+      <a onclick="showSignUp()" class="btn btn-lime btn-lg">Start Free — No Credit Card →</a>
       <a href="#how-it-works" class="btn btn-outline btn-lg">See How It Works</a>
     </div>
     <div class="hero-stats">
@@ -372,7 +399,7 @@ footer{border-top:1px solid var(--border);padding:48px 0}
           </div>
 
           <div class="seg-cta-bar">
-            <a href="/?signup=true" class="btn btn-lime btn-md">Start Free — 1 Domain →</a>
+            <a onclick="showSignUp()" class="btn btn-lime btn-md">Start Free — 1 Domain →</a>
             <a href="#how-it-works" class="btn btn-outline btn-md">See How It Works</a>
           </div>
         </div>
@@ -439,7 +466,7 @@ footer{border-top:1px solid var(--border);padding:48px 0}
 
           <div class="seg-cta-bar">
             <a href="https://swarmhawk-backend.onrender.com/docs" target="_blank" class="btn btn-lime btn-md">Explore API Docs →</a>
-            <a href="/?signup=true" class="btn btn-outline btn-md">Get API Key</a>
+            <a onclick="showSignUp()" class="btn btn-outline btn-md">Get API Key</a>
           </div>
         </div>
 
@@ -716,7 +743,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
           <li class="dim">Continuous monitoring</li>
           <li class="dim">Breach path visualization</li>
         </ul>
-        <a href="/?signup=true" class="plan-btn ghost">Get Started Free</a>
+        <a onclick="showSignUp()" class="plan-btn ghost">Get Started Free</a>
       </div>
 
       <!-- Pro -->
@@ -735,7 +762,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
           <li>Outreach contact discovery</li>
           <li class="dim">Org graph & breach paths</li>
         </ul>
-        <a href="/?signup=true&plan=pro" class="plan-btn lime">Start 14-Day Trial →</a>
+        <a onclick="showSignUp()" class="plan-btn lime">Start 14-Day Trial →</a>
       </div>
 
       <!-- Enterprise -->
@@ -775,7 +802,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
       </div>
 
     </div>
-    <p class="plan-footnote">All plans include a <a href="/?signup=true">free 1-domain scan</a> with no credit card. Need a custom domain limit? <a href="mailto:hello@swarmhawk.com">Just ask.</a></p>
+    <p class="plan-footnote">All plans include a <a onclick="showSignUp();return false">free 1-domain scan</a> with no credit card. Need a custom domain limit? <a href="mailto:hello@swarmhawk.com">Just ask.</a></p>
   </div>
 </section>
 
@@ -880,7 +907,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
     <h2>Your attack surface is already visible<br>to attackers. Is it visible to you?</h2>
     <p>Start with one domain, for free. No credit card. No setup. First result in under 60 seconds.</p>
     <div class="final-actions">
-      <a href="/?signup=true" class="btn btn-lime btn-lg">Start Free — No Credit Card →</a>
+      <a onclick="showSignUp()" class="btn btn-lime btn-lg">Start Free — No Credit Card →</a>
       <a href="mailto:hello@swarmhawk.com" class="btn btn-outline btn-lg">Talk to a Human</a>
     </div>
   </div>
@@ -930,6 +957,214 @@ function switchSeg(id) {
 // ── Segment anchor nav ──────────────────────────────────────────────
 const hash = location.hash.replace('#','');
 if (['smb','dev','ent','host'].includes(hash)) switchSeg(hash);
+</script>
+
+<!-- ── SIGN IN MODAL ─────────────────────────────────────────────────── -->
+<div id="signin-modal" class="auth-modal-overlay" style="display:none" onclick="if(event.target===this)closeAuthModals()">
+  <div class="auth-modal">
+    <button class="auth-modal-close" onclick="closeAuthModals()">✕</button>
+    <div class="auth-modal-title">Sign In</div>
+    <div class="auth-modal-sub">Access your SwarmHawk dashboard</div>
+    <div class="auth-error" id="signin-error"></div>
+    <button class="auth-google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-divider">or sign in with email</div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="signin-email" placeholder="you@company.com" onkeydown="if(event.key==='Enter')submitSignIn()">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="signin-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitSignIn()">
+    </div>
+    <button class="auth-btn-primary" id="signin-btn" onclick="submitSignIn()">Sign In →</button>
+    <div class="auth-switch">No account? <button onclick="showSignUp()">Create one free</button></div>
+  </div>
+</div>
+
+<!-- ── SIGN UP MODAL ─────────────────────────────────────────────────── -->
+<div id="signup-modal" class="auth-modal-overlay" style="display:none" onclick="if(event.target===this)closeAuthModals()">
+  <div class="auth-modal">
+    <button class="auth-modal-close" onclick="closeAuthModals()">✕</button>
+    <div class="auth-modal-title">Create Account</div>
+    <div class="auth-modal-sub">Free account — start monitoring your domain today</div>
+    <div class="auth-error" id="signup-error"></div>
+    <button class="auth-google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign up with Google
+    </button>
+    <div class="auth-divider">or create account with email</div>
+    <div class="auth-field">
+      <label>Your Name</label>
+      <input type="text" id="signup-name" placeholder="Jan Novák">
+    </div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="signup-email" placeholder="you@company.com">
+    </div>
+    <div class="auth-field">
+      <label>Password <span style="color:#555;font-weight:normal">(min 6 chars)</span></label>
+      <input type="password" id="signup-password" placeholder="••••••••">
+    </div>
+    <div class="auth-field">
+      <label>Your Domain <span style="color:var(--muted);font-weight:normal">(optional — we'll scan it instantly)</span></label>
+      <input type="text" id="signup-domain" placeholder="yourcompany.com">
+    </div>
+    <button class="auth-btn-primary" id="signup-btn" onclick="submitSignUp()">Create Account & Scan →</button>
+    <div class="auth-switch">Already have an account? <button onclick="showSignIn()">Sign in</button></div>
+  </div>
+</div>
+
+<div class="auth-toast" id="auth-toast"></div>
+
+<script>
+const API = 'https://swarmhawk-backend.onrender.com';
+
+function showSignIn() {
+  closeAuthModals();
+  document.getElementById('signin-modal').style.display = 'flex';
+  setTimeout(function(){ var e=document.getElementById('signin-email'); if(e) e.focus(); }, 80);
+}
+
+function showSignUp() {
+  closeAuthModals();
+  document.getElementById('signup-modal').style.display = 'flex';
+  setTimeout(function(){ var e=document.getElementById('signup-name'); if(e) e.focus(); }, 80);
+}
+
+function closeAuthModals() {
+  ['signin-modal','signup-modal'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  ['signin-error','signup-error'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.textContent=''; el.classList.remove('show'); }
+  });
+}
+
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAuthModals(); });
+
+function authError(elId, msg) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function authClearError(elId) {
+  var el = document.getElementById(elId);
+  if (el) { el.textContent=''; el.classList.remove('show'); }
+}
+
+function authToast(msg) {
+  var t = document.getElementById('auth-toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+function onAuthSuccess(data) {
+  localStorage.setItem('sw_token', data.session_token);
+  localStorage.setItem('sw_user', JSON.stringify(data.user || {}));
+  closeAuthModals();
+  authToast('✓ Welcome — loading your dashboard…');
+  setTimeout(function(){ window.location.href = '/'; }, 900);
+}
+
+async function signInWithGoogle() {
+  if (typeof google === 'undefined' || !google.accounts) {
+    authError('signin-error', 'Google Sign-In not available. Please use email.');
+    authError('signup-error', 'Google Sign-In not available. Please use email.');
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: '396286675021-tqhadhbp3jqc1jrqo5krk3j5njdss0cg.apps.googleusercontent.com',
+    callback: async function(response) {
+      try {
+        var res = await fetch(API + '/auth/google', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ credential: response.credential })
+        });
+        var data = await res.json().catch(function(){ return {}; });
+        if (!res.ok) { authError('signin-error', data.detail || 'Google sign-in failed'); return; }
+        onAuthSuccess(data);
+      } catch(e) {
+        authError('signin-error', 'Could not reach server: ' + e.message);
+      }
+    },
+    ux_mode: 'popup',
+  });
+  google.accounts.id.prompt();
+}
+
+async function submitSignIn() {
+  authClearError('signin-error');
+  var email    = (document.getElementById('signin-email').value || '').trim();
+  var password = document.getElementById('signin-password').value || '';
+  if (!email || !password) { authError('signin-error', 'Email and password required'); return; }
+
+  var btn = document.getElementById('signin-btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    var res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: email, password: password })
+    });
+    var data = await res.json().catch(function(){ return {}; });
+    if (!res.ok) { authError('signin-error', data.detail || ('Error ' + res.status)); return; }
+    onAuthSuccess(data);
+  } catch(e) {
+    authError('signin-error', 'Could not reach server. Try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In →';
+  }
+}
+
+async function submitSignUp() {
+  authClearError('signup-error');
+  var name     = (document.getElementById('signup-name').value || '').trim();
+  var email    = (document.getElementById('signup-email').value || '').trim();
+  var password = document.getElementById('signup-password').value || '';
+  var domain   = (document.getElementById('signup-domain').value || '').trim()
+                   .replace(/^https?:\/\//,'').split('/')[0];
+
+  if (!name)             { authError('signup-error', 'Name required'); return; }
+  if (!email)            { authError('signup-error', 'Email required'); return; }
+  if (password.length<6) { authError('signup-error', 'Password must be at least 6 characters'); return; }
+
+  var btn = document.getElementById('signup-btn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    var res = await fetch(API + '/auth/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ username: name, email: email, password: password, domain: domain })
+    });
+    var data = await res.json().catch(function(){ return {}; });
+    if (!res.ok) { authError('signup-error', data.detail || ('Error ' + res.status)); return; }
+    onAuthSuccess(data);
+  } catch(e) {
+    authError('signup-error', 'Could not reach server. Try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Account & Scan →';
+  }
+}
+
+// If already logged in → swap nav to "Go to Dashboard"
+(function(){
+  var token = localStorage.getItem('sw_token');
+  var user  = JSON.parse(localStorage.getItem('sw_user') || 'null');
+  if (token && user) {
+    var actions = document.querySelector('.nav-actions');
+    if (actions) actions.innerHTML = '<a href="/" class="btn-nav-lime">Go to Dashboard →</a>';
+  }
+})();
 </script>
 </body>
 </html>
