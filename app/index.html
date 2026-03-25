@@ -419,6 +419,26 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 .pagination span{font-size:13px;color:var(--muted)}
 
 /* ═══════════════════════════════════════════════════════
+   SCAN PROGRESS CARD (inline, below add-bar)
+═══════════════════════════════════════════════════════ */
+#scan-progress-card{
+  background:var(--card);border:1px solid var(--lime-border);border-radius:var(--r);
+  padding:16px 20px;margin-bottom:16px;
+  animation:fadein .2s ease;
+}
+.sp-domain{font-size:13px;font-weight:700;color:var(--lime);margin-bottom:8px}
+.sp-check-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.sp-check-name{font-size:13px;font-weight:600;color:var(--text)}
+.sp-check-meta{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.sp-bar-wrap{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.sp-bar{height:100%;background:linear-gradient(90deg,var(--lime),#86efac);border-radius:3px;transition:width .8s ease}
+.sp-checks-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.sp-check-dot{width:10px;height:10px;border-radius:2px;background:rgba(255,255,255,.08);transition:background .3s}
+.sp-check-dot.done{background:var(--lime)}
+.sp-check-dot.active{background:var(--amber);animation:dotpulse .7s infinite alternate}
+@keyframes dotpulse{from{opacity:.5}to{opacity:1}}
+
+/* ═══════════════════════════════════════════════════════
    MOBILE BREAKPOINTS
 ═══════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
@@ -528,6 +548,9 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
       <button class="btn btn-outline" onclick="openBulkModal()">⬆ Upload .txt / .json</button>
       <button class="btn btn-ghost btn-sm" onclick="scanAll()" title="Rescan all domains">↻ Scan All</button>
     </div>
+
+    <!-- Scan progress card (shown while scanning) -->
+    <div id="scan-progress-card" style="display:none"></div>
 
     <!-- Domain table -->
     <div class="domain-table-wrap">
@@ -788,8 +811,8 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 <!-- ══ TOAST CONTAINER ═══════════════════════════════════════════ -->
 <div id="toast"></div>
 
-<!-- ══ SCAN PROGRESS ═════════════════════════════════════════════ -->
-<div id="scan-progress"><span class="spinner"></span><span id="scan-progress-text">Scanning…</span></div>
+<!-- ══ SCAN PROGRESS PANEL ════════════════════════════════════════ -->
+<div id="scan-progress" style="display:none"></div>
 
 <!-- ═══════════════════════════════════════════════════════════════
      JAVASCRIPT
@@ -1019,36 +1042,129 @@ function flagEmoji(country) {
   return String.fromCodePoint(...[...c].map(ch => 0x1F1E0 + ch.charCodeAt(0) - 65));
 }
 
+// 22 check names in approximate scan order
+const SCAN_CHECKS = [
+  'DNS Lookup','SPF Record','DMARC Policy','DKIM Record','MX Records',
+  'DNSSEC','CAA Record','TLS Certificate','Cert Expiry','TLS Version',
+  'HSTS Header','CSP Header','X-Frame-Options','X-Content-Type',
+  'Referrer Policy','Permissions Policy','HTTPS Redirect','Server Header',
+  'CMS Detection','WAF Detection','CVE Correlation','Threat Intelligence'
+];
+
+let _scanProgressTimer = null;
+let _scanningDomainId  = null;
+
+function startScanProgress(domainId, domainName) {
+  _scanningDomainId = domainId;
+  const card = document.getElementById('scan-progress-card');
+  card.style.display = 'block';
+  renderScanProgress(domainName, 0, 0, 22, 90);
+  // Poll /scan-status every 2 seconds
+  _scanProgressTimer = setInterval(async () => {
+    try {
+      const st = await api('/domains/' + domainId + '/scan-status');
+      renderScanProgress(domainName, st.pct || 0, st.check_idx || 0, 22, st.remaining_seconds || 0);
+      if (!st.scanning) stopScanProgress(domainId);
+    } catch(e) { /* backend might not have domain yet */ }
+  }, 2000);
+}
+
+function renderScanProgress(domainName, pct, checkIdx, total, remaining) {
+  const card = document.getElementById('scan-progress-card');
+  const name = SCAN_CHECKS[Math.min(checkIdx, SCAN_CHECKS.length - 1)] || 'Finalising…';
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const timeStr = remaining > 0
+    ? (mins > 0 ? mins + 'm ' : '') + secs + 's remaining'
+    : 'Finalising…';
+
+  // Build the 22 dots
+  const dots = SCAN_CHECKS.map((_, i) =>
+    `<div class="sp-check-dot ${i < checkIdx ? 'done' : i === checkIdx ? 'active' : ''}" title="${SCAN_CHECKS[i]}"></div>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="sp-domain">⟳ Scanning ${safeText(domainName)}</div>
+    <div class="sp-check-row">
+      <span class="sp-check-name">${safeText(name)}</span>
+      <span class="sp-check-meta">${checkIdx + 1} / ${total} &nbsp;·&nbsp; ${timeStr}</span>
+    </div>
+    <div class="sp-bar-wrap"><div class="sp-bar" style="width:${pct}%"></div></div>
+    <div class="sp-checks-row">${dots}</div>`;
+}
+
+function stopScanProgress(domainId) {
+  if (_scanProgressTimer) { clearInterval(_scanProgressTimer); _scanProgressTimer = null; }
+  _scanningDomainId = null;
+  const card = document.getElementById('scan-progress-card');
+  if (card) card.style.display = 'none';
+}
+
 async function addDomain() {
-  const input = document.getElementById('domain-input');
-  const btn   = document.getElementById('add-btn');
+  const input  = document.getElementById('domain-input');
+  const btn    = document.getElementById('add-btn');
   const domain = input.value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*/,'');
   if (!domain) return;
   input.value = '';
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Scanning…';
-  document.getElementById('scan-progress').style.display = 'block';
-  document.getElementById('scan-progress-text').textContent = 'Scanning ' + domain + '…';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Adding…';
+
   try {
-    await api('/domains', { method: 'POST', body: JSON.stringify({ domain, country: 'EU' }) });
-    toast('Scanning ' + domain + ' — results in ~60s');
+    const result = await api('/domains', { method: 'POST', body: JSON.stringify({ domain, country: 'EU' }) });
+
+    // ── Optimistic insert: show domain in table immediately ──────────
+    domainFilter = 'all';
+    // Sync pill UI
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    const allPill = document.getElementById('pill-all');
+    if (allPill) allPill.classList.add('active');
+
+    // Insert placeholder row so user sees it instantly
+    const tempId = (result && result.id) || '__temp__';
+    const existing = domains.find(d => d.domain === domain);
+    if (!existing) {
+      domains.unshift({ id: tempId, domain, country: 'EU', status: 'scanning', risk_score: null, scanned_at: null, checks: [] });
+      renderDomainStats();
+      renderDomainTable();
+    }
+
+    // Start the live scan progress card
+    startScanProgress(tempId, domain);
+
+    // Load from server to get the real domain ID
     await loadDomains();
-    // Poll until done
+    const serverDomain = domains.find(d => d.domain === domain);
+    const realId = serverDomain ? serverDomain.id : tempId;
+    if (realId !== tempId) {
+      // Update progress to use real ID
+      stopScanProgress(tempId);
+      startScanProgress(realId, domain);
+    }
+
+    // Poll until scan completes
     let polls = 0;
     const poll = setInterval(async () => {
       polls++;
       await loadDomains();
-      const d = domains.find(x => x.domain === domain && x.status !== 'scanning' && x.status !== 'pending');
-      if (d || polls > 24) {
+      const d = domains.find(x => x.domain === domain && x.status === 'active');
+      if (d || polls > 30) {
         clearInterval(poll);
-        document.getElementById('scan-progress').style.display = 'none';
-        if (d) { toast('✓ Scan complete for ' + domain); openPanel(d.id); }
+        stopScanProgress(realId);
+        if (d) {
+          toast('✓ Scan complete — ' + domain);
+          renderDomainStats();
+          renderDomainTable();
+          openPanel(d.id);
+        }
       }
     }, 5000);
+
   } catch(e) {
     toast(e.message, true);
-    document.getElementById('scan-progress').style.display = 'none';
+    stopScanProgress(_scanningDomainId || '__temp__');
   } finally {
-    btn.disabled = false; btn.innerHTML = '+ Add Domain';
+    btn.disabled = false;
+    btn.innerHTML = '+ Add Domain';
   }
 }
 
@@ -1056,7 +1172,21 @@ async function rescanDomain(id, domain) {
   try {
     await api('/domains/' + id + '/rescan', { method: 'POST' });
     toast('Re-scanning ' + domain + '…');
-    setTimeout(loadDomains, 3000);
+    // Update domain status optimistically
+    const d = domains.find(x => x.id === id);
+    if (d) { d.status = 'scanning'; renderDomainTable(); }
+    startScanProgress(id, domain);
+    // Poll until done
+    const poll = setInterval(async () => {
+      await loadDomains();
+      const updated = domains.find(x => x.id === id && x.status === 'active');
+      if (updated) {
+        clearInterval(poll);
+        stopScanProgress(id);
+        toast('✓ Rescan complete — ' + domain);
+        if (activeDomain && activeDomain.id === id) openPanel(id);
+      }
+    }, 5000);
   } catch(e) { toast(e.message, true); }
 }
 
