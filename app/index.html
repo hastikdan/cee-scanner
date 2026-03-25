@@ -944,6 +944,11 @@ function grantAdminTabs() {
 // ═══════════════════════════════════════════════════════════════
 
 async function loadDomains() {
+  // Show loading row only when the list is currently empty (avoid flash on refresh)
+  if (!domains.length) {
+    document.getElementById('domain-tbody').innerHTML =
+      '<tr><td colspan="5"><div class="empty-state"><span class="spinner"></span> Loading domains…</div></td></tr>';
+  }
   try {
     const data = await api('/domains');
     domains = data.domains || [];
@@ -1171,19 +1176,10 @@ async function addDomain() {
     }
 
     // Start the live scan progress card
+    // tempId IS the real server UUID (returned by POST), no need to reload for ID
     startScanProgress(tempId, domain);
 
-    // Load from server to get the real domain ID
-    await loadDomains();
-    const serverDomain = domains.find(d => d.domain === domain);
-    const realId = serverDomain ? serverDomain.id : tempId;
-    if (realId !== tempId) {
-      // Update progress to use real ID
-      stopScanProgress(tempId);
-      startScanProgress(realId, domain);
-    }
-
-    // Poll until scan completes
+    // Poll until scan completes (every 5s)
     let polls = 0;
     const poll = setInterval(async () => {
       polls++;
@@ -1191,11 +1187,9 @@ async function addDomain() {
       const d = domains.find(x => x.domain === domain && x.status === 'active');
       if (d || polls > 30) {
         clearInterval(poll);
-        stopScanProgress(realId);
+        stopScanProgress(tempId);
         if (d) {
           toast('✓ Scan complete — ' + domain);
-          renderDomainStats();
-          renderDomainTable();
           openPanel(d.id);
         }
       }
