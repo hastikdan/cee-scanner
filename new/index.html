@@ -1072,7 +1072,7 @@ function onAuthSuccess(data) {
   localStorage.setItem('sw_user', JSON.stringify(data.user || {}));
   closeAuthModals();
   authToast('✓ Welcome — loading your dashboard…');
-  setTimeout(function(){ window.location.href = '/'; }, 900);
+  setTimeout(function(){ window.location.href = '/app/'; }, 900);
 }
 
 async function signInWithGoogle() {
@@ -1162,7 +1162,7 @@ async function submitSignUp() {
   var user  = JSON.parse(localStorage.getItem('sw_user') || 'null');
   if (token && user) {
     var actions = document.querySelector('.nav-actions');
-    if (actions) actions.innerHTML = '<a href="/" class="btn-nav-lime">Go to Dashboard →</a>';
+    if (actions) actions.innerHTML = '<a href="/app/" class="btn-nav-lime">Go to Dashboard →</a>';
   }
 })();
 </script>
