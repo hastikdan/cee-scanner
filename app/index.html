@@ -1401,7 +1401,10 @@ async function downloadReport() {
     const blob = await res.blob();
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href = url; a.download = 'swarmhawk-' + activeDomain.domain + '.pdf'; a.click();
+    const _dateStr = new Date().toISOString().slice(0, 10);
+    const _rawName = (currentUser && (currentUser.name || currentUser.email || '')) || '';
+    const _userSlug = (_rawName.split('@')[0].split(' ')[0].replace(/[^a-zA-Z0-9_\-]/g, '').toLowerCase().slice(0, 20)) || 'report';
+    a.href = url; a.download = `swarmhawk-${activeDomain.domain}-${_dateStr}-${_userSlug}.pdf`; a.click();
     URL.revokeObjectURL(url);
     toast('✓ PDF downloaded');
   } catch(e) { toast(e.message, true); }
@@ -2055,11 +2058,11 @@ async function loadAdmin() {
 async function loadAdminStats() {
   try {
     const d = await api('/admin/stats');
-    document.getElementById('kpi-users').textContent   = d.total_users   || d.users  || 0;
-    document.getElementById('kpi-domains').textContent = d.total_domains || d.domains || 0;
-    document.getElementById('kpi-scans').textContent   = d.total_scans   || d.scans  || 0;
-    document.getElementById('kpi-revenue').textContent = d.total_revenue != null
-      ? '$' + Number(d.total_revenue).toLocaleString() : '—';
+    document.getElementById('kpi-users').textContent   = (d.users   && d.users.total   != null) ? d.users.total   : (d.total_users   || 0);
+    document.getElementById('kpi-domains').textContent = (d.domains && d.domains.total != null) ? d.domains.total : (d.total_domains || 0);
+    document.getElementById('kpi-scans').textContent   = (d.scans   && d.scans.total   != null) ? d.scans.total   : (d.total_scans   || 0);
+    const rev = d.revenue ? d.revenue.total_eur : d.total_revenue;
+    document.getElementById('kpi-revenue').textContent = rev != null ? '€' + Number(rev).toLocaleString() : '—';
   } catch(e) {}
 }
 
