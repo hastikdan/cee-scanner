@@ -247,6 +247,11 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
   font-size:12px;color:var(--text);line-height:1.6;
 }
 .chk-rec::before{content:'→ Fix: ';color:var(--lime);font-weight:700}
+.chk-rec-warn{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.3)}
+.chk-rec-warn::before{color:var(--amber)}
+.panel-action-bar{display:flex;gap:8px;padding:12px 22px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.panel-email-row{display:flex;gap:6px;padding:8px 22px 0;flex-wrap:wrap}
+.panel-email-row .input{flex:1;min-width:160px;padding:7px 12px;font-size:13px}
 .chk-status{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-top:2px;font-family:'JetBrains Mono',monospace}
 .chk-status.ok{background:var(--lime-pale);color:var(--lime)}
 .chk-status.fail,.chk-status.critical{background:rgba(248,113,113,.15);color:var(--red)}
@@ -767,6 +772,14 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
       </div>
     </div>
     <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-action-bar" id="panel-action-bar" style="display:none">
+    <button class="btn btn-outline btn-sm" onclick="downloadReport()" title="Download PDF report">↓ Download PDF</button>
+    <button class="btn btn-outline btn-sm" id="btn-email-report" onclick="toggleEmailForm()" title="Email report">✉ Send by Email</button>
+  </div>
+  <div class="panel-email-row" id="panel-email-row" style="display:none;padding-bottom:12px">
+    <input class="input" id="panel-email-input" type="email" placeholder="recipient@example.com" onkeydown="if(event.key==='Enter')sendReportEmail()">
+    <button class="btn btn-lime btn-sm" onclick="sendReportEmail()">Send</button>
   </div>
   <div class="panel-tabs">
     <button class="panel-tab active" onclick="showPanelTab('checks',this)">Checks</button>
@@ -1309,8 +1322,11 @@ async function openPanel(domainId) {
     scoreEl.textContent = '…'; scoreEl.style.color = 'var(--muted)';
     badgeEl.innerHTML = '';
     statusEl.innerHTML = '<span class="risk-badge risk-pending">⟳ Scanning</span>';
+    document.getElementById('panel-action-bar').style.display = 'none';
+    document.getElementById('panel-email-row').style.display = 'none';
   } else {
     applyScore(d.risk_score, d.paid);
+    document.getElementById('panel-action-bar').style.display = 'flex';
   }
 
   // ── Open panel immediately so user sees it right away ──────────
@@ -1333,6 +1349,7 @@ async function openPanel(domainId) {
         const enriched = Object.assign({}, d, { checks: report.checks, risk_score: report.risk_score, paid: report.paid });
         activeDomain = enriched;
         applyScore(report.risk_score, report.paid);
+        document.getElementById('panel-action-bar').style.display = 'flex';
         renderChecksTab(enriched);
       } else if (report && report.status === 'pending') {
         checksEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:32px">⟳ Scan in progress — results will appear here shortly.</div>';
@@ -1356,10 +1373,53 @@ async function openPanel(domainId) {
   loadPanelDeepScan(d.id);
 }
 
+async function downloadReport() {
+  if (!activeDomain) return;
+  const btn = document.querySelector('#panel-action-bar .btn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const res = await fetch(API + '/domains/' + activeDomain.id + '/report/pdf', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'PDF failed'); }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'swarmhawk-' + activeDomain.domain + '.pdf'; a.click();
+    URL.revokeObjectURL(url);
+    toast('✓ PDF downloaded');
+  } catch(e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = orig; }
+}
+
+function toggleEmailForm() {
+  const row = document.getElementById('panel-email-row');
+  const open = row.style.display !== 'none';
+  row.style.display = open ? 'none' : 'flex';
+  if (!open) document.getElementById('panel-email-input').focus();
+}
+
+async function sendReportEmail() {
+  const email = document.getElementById('panel-email-input').value.trim();
+  if (!email || !activeDomain) return;
+  const btn = document.querySelector('#panel-email-row .btn-lime');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    await api('/send-report', { method: 'POST', body: JSON.stringify({ domain_id: activeDomain.id, email }) });
+    toast('✓ Report sent to ' + email);
+    document.getElementById('panel-email-row').style.display = 'none';
+    document.getElementById('panel-email-input').value = '';
+  } catch(e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = 'Send'; }
+}
+
 function closePanel() {
   activeDomain = null;
   document.getElementById('domain-panel').classList.remove('open');
   document.getElementById('panel-backdrop').style.display = 'none';
+  document.getElementById('panel-action-bar').style.display = 'none';
+  document.getElementById('panel-email-row').style.display = 'none';
   renderDomainTable(); // immediate render from cache
   loadDomains();       // then refresh from server so list is always current
 }
@@ -1453,7 +1513,12 @@ function renderChecksTab(d) {
         <div class="chk-main">
           <div class="chk-title">${safeText(title)}</div>
           ${detail ? `<div class="chk-detail">${safeText(detail)}</div>` : ''}
-          ${rec ? `<div class="chk-rec" style="display:none">${safeText(rec)}</div>` : ''}
+          ${rec && (status === 'critical' || status === 'fail')
+            ? `<div class="chk-rec">${safeText(rec)}</div>`
+            : rec && status === 'warning'
+              ? `<div class="chk-rec chk-rec-warn">${safeText(rec)}</div>`
+              : rec ? `<div class="chk-rec" style="display:none">${safeText(rec)}</div>` : ''
+          }
         </div>
         <div class="chk-status ${statusClass}">${safeText(status.toUpperCase())}</div>
       </div>`;
