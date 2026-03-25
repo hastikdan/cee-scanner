@@ -982,6 +982,21 @@ function safeText(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+function formatDetail(text) {
+  if (!text) return '';
+  return String(text).split('\n').map(line => {
+    const esc = safeText(line);
+    if (/^\s*✓\s+/.test(line))
+      return `<div style="padding-left:10px;color:var(--lime);margin:1px 0">${esc}</div>`;
+    if (/^\s*•\s+/.test(line))
+      return `<div style="padding-left:10px;margin:1px 0">${esc}</div>`;
+    if (/^(Critical findings|Warnings|Recommended Actions):/.test(line.trim()))
+      return `<div style="font-weight:700;margin-top:8px;color:var(--text)">${esc}</div>`;
+    if (line.trim() === '') return '';
+    return `<div>${esc}</div>`;
+  }).join('');
+}
+
 function renderDomainStats() {
   let total = domains.length, critical = 0, warning = 0, clean = 0;
   domains.forEach(d => {
@@ -1512,7 +1527,7 @@ function renderChecksTab(d) {
         <div class="chk-icon" style="color:${status==='ok'||status==='pass'?'var(--lime)':status==='critical'||status==='fail'?'var(--red)':status==='warning'?'var(--amber)':'var(--muted)'}">${icon}</div>
         <div class="chk-main">
           <div class="chk-title">${safeText(title)}</div>
-          ${detail ? `<div class="chk-detail">${safeText(detail)}</div>` : ''}
+          ${detail ? `<div class="chk-detail">${formatDetail(detail)}</div>` : ''}
           ${rec && (status === 'critical' || status === 'fail')
             ? `<div class="chk-rec">${safeText(rec)}</div>`
             : rec && status === 'warning'
