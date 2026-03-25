@@ -1360,7 +1360,8 @@ function closePanel() {
   activeDomain = null;
   document.getElementById('domain-panel').classList.remove('open');
   document.getElementById('panel-backdrop').style.display = 'none';
-  renderDomainTable();
+  renderDomainTable(); // immediate render from cache
+  loadDomains();       // then refresh from server so list is always current
 }
 
 function showPanelTab(tab, btn) {
