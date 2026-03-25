@@ -2796,7 +2796,17 @@ let domains = []; let pollTimer = null;
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(location.search);
   if (p.get('payment') === 'success') { var _sb=document.getElementById('success-banner'); if(_sb){_sb.style.display='flex';setTimeout(()=>_sb.style.display='none',7000);} history.replaceState({},'',location.pathname); }
-  if (sessionToken) { activateScanner(); refreshAdminAccess(); }
+  if (sessionToken) {
+    // Show admin tabs immediately from localStorage — independent of auth script block
+    if (currentUser && currentUser.is_admin) {
+      var _a = document.getElementById('admin-tab-btn');
+      var _m = document.getElementById('marketing-tab-btn');
+      if (_a) _a.style.display = '';
+      if (_m) _m.style.display = '';
+    }
+    activateScanner();
+    if (typeof refreshAdminAccess === 'function') refreshAdminAccess();
+  }
   var scanParam = p.get('scan');
   if (scanParam) { history.replaceState({},'',location.pathname); setTimeout(function(){ openReportPage(scanParam, false); }, 400); }
   // Handle email verification redirect
@@ -2814,6 +2824,13 @@ function activateScanner() {
   if (currentUser?.avatar) { var na=document.getElementById('nav-avatar'); if (na) na.src=currentUser.avatar; }
   var openBtn = document.getElementById('hero-cta-open');
   if (openBtn) openBtn.style.display='block';
+  // Show admin tabs from localStorage — done here so it works even if auth script block is unavailable
+  if (currentUser && currentUser.is_admin) {
+    var _a = document.getElementById('admin-tab-btn');
+    var _m = document.getElementById('marketing-tab-btn');
+    if (_a) _a.style.display = '';
+    if (_m) _m.style.display = '';
+  }
   loadDomains();
   if (!pollTimer) pollTimer=setInterval(loadDomains,15000);
   openDashboard();
