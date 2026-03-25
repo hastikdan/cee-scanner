@@ -969,8 +969,8 @@ function safeText(s) {
 function renderDomainStats() {
   let total = domains.length, critical = 0, warning = 0, clean = 0;
   domains.forEach(d => {
-    const s = d.risk_score || 0;
     if (d.status === 'scanning' || d.status === 'pending') return;
+    const s = d.risk_score || 0;
     if (s >= 60) critical++;
     else if (s >= 30) warning++;
     else clean++;
@@ -998,18 +998,25 @@ function setFilter(f, statCardEl) {
 
 function renderDomainTable() {
   const search = (document.getElementById('domain-search').value || '').toLowerCase();
+  const scanned = d => d.status !== 'scanning' && d.status !== 'pending';
   let list = domains.slice();
-  if (domainFilter === 'critical') list = list.filter(d => (d.risk_score||0) >= 60 && d.status === 'active');
-  else if (domainFilter === 'warning') list = list.filter(d => { const s=d.risk_score||0; return s>=30&&s<60&&d.status==='active'; });
-  else if (domainFilter === 'clean') list = list.filter(d => (d.risk_score||0)<30&&d.status==='active');
-  else if (domainFilter === 'pending') list = list.filter(d => d.status==='scanning'||d.status==='pending');
+  if (domainFilter === 'critical')     list = list.filter(d => scanned(d) && (d.risk_score||0) >= 60);
+  else if (domainFilter === 'warning') list = list.filter(d => scanned(d) && (d.risk_score||0) >= 30 && (d.risk_score||0) < 60);
+  else if (domainFilter === 'clean')   list = list.filter(d => scanned(d) && (d.risk_score||0) < 30);
+  else if (domainFilter === 'pending') list = list.filter(d => d.status === 'scanning' || d.status === 'pending');
   if (search) list = list.filter(d => d.domain.toLowerCase().indexOf(search) > -1);
 
   const tbody = document.getElementById('domain-tbody');
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">' +
-      (domains.length ? 'No domains match your filter.' : 'No domains yet — add your first domain above.') +
-      '</div></td></tr>';
+    let msg = 'No domains yet — add your first domain above.';
+    if (domains.length) {
+      if (domainFilter === 'critical')     msg = 'No critical domains — none scored ≥ 60.';
+      else if (domainFilter === 'warning') msg = 'No warning domains — none scored 30–59.';
+      else if (domainFilter === 'clean')   msg = 'No clean domains — none scored < 30.';
+      else if (domainFilter === 'pending') msg = 'No domains currently scanning.';
+      else msg = 'No domains match your search.';
+    }
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">' + msg + '</div></td></tr>';
     return;
   }
 
