@@ -891,9 +891,10 @@ function showTab(tab, btn) {
     const id = t.id || '';
     if (id === 'tab-' + tab || id === 'mob-tab-' + tab) t.classList.add('active');
   });
-  if (tab === 'account')  loadAccount();
+  if (tab === 'domains')   loadDomains();
+  if (tab === 'account')   loadAccount();
   if (tab === 'marketing') outreachLoad();
-  if (tab === 'admin')    loadAdmin();
+  if (tab === 'admin')     loadAdmin();
 }
 
 function toggleMobileMenu() {
