@@ -1647,14 +1647,20 @@ async function loadAccount() {
   // Load plan
   try {
     const p = await api('/me/plan');
-    const limit = p.domain_limit || '∞';
+    const isAdmin = p.plan_id === 'admin';
+    const limit = p.domain_limit != null ? p.domain_limit : '∞';
     const count = p.domain_count || 0;
     const pct   = p.domain_limit ? Math.round((count / p.domain_limit) * 100) : 0;
     document.getElementById('plan-usage-sub').textContent = p.plan_name + ' Plan';
     document.getElementById('plan-usage-bar-label').textContent = count + ' / ' + limit + ' domains';
-    document.getElementById('plan-usage-bar').style.width = Math.min(pct, 100) + '%';
+    document.getElementById('plan-usage-bar').style.width = isAdmin ? '0%' : Math.min(pct, 100) + '%';
     document.getElementById('profile-plan-badge').innerHTML = `<span class="plan-current-badge">${p.plan_name}</span>`;
-    loadPlanCards(p.plan_id);
+    if (isAdmin) {
+      document.getElementById('plan-cards-container').innerHTML =
+        '<div style="grid-column:1/-1;padding:20px;background:var(--card);border:1px solid var(--lime-border);border-radius:var(--r);color:var(--lime);font-weight:700;font-size:14px">✓ Admin account — all plans and features unlocked, unlimited domains.</div>';
+    } else {
+      loadPlanCards(p.plan_id);
+    }
   } catch(e) {}
 
   // Load API keys
