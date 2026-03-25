@@ -1053,8 +1053,10 @@ const SCAN_CHECKS = [
 
 let _scanProgressTimer = null;
 let _scanningDomainId  = null;
+let _bulkScanTimer     = null;
 
 function startScanProgress(domainId, domainName) {
+  if (_bulkScanTimer) return; // bulk mode takes precedence
   _scanningDomainId = domainId;
   const card = document.getElementById('scan-progress-card');
   card.style.display = 'block';
@@ -1067,6 +1069,46 @@ function startScanProgress(domainId, domainName) {
       if (!st.scanning) stopScanProgress(domainId);
     } catch(e) { /* backend might not have domain yet */ }
   }, 2000);
+}
+
+function startBulkScanMonitor() {
+  if (_bulkScanTimer) clearInterval(_bulkScanTimer);
+  // Stop any single-domain progress
+  if (_scanProgressTimer) { clearInterval(_scanProgressTimer); _scanProgressTimer = null; _scanningDomainId = null; }
+
+  function updateBulkCard() {
+    const scanning = domains.filter(d => d.status === 'scanning' || d.status === 'pending');
+    if (!scanning.length) { stopBulkScanMonitor(); return; }
+    const card = document.getElementById('scan-progress-card');
+    card.style.display = 'block';
+    const names = scanning.slice(0, 3).map(d => safeText(d.domain)).join(', ');
+    const extra = scanning.length > 3 ? ' +' + (scanning.length - 3) + ' more' : '';
+    card.innerHTML = `
+      <div class="sp-domain">⟳ Scanning ${scanning.length} domain${scanning.length > 1 ? 's' : ''}…</div>
+      <div class="sp-check-row">
+        <span class="sp-check-name">${names}${extra}</span>
+        <span class="sp-check-meta">Running in parallel</span>
+      </div>
+      <div class="sp-bar-wrap"><div class="sp-bar" style="width:60%;transition:none"></div></div>`;
+  }
+
+  updateBulkCard();
+  _bulkScanTimer = setInterval(async () => {
+    await loadDomains();
+    const stillScanning = domains.filter(d => d.status === 'scanning' || d.status === 'pending');
+    if (!stillScanning.length) {
+      stopBulkScanMonitor();
+      toast('✓ All domain scans complete');
+    } else {
+      updateBulkCard();
+    }
+  }, 5000);
+}
+
+function stopBulkScanMonitor() {
+  if (_bulkScanTimer) { clearInterval(_bulkScanTimer); _bulkScanTimer = null; }
+  const card = document.getElementById('scan-progress-card');
+  if (card) card.style.display = 'none';
 }
 
 function renderScanProgress(domainName, pct, checkIdx, total, remaining) {
@@ -1216,7 +1258,7 @@ async function scanAll() {
 // DOMAIN DETAIL PANEL
 // ═══════════════════════════════════════════════════════════════
 
-function openPanel(domainId) {
+async function openPanel(domainId) {
   const d = domains.find(x => x.id === domainId);
   if (!d) return;
   activeDomain = d;
@@ -1224,33 +1266,56 @@ function openPanel(domainId) {
 
   // Header
   document.getElementById('panel-domain-name').textContent = d.domain;
-  const s = d.risk_score;
   const scoreEl  = document.getElementById('panel-score');
   const badgeEl  = document.getElementById('panel-risk-badge');
   const statusEl = document.getElementById('panel-status-badge');
   const scanning = d.status === 'scanning' || d.status === 'pending';
 
-  if (scanning) {
-    scoreEl.textContent = '…';
-    scoreEl.style.color = 'var(--muted)';
-    badgeEl.innerHTML = '';
-    statusEl.innerHTML = '<span class="risk-badge risk-pending">⟳ Scanning</span>';
-  } else if (s == null) {
-    scoreEl.textContent = '—';
-    scoreEl.style.color = 'var(--muted)';
-    badgeEl.innerHTML = '';
-    statusEl.innerHTML = '';
-  } else {
-    scoreEl.textContent = s;
-    scoreEl.style.color = s >= 60 ? 'var(--red)' : s >= 30 ? 'var(--amber)' : 'var(--lime)';
-    const lvl = s>=60?'CRITICAL':s>=30?'WARNING':'CLEAN';
-    const cls = s>=60?'risk-critical':s>=30?'risk-warning':'risk-clean';
-    badgeEl.innerHTML = `<span class="risk-badge ${cls}">${lvl}</span>`;
-    statusEl.innerHTML = d.paid ? '<span class="tag">Pro</span>' : '';
+  function applyScore(rs, paid) {
+    if (rs == null) {
+      scoreEl.textContent = '—'; scoreEl.style.color = 'var(--muted)';
+      badgeEl.innerHTML = ''; statusEl.innerHTML = '';
+    } else {
+      scoreEl.textContent = rs;
+      scoreEl.style.color = rs >= 60 ? 'var(--red)' : rs >= 30 ? 'var(--amber)' : 'var(--lime)';
+      const lvl = rs>=60?'CRITICAL':rs>=30?'WARNING':'CLEAN';
+      const cls = rs>=60?'risk-critical':rs>=30?'risk-warning':'risk-clean';
+      badgeEl.innerHTML = `<span class="risk-badge ${cls}">${lvl}</span>`;
+      statusEl.innerHTML = paid ? '<span class="tag">Pro</span>' : '';
+    }
   }
 
-  // Checks tab
-  renderChecksTab(d);
+  if (scanning) {
+    scoreEl.textContent = '…'; scoreEl.style.color = 'var(--muted)';
+    badgeEl.innerHTML = '';
+    statusEl.innerHTML = '<span class="risk-badge risk-pending">⟳ Scanning</span>';
+  } else {
+    applyScore(d.risk_score, d.paid);
+  }
+
+  // Checks tab — always fetch fresh report from backend
+  const checksEl = document.getElementById('ptab-checks');
+  if (scanning) {
+    checksEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:32px">⟳ Scan in progress — results will appear here shortly.</div>';
+  } else {
+    checksEl.innerHTML = '<div style="text-align:center;padding:32px"><span class="spinner"></span></div>';
+    try {
+      const report = await api('/domains/' + domainId + '/report');
+      if (report && report.checks && report.checks.length) {
+        const enriched = Object.assign({}, d, { checks: report.checks, risk_score: report.risk_score, paid: report.paid });
+        activeDomain = enriched;
+        applyScore(report.risk_score, report.paid);
+        renderChecksTab(enriched);
+      } else if (report && report.status === 'pending') {
+        checksEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:32px">⟳ Scan in progress — results will appear here shortly.</div>';
+      } else {
+        renderChecksTab(d); // fallback to cached
+      }
+    } catch(e) {
+      renderChecksTab(d); // fallback on error
+    }
+  }
+
   // Reset other tabs to load-on-demand
   document.getElementById('ptab-nis2').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px">Click to load NIS2 compliance…</div>';
   document.getElementById('ptab-history').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px"><span class="spinner"></span> Loading…</div>';
@@ -1536,8 +1601,15 @@ async function submitBulk() {
     el.innerHTML = `<span style="color:var(--lime);font-weight:700">✓ Queued ${data.queued} domains for scanning</span><br>
       <span style="color:var(--muted)">Skipped duplicates: ${data.skipped_duplicates} &nbsp;·&nbsp; Invalid: ${data.skipped_invalid} &nbsp;·&nbsp; Remaining limit: ${data.limit_remaining}</span>`;
     document.getElementById('bulk-paste').value = '';
+    // Switch to Domains tab and reset filter so all scanning domains appear
+    showTab('domains');
+    domainFilter = 'all';
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    const allPill = document.getElementById('pill-all');
+    if (allPill) allPill.classList.add('active');
     await loadDomains();
-    toast('✓ Imported ' + data.queued + ' domains');
+    toast('✓ Imported ' + data.queued + ' domains — scanning started');
+    if (data.queued > 0) startBulkScanMonitor();
   } catch(e) {
     toast(e.message, true);
   } finally {
