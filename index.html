@@ -722,87 +722,69 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
   <div class="wrap">
     <div style="text-align:center">
       <div class="eyebrow" style="margin-bottom:14px">Pricing</div>
-      <h2>Start Free. Scale as You Grow.</h2>
-      <p style="max-width:500px;margin:16px auto 0;font-size:17px">No per-seat fees. No long-term contracts. Cancel anytime. Price scales with the number of domains you monitor.</p>
+      <h2>Start Free. Pay Only When You Need More.</h2>
+      <p style="max-width:520px;margin:16px auto 0;font-size:17px">No per-seat fees. One free scan to get started — then pay per scan or upgrade for ongoing monitoring of up to 10 domains.</p>
     </div>
 
-    <div class="pricing-wrap">
+    <div class="pricing-wrap" style="grid-template-columns:repeat(3,1fr)">
 
       <!-- Free -->
       <div class="plan">
         <div class="plan-name">Free</div>
         <div class="plan-price"><span class="free">$0</span></div>
-        <div class="plan-tagline">Perfect for trying it out with your main domain.</div>
+        <div class="plan-tagline">Try it out — scan your main domain for free, no credit card needed.</div>
         <hr class="plan-divider">
         <ul class="plan-features">
-          <li>1 domain monitored</li>
-          <li>22-check scan engine</li>
+          <li>1 domain</li>
+          <li>1 full security scan — free</li>
           <li>Risk score dashboard</li>
-          <li>Email alert on blacklisting</li>
-          <li class="dim">API access</li>
-          <li class="dim">Continuous monitoring</li>
-          <li class="dim">Breach path visualization</li>
+          <li>Basic PDF report</li>
+          <li>Additional scans — $5/scan</li>
+          <li class="dim">Multiple domains</li>
+          <li class="dim">Ongoing monitoring</li>
         </ul>
         <a onclick="showSignUp()" class="plan-btn ghost">Get Started Free</a>
       </div>
 
-      <!-- Pro -->
+      <!-- Professional -->
       <div class="plan featured">
         <div class="plan-flag">Most Popular</div>
         <div class="plan-name">Professional</div>
         <div class="plan-price"><span class="amount">$49</span><span class="period">/mo</span></div>
-        <div class="plan-tagline">For startups and growing teams managing multiple domains.</div>
+        <div class="plan-tagline">Billed annually ($588/yr). For teams monitoring multiple domains.</div>
         <hr class="plan-divider">
         <ul class="plan-features">
-          <li>20 domains monitored</li>
-          <li>22-check scan engine</li>
-          <li>Continuous monitoring (4h)</li>
-          <li>Email + webhook alerts</li>
-          <li>REST API access</li>
-          <li>Outreach contact discovery</li>
-          <li class="dim">Org graph & breach paths</li>
+          <li>2–10 domains</li>
+          <li>10 scans per domain per year</li>
+          <li>22-check full scan engine</li>
+          <li>Risk dashboard &amp; email alerts</li>
+          <li>PDF report + email delivery</li>
+          <li>Bulk domain upload</li>
+          <li>Priority support</li>
         </ul>
-        <a onclick="showSignUp()" class="plan-btn lime">Start 14-Day Trial →</a>
-      </div>
-
-      <!-- Enterprise -->
-      <div class="plan">
-        <div class="plan-name">Enterprise</div>
-        <div class="plan-price"><span class="amount">$490</span><span class="period">/mo</span></div>
-        <div class="plan-tagline">For security teams managing dozens of domains across subsidiaries.</div>
-        <hr class="plan-divider">
-        <ul class="plan-features">
-          <li>500 domains monitored</li>
-          <li>Everything in Pro</li>
-          <li>Organization graph clustering</li>
-          <li>Breach path visualization</li>
-          <li>Choke point prioritization</li>
-          <li>CTEM workflow engine</li>
-          <li>Priority support (4h SLA)</li>
-        </ul>
-        <a href="mailto:enterprise@swarmhawk.com" class="plan-btn ghost">Request Demo</a>
+        <a onclick="showSignUp()" class="plan-btn lime">Upgrade to Professional →</a>
       </div>
 
       <!-- Platform -->
       <div class="plan">
         <div class="plan-name">Platform</div>
-        <div class="plan-price"><span style="font-size:28px;font-weight:900;color:var(--text)">Custom</span></div>
-        <div class="plan-tagline">For hosting providers, MSSPs, and OEM licensing partners.</div>
+        <div class="plan-price"><span style="font-size:28px;font-weight:900;color:var(--text)">Talk&nbsp;to&nbsp;Sales</span></div>
+        <div class="plan-tagline">For hosting providers, MSSPs, and large-scale clients.</div>
         <hr class="plan-divider">
         <ul class="plan-features">
           <li>Unlimited domains</li>
-          <li>Everything in Enterprise</li>
+          <li>Pay per request / domain scan</li>
+          <li>Custom scan volume &amp; pricing</li>
           <li>White-label dashboard</li>
-          <li>XDR platform integration</li>
-          <li>Revenue share programme</li>
-          <li>Dedicated success manager</li>
-          <li>Custom SLA + on-prem option</li>
+          <li>API integration &amp; webhooks</li>
+          <li>Dedicated account manager</li>
+          <li>Custom SLA</li>
         </ul>
-        <a href="mailto:partners@swarmhawk.com" class="plan-btn ghost">Talk to Sales</a>
+        <a href="mailto:sales@swarmhawk.com" class="plan-btn ghost">Contact Sales</a>
       </div>
 
     </div>
-    <p class="plan-footnote">All plans include a <a onclick="showSignUp();return false">free 1-domain scan</a> with no credit card. Need a custom domain limit? <a href="mailto:hello@swarmhawk.com">Just ask.</a></p>
+    <p class="plan-footnote">Start with a <a onclick="showSignUp();return false">free scan</a> — no credit card required. Need custom volume pricing? <a href="mailto:sales@swarmhawk.com">Talk to us.</a></p>
   </div>
 </section>
 
@@ -865,7 +847,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
         </tr>
         <tr>
           <td><div class="cmp-feat">Accessible pricing</div><div class="cmp-feat-sub">Starts free, not at $200k/yr</div></td>
-          <td class="hl"><span class="ck">✓ Free → $490/mo</span></td>
+          <td class="hl"><span class="ck">✓ Free → $49/mo</span></td>
           <td><span class="ck">Varies</span></td>
           <td><span class="cx">$200k+/yr</span></td>
         </tr>
