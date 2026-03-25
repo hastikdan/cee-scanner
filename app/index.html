@@ -4083,8 +4083,8 @@ function openDashboard() {
     }
   }
 
-  refreshAdminAccess();
   dbLoadAll();
+  if (typeof refreshAdminAccess === 'function') refreshAdminAccess();
 }
 
 function closeDashboard() {
@@ -8643,8 +8643,10 @@ var _EMAIL_SUGGESTIONS = {
     '',
     'Requirements:',
     '1. Subject line on first line as: Subject: <subject>',
-
-
+    '2. Body 6-8 sentences. Professional, not salesy.',
+  ],
+};
+</script>
 <script>
 // ── Segment switcher ────────────────────────────────────────────────
 function switchSeg(id) {
