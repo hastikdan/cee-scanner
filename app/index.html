@@ -1293,8 +1293,16 @@ async function openPanel(domainId) {
     applyScore(d.risk_score, d.paid);
   }
 
-  // Checks tab — always fetch fresh report from backend
+  // ── Open panel immediately so user sees it right away ──────────
   const checksEl = document.getElementById('ptab-checks');
+  document.getElementById('ptab-nis2').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px">Click to load NIS2 compliance…</div>';
+  document.getElementById('ptab-history').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px"><span class="spinner"></span> Loading…</div>';
+  document.getElementById('ptab-deepscan').innerHTML = '';
+  showPanelTab('checks', null);
+  document.getElementById('domain-panel').classList.add('open');
+  document.getElementById('panel-backdrop').style.display = 'block';
+
+  // ── Load checks content ─────────────────────────────────────────
   if (scanning) {
     checksEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:32px">⟳ Scan in progress — results will appear here shortly.</div>';
   } else {
@@ -1308,22 +1316,19 @@ async function openPanel(domainId) {
         renderChecksTab(enriched);
       } else if (report && report.status === 'pending') {
         checksEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:32px">⟳ Scan in progress — results will appear here shortly.</div>';
+      } else if (d.checks && d.checks.length) {
+        renderChecksTab(d); // fallback to cached data from loadDomains
       } else {
-        renderChecksTab(d); // fallback to cached
+        checksEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:32px">No scan data yet. <button class="btn btn-outline btn-sm" onclick="rescanDomain(\'' + d.id + '\',\'' + safeText(d.domain) + '\')">Run Scan</button></div>';
       }
     } catch(e) {
-      renderChecksTab(d); // fallback on error
+      if (d.checks && d.checks.length) {
+        renderChecksTab(d);
+      } else {
+        checksEl.innerHTML = '<div style="color:var(--red);font-size:13px;text-align:center;padding:32px">Failed to load report: ' + safeText(e.message) + '</div>';
+      }
     }
   }
-
-  // Reset other tabs to load-on-demand
-  document.getElementById('ptab-nis2').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px">Click to load NIS2 compliance…</div>';
-  document.getElementById('ptab-history').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px"><span class="spinner"></span> Loading…</div>';
-  document.getElementById('ptab-deepscan').innerHTML = '';
-  showPanelTab('checks', null);
-
-  document.getElementById('domain-panel').classList.add('open');
-  document.getElementById('panel-backdrop').style.display = 'block';
 
   // Load history + NIS2 + deepscan in background
   loadPanelHistory(d.id);
