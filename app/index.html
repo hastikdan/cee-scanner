@@ -2875,7 +2875,7 @@ async function api(path,opts={}) {
     }
     return res.json();
   } catch(e) {
-    if (e.name === 'AbortError') throw new Error('Request timed out — backend may be waking up (free tier). Please retry in 30s.');
+    if (e.name === 'AbortError') throw new Error('Request timed out — backend is temporarily unreachable. Please retry.');
     throw e;
   } finally {
     clearTimeout(timeout);
@@ -4145,7 +4145,7 @@ async function dbLoadAll() {
   // After 6s still loading → show cold-start hint
   var wakeTimer = setTimeout(function() {
     var lo = document.getElementById('db-domains-loading');
-    if (lo) lo.textContent = 'Waking up backend… (free tier, ~30s) ☕';
+    if (lo) lo.textContent = 'Loading… if this takes long, check your connection.';
   }, 6000);
   try {
     var data = await api('/domains');
@@ -5162,8 +5162,8 @@ async function dbLoadIntel(force) {
           intelEl.innerHTML =
             '<div style="padding:32px;text-align:center">' +
             '<div class="spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 12px"></div>' +
-            '<p style="color:var(--white);font-weight:600;margin-bottom:8px">Backend is waking up…</p>' +
-            '<p style="color:var(--grey);font-size:13px;margin:0 auto 14px">Render free tier needs a moment to start. Auto-retrying in <strong id="intel-countdown">' + countdown + '</strong>s.</p>' +
+            '<p style="color:var(--white);font-weight:600;margin-bottom:8px">Backend temporarily unreachable…</p>' +
+            '<p style="color:var(--grey);font-size:13px;margin:0 auto 14px">Backend temporarily unreachable. Auto-retrying in <strong id="intel-countdown">' + countdown + '</strong>s.</p>' +
             '<button class="btn-scan-all" onclick="dbLoadIntel(true)">↻ Retry Now</button>' +
             '</div>';
         }
