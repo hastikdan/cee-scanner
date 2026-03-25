@@ -1746,7 +1746,7 @@ curl https://swarmhawk-backend.onrender.com<span class="c-str">/scan/example.com
           <button class="btn-scan-all" onclick="dbScanAll()" style="flex-shrink:0;background:rgba(163,230,53,.08);border:1px solid rgba(163,230,53,.2);color:var(--lime)">↻ Scan All</button>
         </div>
         <div id="db-domains-table" class="db-domains-table">
-          <div class="db-empty">Loading domains…</div>
+          <div class="db-empty" id="db-domains-loading">Loading domains…</div>
         </div>
 
         <!-- ── COMPETITOR TRACKING ────────────────────────────── -->
@@ -2865,12 +2865,21 @@ function logout() {
 }
 
 async function api(path,opts={}) {
-  const res=await fetch(`${API}${path}`,{...opts,headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`,...(opts.headers||{})}});
-  if (!res.ok){
-    const e=await res.json().catch(()=>({detail:res.statusText}));
-    throw new Error('HTTP '+res.status+': '+(e.detail||e.message||res.statusText));
+  const controller = new AbortController();
+  const timeout = setTimeout(function(){ controller.abort(); }, 45000);
+  try {
+    const res=await fetch(`${API}${path}`,{...opts,signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`,...(opts.headers||{})}});
+    if (!res.ok){
+      const e=await res.json().catch(()=>({detail:res.statusText}));
+      throw new Error('HTTP '+res.status+': '+(e.detail||e.message||res.statusText));
+    }
+    return res.json();
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('Request timed out — backend may be waking up (free tier). Please retry in 30s.');
+    throw e;
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json();
 }
 
 async function loadDomains() {
@@ -4133,14 +4142,21 @@ function dbShowTab(tab, btn) {
 }
 
 async function dbLoadAll() {
+  // After 6s still loading → show cold-start hint
+  var wakeTimer = setTimeout(function() {
+    var lo = document.getElementById('db-domains-loading');
+    if (lo) lo.textContent = 'Waking up backend… (free tier, ~30s) ☕';
+  }, 6000);
   try {
     var data = await api('/domains');
+    clearTimeout(wakeTimer);
     dbDomains = data.domains || data || [];
     dbRenderOverview();
     dbRenderDomainsTable();
     compLoad();
     nis2Load();
   } catch(e) {
+    clearTimeout(wakeTimer);
     console.error('dbLoadAll:', e);
     var el = document.getElementById('db-domains-table');
     if (el) {
