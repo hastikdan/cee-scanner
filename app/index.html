@@ -1088,36 +1088,52 @@ function startScanProgress(domainId, domainName) {
 
 function startBulkScanMonitor() {
   if (_bulkScanTimer) clearInterval(_bulkScanTimer);
-  // Stop any single-domain progress
   if (_scanProgressTimer) { clearInterval(_scanProgressTimer); _scanProgressTimer = null; _scanningDomainId = null; }
+
+  const ESTIMATED_SECS = 90.0;
+  const TOTAL_CHECKS   = 22;
+  const startTime      = Date.now();
+  let   tick           = 0;
 
   function updateBulkCard() {
     const scanning = domains.filter(d => d.status === 'scanning' || d.status === 'pending');
     if (!scanning.length) { stopBulkScanMonitor(); return; }
+    const elapsed   = (Date.now() - startTime) / 1000;
+    const pct       = Math.min(95, Math.round((elapsed / ESTIMATED_SECS) * 100));
+    const checkIdx  = Math.min(TOTAL_CHECKS - 1, Math.floor((elapsed / ESTIMATED_SECS) * TOTAL_CHECKS));
+    const remaining = Math.max(0, Math.round(ESTIMATED_SECS - elapsed));
+    const checkName = SCAN_CHECKS[checkIdx] || 'Finalising…';
+    const mins      = Math.floor(remaining / 60);
+    const secs      = remaining % 60;
+    const timeStr   = remaining > 0 ? (mins > 0 ? mins + 'm ' : '') + secs + 's remaining' : 'Finalising…';
+    const names     = scanning.slice(0, 3).map(d => safeText(d.domain)).join(', ');
+    const extra     = scanning.length > 3 ? ' +' + (scanning.length - 3) + ' more' : '';
+    const dots      = SCAN_CHECKS.map((_, i) =>
+      `<div class="sp-check-dot ${i < checkIdx ? 'done' : i === checkIdx ? 'active' : ''}" title="${SCAN_CHECKS[i]}"></div>`
+    ).join('');
     const card = document.getElementById('scan-progress-card');
     card.style.display = 'block';
-    const names = scanning.slice(0, 3).map(d => safeText(d.domain)).join(', ');
-    const extra = scanning.length > 3 ? ' +' + (scanning.length - 3) + ' more' : '';
     card.innerHTML = `
-      <div class="sp-domain">⟳ Scanning ${scanning.length} domain${scanning.length > 1 ? 's' : ''}…</div>
+      <div class="sp-domain">⟳ Scanning ${scanning.length} domain${scanning.length > 1 ? 's' : ''} in parallel</div>
       <div class="sp-check-row">
         <span class="sp-check-name">${names}${extra}</span>
-        <span class="sp-check-meta">Running in parallel</span>
+        <span class="sp-check-meta">${checkIdx + 1} / ${TOTAL_CHECKS} &nbsp;·&nbsp; ${timeStr}</span>
       </div>
-      <div class="sp-bar-wrap"><div class="sp-bar" style="width:60%;transition:none"></div></div>`;
+      <div class="sp-bar-wrap"><div class="sp-bar" style="width:${pct}%"></div></div>
+      <div class="sp-checks-row">${dots}</div>`;
   }
 
   updateBulkCard();
+  // 2s tick: animate progress; every 3rd tick (~6s) also poll server
   _bulkScanTimer = setInterval(async () => {
-    await loadDomains();
-    const stillScanning = domains.filter(d => d.status === 'scanning' || d.status === 'pending');
-    if (!stillScanning.length) {
-      stopBulkScanMonitor();
-      toast('✓ All domain scans complete');
-    } else {
-      updateBulkCard();
+    tick++;
+    if (tick % 3 === 0) {
+      await loadDomains();
+      const stillScanning = domains.filter(d => d.status === 'scanning' || d.status === 'pending');
+      if (!stillScanning.length) { stopBulkScanMonitor(); toast('✓ All domain scans complete'); return; }
     }
-  }, 5000);
+    updateBulkCard();
+  }, 2000);
 }
 
 function stopBulkScanMonitor() {
@@ -1605,20 +1621,43 @@ async function submitBulk() {
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Importing…';
   try {
     const data = await api('/domains/bulk', { method: 'POST', body: JSON.stringify({ domains: domainList }) });
-    const el = document.getElementById('bulk-result');
-    el.style.display = 'block';
-    el.innerHTML = `<span style="color:var(--lime);font-weight:700">✓ Queued ${data.queued} domains for scanning</span><br>
-      <span style="color:var(--muted)">Skipped duplicates: ${data.skipped_duplicates} &nbsp;·&nbsp; Invalid: ${data.skipped_invalid} &nbsp;·&nbsp; Remaining limit: ${data.limit_remaining}</span>`;
     document.getElementById('bulk-paste').value = '';
-    // Switch to Domains tab and reset filter so all scanning domains appear
-    showTab('domains');
+
+    if (data.queued === 0) {
+      const el = document.getElementById('bulk-result');
+      el.style.display = 'block';
+      el.innerHTML = `<span style="color:var(--amber);font-weight:700">Nothing queued.</span>
+        <span style="color:var(--muted)"> Duplicates: ${data.skipped_duplicates} &nbsp;·&nbsp; Invalid: ${data.skipped_invalid}</span>`;
+      return;
+    }
+
+    // ── Optimistically insert all queued domains as 'scanning' immediately ──
     domainFilter = 'all';
     document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
     const allPill = document.getElementById('pill-all');
     if (allPill) allPill.classList.add('active');
-    await loadDomains();
-    toast('✓ Imported ' + data.queued + ' domains — scanning started');
-    if (data.queued > 0) startBulkScanMonitor();
+    (data.queued_domains || []).forEach(domain => {
+      if (!domains.find(d => d.domain === domain)) {
+        domains.unshift({ id: '__bulk_' + domain, domain, country: '', status: 'scanning', risk_score: null, scanned_at: null, checks: [] });
+      }
+    });
+    renderDomainStats();
+    renderDomainTable();
+
+    // ── Close modal and switch to Domains tab to show live progress ──
+    setTimeout(closeBulkModal, 1200);
+    // Switch tab without triggering a second loadDomains (switch manually)
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-domains').classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#nav-tabs .nav-tab, #nav-mobile-menu .nav-tab').forEach(t => {
+      if (t.id === 'tab-domains' || t.id === 'mob-tab-domains') t.classList.add('active');
+    });
+
+    // Start the same animated scan progress UI used for single domains
+    startBulkScanMonitor();
+    toast('✓ Scanning ' + data.queued + ' domains in parallel');
+
   } catch(e) {
     toast(e.message, true);
   } finally {
