@@ -406,6 +406,17 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 .prospect-edit-area{width:100%;min-height:120px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--lime);border-radius:8px;color:var(--text);resize:vertical;margin-bottom:8px}
 @media(max-width:600px){.outreach-kpi-bar{grid-template-columns:repeat(2,1fr)}}
 
+/* Email discovery */
+.discover-zone{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.discover-zone-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.discover-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.email-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.email-chip{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:3px 10px 3px 10px;font-size:11px;cursor:pointer;transition:all .15s}
+.email-chip:hover{border-color:var(--lime);color:var(--lime)}
+.email-chip.selected{border-color:var(--lime);background:rgba(163,230,53,.08);color:var(--lime)}
+.email-chip-guess{border-style:dashed;color:var(--muted)}
+.discover-empty{font-size:12px;color:var(--muted);font-style:italic}
+
 /* ═══════════════════════════════════════════════════════
    TOAST NOTIFICATIONS
 ═══════════════════════════════════════════════════════ */
@@ -706,6 +717,7 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="outreachLoad()">↻ Refresh</button>
+        <button class="btn btn-outline btn-sm" onclick="discoverAllContacts(this)">🔍 Discover All Contacts</button>
         <button class="btn btn-lime btn-sm" onclick="generateOutreach()">⚡ Generate Batch</button>
         <button class="btn btn-outline btn-sm" onclick="sendAllApproved()">▷ Send All Approved</button>
       </div>
@@ -2122,6 +2134,21 @@ function prospectCard(p, status) {
       </div>
     </div>
     ${cves.length||sw.length?`<div class="prospect-cves">${sw.length?'<b>Software:</b> '+sw.join(', ')+(cves.length?' &nbsp;·&nbsp; ':''):''}${cves.length?'<b>CVEs:</b> '+cves.join(', '):''}</div>`:''}
+
+    <!-- Email discovery zone -->
+    <div class="discover-zone" id="dzone-${id}">
+      <div class="discover-zone-head">
+        <span class="discover-label">📧 Contact Discovery</span>
+        <button class="btn btn-outline btn-xs" id="dbtn-${id}" onclick="discoverContact('${id}','${safeText(p.domain||'')}',this)">🔍 Auto-Discover</button>
+      </div>
+      ${email
+        ? `<div class="email-chips" id="dchips-${id}">
+             <span class="email-chip selected" onclick="selectEmail('${id}','${safeText(email)}')" title="Currently selected">✓ ${safeText(email)}</span>
+           </div>`
+        : `<div class="discover-empty" id="dchips-${id}">No contact found yet — click Auto-Discover</div>`
+      }
+    </div>
+
     <div class="prospect-contact">
       <span style="font-size:11px;color:var(--muted);white-space:nowrap">To:</span>
       <input type="email" id="cemail-${id}" value="${safeText(email)}" placeholder="contact@${safeText(p.domain||'')}" onchange="saveContactEmail('${id}',this.value)">
@@ -2202,6 +2229,73 @@ async function saveContactEmail(id, email) {
   try {
     await api('/outreach/prospects/' + id + '/contact', { method: 'PATCH', body: JSON.stringify({ contact_email: email }) });
   } catch(e) {}
+}
+
+async function discoverContact(id, domain, btn) {
+  const chipsEl = document.getElementById('dchips-' + id);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Discovering…'; }
+  if (chipsEl) chipsEl.innerHTML = '<span class="discover-empty"><span class="spinner" style="width:10px;height:10px"></span> Running 4-stage discovery…</span>';
+  try {
+    const data = await api('/outreach/prospects/' + id + '/discover-contact', { method: 'POST', body: '{}' });
+    const emails = data.emails || [];
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Re-discover'; }
+    if (!emails.length) {
+      if (chipsEl) chipsEl.innerHTML = '<span class="discover-empty">No contacts found</span>';
+      return;
+    }
+    // Render email chips — first is "verified", rest may be guesses
+    const guessStart = emails.findIndex(e => ['security@','info@','contact@','webmaster@','admin@'].some(p => e.startsWith(p)));
+    if (chipsEl) {
+      chipsEl.className = 'email-chips';
+      chipsEl.innerHTML = emails.map((e, i) => {
+        const isGuess = guessStart >= 0 && i >= guessStart;
+        const isPrimary = i === 0;
+        return `<span class="email-chip${isPrimary?' selected':''}${isGuess?' email-chip-guess':''}"
+          onclick="selectEmail('${id}','${safeText(e)}')"
+          title="${isGuess?'Pattern guess':'Verified contact'}"
+        >${isPrimary?'✓ ':''}${safeText(e)}</span>`;
+      }).join('');
+    }
+    // Auto-set contact email to primary
+    const emailInput = document.getElementById('cemail-' + id);
+    if (emailInput) emailInput.value = data.primary || emails[0];
+    await saveContactEmail(id, data.primary || emails[0]);
+    toast('✓ Found ' + emails.length + ' contact(s) for ' + domain);
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '🔍 Auto-Discover'; }
+    if (chipsEl) chipsEl.innerHTML = '<span class="discover-empty" style="color:var(--red)">Discovery failed: ' + safeText(e.message) + '</span>';
+  }
+}
+
+function selectEmail(id, email) {
+  // Update chip selection visually
+  const chipsEl = document.getElementById('dchips-' + id);
+  if (chipsEl) {
+    chipsEl.querySelectorAll('.email-chip').forEach(c => {
+      const isThis = c.textContent.replace('✓ ','').trim() === email;
+      c.classList.toggle('selected', isThis);
+      c.textContent = (isThis ? '✓ ' : '') + c.textContent.replace('✓ ','').trim();
+    });
+  }
+  // Update the To: input and save
+  const emailInput = document.getElementById('cemail-' + id);
+  if (emailInput) emailInput.value = email;
+  saveContactEmail(id, email);
+  toast('✓ Contact set to ' + email);
+}
+
+async function discoverAllContacts(btn) {
+  if (!confirm('Run contact discovery for all pending prospects with no email? This may take a few minutes.')) return;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Running…'; }
+  try {
+    await api('/outreach/prospects/discover-all', { method: 'POST', body: '{}' });
+    toast('✓ Discovery running in background — refresh in 2 minutes');
+    setTimeout(() => outreachLoad(), 120000);
+  } catch(e) {
+    toast(e.message, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔍 Discover All Contacts'; }
+  }
 }
 
 async function saveProspectEdit(id) {
