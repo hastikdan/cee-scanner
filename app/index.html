@@ -658,11 +658,6 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
           </div>
         </div>
 
-        <!-- User Roles (admin only) -->
-        <div class="card nav-tab-admin" id="user-roles-card" style="margin-top:16px;display:none">
-          <div class="card-header"><div><div class="card-title">User Roles</div><div class="card-sub">Manage admin access</div></div></div>
-          <div id="user-roles-list"><div style="font-size:13px;color:var(--muted)">Loading…</div></div>
-        </div>
       </div>
     </div>
   </section>
@@ -755,6 +750,12 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
           <tbody id="admin-logs-tbody"><tr><td colspan="6"><div class="empty-state"><span class="spinner"></span></div></td></tr></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- User Roles — super admin only -->
+    <div class="card" id="user-roles-card" style="margin-top:24px;display:none">
+      <div class="card-header"><div><div class="card-title">User Roles</div><div class="card-sub">Manage admin access</div></div></div>
+      <div id="user-roles-list"><div style="font-size:13px;color:var(--muted)">Loading…</div></div>
     </div>
   </section>
 
@@ -933,12 +934,15 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   loadDomains();
 
-  // Verify token with /me (authoritative is_admin check)
+  // Verify token with /me (authoritative is_admin + is_super_admin check)
   api('/me').then(function(u) {
     if (u.is_admin) {
-      currentUser = Object.assign(currentUser || {}, { is_admin: true });
+      currentUser = Object.assign(currentUser || {}, { is_admin: true, is_super_admin: u.is_super_admin });
       localStorage.setItem('sw_user', JSON.stringify(currentUser));
       grantAdminTabs();
+    }
+    if (u.is_super_admin) {
+      grantSuperAdminFeatures();
     }
   }).catch(function(e) {
     if (e.message && e.message.indexOf('401') > -1) {
@@ -951,6 +955,9 @@ function grantAdminTabs() {
   document.querySelectorAll('.nav-tab-admin').forEach(el => {
     el.style.display = el.tagName === 'BUTTON' ? 'inline-flex' : 'block';
   });
+}
+
+function grantSuperAdminFeatures() {
   const rolesCard = document.getElementById('user-roles-card');
   if (rolesCard) rolesCard.style.display = 'block';
 }
