@@ -1089,20 +1089,25 @@ function renderPanelDomains(domains, countryName, summary) {
     return;
   }
 
-  html += '<div class="sp-section-label">Top ' + domains.length + ' Domains · Sorted by Risk</div>';
+  var scannedDomains = domains.filter(function(d){ return d.scanned_at; });
+  var queuedDomains  = domains.filter(function(d){ return !d.scanned_at; });
+  var totalTracked   = (summary && summary.total_tracked) || domains.length;
+  html += '<div class="sp-section-label">Showing ' + domains.length + ' of ' + totalTracked + ' Domains · Scanned first, then Queued</div>';
   for (var i = 0; i < domains.length; i++) {
     var d = typeof domains[i] === 'object' ? domains[i] : { domain: domains[i], risk_score: 0, scanned_at: '' };
     var score = d.risk_score || 0;
-    var scoreColor = score >= 70 ? '#C0392B' : score >= 30 ? '#D4850A' : '#2ECC71';
-    var scoreDisplay = score > 0 ? score : '—';
-    html += '<div class="sp-domain-row">';
+    var isQueued = !d.scanned_at;
+    var scoreColor = isQueued ? '#555' : (score >= 70 ? '#C0392B' : score >= 30 ? '#D4850A' : '#2ECC71');
+    var scoreDisplay = isQueued ? '<span style="font-size:9px;letter-spacing:.5px">QUEUED</span>' : (score > 0 ? score : '—');
+    html += '<div class="sp-domain-row"' + (isQueued ? ' style="opacity:.6"' : '') + '>';
     html += '<span class="sp-rank">' + (i+1) + '</span>';
     html += '<div style="flex:1;min-width:0">';
     html +=   '<div class="sp-domain" title="' + d.domain + '">' + d.domain + '</div>';
     if (d.scanned_at) html += '<div class="sp-scan-date">' + d.scanned_at + '</div>';
+    else html += '<div class="sp-scan-date">Pending scan</div>';
     html += '</div>';
     html += '<span class="sp-score-pill" style="background:'+scoreColor+'22;color:'+scoreColor+';border:1px solid '+scoreColor+'44">'+scoreDisplay+'</span>';
-    html += '<a class="sp-report-btn" href="/?domain=' + encodeURIComponent(d.domain) + '#report" target="_blank">REPORT →</a>';
+    if (!isQueued) html += '<a class="sp-report-btn" href="/?domain=' + encodeURIComponent(d.domain) + '#report" target="_blank">REPORT →</a>';
     html += '</div>';
   }
   body.innerHTML = html;
