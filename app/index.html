@@ -899,6 +899,26 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 <!-- Panel backdrop (mobile) -->
 <div id="panel-backdrop" onclick="closePanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;backdrop-filter:blur(2px)"></div>
 
+<!-- ══ SEND REPORT MODAL ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="send-report-modal" onclick="if(event.target===this)closeSendReportModal()">
+  <div class="modal-box" style="max-width:420px">
+    <button class="modal-close" onclick="closeSendReportModal()">✕</button>
+    <div class="modal-title">✉ Send PDF Report</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">
+      Generate and email the full security report for <strong id="srm-domain">—</strong> as a PDF attachment.
+    </div>
+    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px">Recipient email address</label>
+    <input class="input" id="srm-email" type="email" placeholder="recipient@example.com"
+      onkeydown="if(event.key==='Enter')submitSendReport()"
+      style="margin-bottom:14px">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeSendReportModal()">Cancel</button>
+      <button class="btn btn-lime btn-sm" id="srm-submit" onclick="submitSendReport()">Send PDF</button>
+    </div>
+    <div id="srm-status" style="display:none;margin-top:12px;font-size:13px;text-align:center"></div>
+  </div>
+</div>
+
 <!-- ══ BULK UPLOAD MODAL ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="bulk-modal">
   <div class="modal-box">
@@ -1176,6 +1196,7 @@ function renderDomainTable() {
       <td><span style="font-size:12px;color:var(--muted)">${scannedAt}</span></td>
       <td onclick="event.stopPropagation()"><div class="row-actions">
         <button class="btn btn-ghost btn-xs" onclick="openPanel('${d.id}')">Report</button>
+        <button class="btn btn-ghost btn-xs" onclick="openSendReportModal('${d.id}','${safeText(d.domain)}')" title="Send PDF report by email">✉ Send</button>
         <button class="btn btn-ghost btn-xs" onclick="rescanDomain('${d.id}','${safeText(d.domain)}')">↻</button>
         <button class="btn btn-danger btn-xs" onclick="deleteDomain('${d.id}','${safeText(d.domain)}')">✕</button>
       </div></td>
@@ -1841,6 +1862,50 @@ async function loadPanelTyposquat(domainId) {
 // ═══════════════════════════════════════════════════════════════
 // BULK UPLOAD
 // ═══════════════════════════════════════════════════════════════
+
+// ── Send Report Modal ──────────────────────────────────────────
+var _srmDomainId = null;
+
+function openSendReportModal(domainId, domainName) {
+  _srmDomainId = domainId;
+  document.getElementById('srm-domain').textContent = domainName;
+  document.getElementById('srm-email').value = (currentUser && currentUser.email) || '';
+  document.getElementById('srm-status').style.display = 'none';
+  document.getElementById('srm-submit').disabled = false;
+  document.getElementById('srm-submit').textContent = 'Send PDF';
+  document.getElementById('send-report-modal').classList.add('open');
+  setTimeout(() => document.getElementById('srm-email').focus(), 80);
+}
+
+function closeSendReportModal() {
+  document.getElementById('send-report-modal').classList.remove('open');
+  _srmDomainId = null;
+}
+
+async function submitSendReport() {
+  if (!_srmDomainId) return;
+  const email = document.getElementById('srm-email').value.trim();
+  if (!email) { document.getElementById('srm-email').focus(); return; }
+  const btn = document.getElementById('srm-submit');
+  const statusEl = document.getElementById('srm-status');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="width:12px;height:12px"></span> Generating…';
+  statusEl.style.display = 'none';
+  try {
+    await api('/send-report', { method: 'POST', body: JSON.stringify({ domain_id: _srmDomainId, email }) });
+    statusEl.style.display = 'block';
+    statusEl.style.color = 'var(--lime)';
+    statusEl.textContent = '✓ PDF report sent to ' + email;
+    btn.textContent = '✓ Sent';
+    setTimeout(closeSendReportModal, 1800);
+  } catch(e) {
+    statusEl.style.display = 'block';
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '✗ ' + (e.message || 'Send failed');
+    btn.disabled = false;
+    btn.textContent = 'Send PDF';
+  }
+}
 
 function openBulkModal()  { document.getElementById('bulk-modal').classList.add('open'); }
 function closeBulkModal() { document.getElementById('bulk-modal').classList.remove('open'); document.getElementById('bulk-result').style.display='none'; }
