@@ -391,10 +391,28 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 .tpl-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;user-select:none}
 .tpl-panel-head:hover{background:var(--surface)}
 .tpl-panel-body{padding:20px;border-top:1px solid var(--border);display:none}
+/* Style picker */
+.tpl-style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:700px){.tpl-style-grid{grid-template-columns:repeat(2,1fr)}}
+.tpl-style-card{border:2px solid var(--border);border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .15s;background:var(--surface);position:relative}
+.tpl-style-card:hover{border-color:rgba(203,255,0,.4);background:rgba(203,255,0,.04)}
+.tpl-style-card.active{border-color:var(--lime);background:rgba(203,255,0,.07)}
+.tpl-style-card.active::after{content:'✓';position:absolute;top:8px;right:10px;font-size:11px;font-weight:700;color:var(--lime)}
+.tpl-style-icon{font-size:22px;margin-bottom:6px}
+.tpl-style-name{font-size:12px;font-weight:700;margin-bottom:4px}
+.tpl-style-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.tpl-tone-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tpl-tone-tag{font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid var(--border);color:var(--muted)}
+/* Variables bar */
 .tpl-vars{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .tpl-var{font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--lime);cursor:pointer}
 .tpl-var:hover{border-color:var(--lime)}
-.tpl-preview{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;color:var(--text);line-height:1.7;max-height:180px;overflow-y:auto;margin-top:12px;white-space:pre-wrap}
+/* Assign section */
+.tpl-assign-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px;padding:12px 14px;background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+.tpl-assign-label{font-size:12px;color:var(--muted);white-space:nowrap}
+.tpl-assign-select{flex:1;min-width:120px;max-width:220px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px}
+/* Preview */
+.tpl-preview{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;color:var(--text);line-height:1.7;max-height:220px;overflow-y:auto;margin-top:12px;white-space:pre-wrap}
 
 /* Prospect queue */
 .outreach-tabs{display:flex;gap:2px;margin-bottom:16px;background:var(--surface);border-radius:8px;padding:3px;width:fit-content}
@@ -748,13 +766,46 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
     <!-- Template builder (collapsible) -->
     <div class="tpl-panel">
       <div class="tpl-panel-head" onclick="toggleTplPanel()">
-        <div style="font-size:13px;font-weight:700">✉ Email Template Builder</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:13px;font-weight:700">✉ Email Template Builder</span>
+          <span id="tpl-active-badge" style="font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(203,255,0,.12);border:1px solid rgba(203,255,0,.25);color:var(--lime);display:none"></span>
+        </div>
         <span id="tpl-toggle-icon" style="color:var(--muted);font-size:12px">▼ expand</span>
       </div>
       <div class="tpl-panel-body" id="tpl-panel-body">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
-          Customize the AI prompt used to generate outreach emails. Variables are replaced before sending to the AI.
+
+        <!-- Step 1: Pick a style -->
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">1 · Choose a Style</div>
+        <div class="tpl-style-grid" id="tpl-style-grid">
+          <div class="tpl-style-card active" id="tpl-sc-professional" onclick="tplPickStyle('professional')">
+            <div class="tpl-style-icon">🏢</div>
+            <div class="tpl-style-name">Professional</div>
+            <div class="tpl-style-desc">Formal B2B outreach referencing NIS2 compliance and specific CVEs</div>
+            <div class="tpl-tone-tags"><span class="tpl-tone-tag">formal</span><span class="tpl-tone-tag">detailed</span><span class="tpl-tone-tag">compliance</span></div>
+          </div>
+          <div class="tpl-style-card" id="tpl-sc-urgent" onclick="tplPickStyle('urgent')">
+            <div class="tpl-style-icon">🚨</div>
+            <div class="tpl-style-name">Urgent</div>
+            <div class="tpl-style-desc">Direct, time-sensitive message highlighting active exploit risk</div>
+            <div class="tpl-tone-tags"><span class="tpl-tone-tag">direct</span><span class="tpl-tone-tag">concise</span><span class="tpl-tone-tag">risk-focused</span></div>
+          </div>
+          <div class="tpl-style-card" id="tpl-sc-educational" onclick="tplPickStyle('educational')">
+            <div class="tpl-style-icon">📚</div>
+            <div class="tpl-style-name">Educational</div>
+            <div class="tpl-style-desc">Helpful, non-pushy tone explaining the vulnerability and remediation path</div>
+            <div class="tpl-tone-tags"><span class="tpl-tone-tag">friendly</span><span class="tpl-tone-tag">advisory</span><span class="tpl-tone-tag">low-pressure</span></div>
+          </div>
+          <div class="tpl-style-card" id="tpl-sc-partnership" onclick="tplPickStyle('partnership')">
+            <div class="tpl-style-icon">🤝</div>
+            <div class="tpl-style-name">Partnership</div>
+            <div class="tpl-style-desc">Collaborative framing — "we found this, let's work together to fix it"</div>
+            <div class="tpl-tone-tags"><span class="tpl-tone-tag">collaborative</span><span class="tpl-tone-tag">warm</span><span class="tpl-tone-tag">solution-led</span></div>
+          </div>
         </div>
+
+        <!-- Step 2: Customize prompt -->
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">2 · Customize Prompt</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Variables inserted into the prompt before sending to AI — click to insert at cursor.</div>
         <div class="tpl-vars">
           <span class="tpl-var" onclick="tplInsert('{domain}')">{domain}</span>
           <span class="tpl-var" onclick="tplInsert('{sw_list}')">{sw_list}</span>
@@ -762,12 +813,39 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
           <span class="tpl-var" onclick="tplInsert('{top_cve_id}')">{top_cve_id}</span>
           <span class="tpl-var" onclick="tplInsert('{top_cvss}')">{top_cvss}</span>
         </div>
-        <textarea id="tpl-body" rows="8" style="width:100%;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);resize:vertical" placeholder="Loading default template…" oninput="tplPreviewDebounce()"></textarea>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          <button class="btn btn-lime btn-sm" onclick="tplSave()">Save Template</button>
-          <button class="btn btn-outline btn-sm" onclick="tplPreview()">Preview Email</button>
-          <button class="btn btn-ghost btn-sm" onclick="tplReset()">Reset to Default</button>
+        <textarea id="tpl-body" rows="9" style="width:100%;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);resize:vertical;box-sizing:border-box" placeholder="Loading template…" oninput="tplPreviewDebounce()"></textarea>
+
+        <!-- Step 3: Assign to country -->
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:16px;margin-bottom:8px">3 · Assign to Country / All</div>
+        <div class="tpl-assign-row">
+          <span class="tpl-assign-label">Apply template to:</span>
+          <select class="tpl-assign-select" id="tpl-assign-country">
+            <option value="__all__">All countries (default)</option>
+            <option value="CZ">🇨🇿 Czech Republic</option>
+            <option value="SK">🇸🇰 Slovakia</option>
+            <option value="PL">🇵🇱 Poland</option>
+            <option value="DE">🇩🇪 Germany</option>
+            <option value="AT">🇦🇹 Austria</option>
+            <option value="HU">🇭🇺 Hungary</option>
+            <option value="RO">🇷🇴 Romania</option>
+            <option value="FR">🇫🇷 France</option>
+            <option value="IT">🇮🇹 Italy</option>
+            <option value="ES">🇪🇸 Spain</option>
+            <option value="NL">🇳🇱 Netherlands</option>
+            <option value="BE">🇧🇪 Belgium</option>
+            <option value="SE">🇸🇪 Sweden</option>
+            <option value="NO">🇳🇴 Norway</option>
+            <option value="DK">🇩🇰 Denmark</option>
+            <option value="FI">🇫🇮 Finland</option>
+            <option value="CH">🇨🇭 Switzerland</option>
+            <option value="GB">🇬🇧 United Kingdom</option>
+            <option value="US">🇺🇸 United States</option>
+          </select>
+          <button class="btn btn-lime btn-sm" onclick="tplSave()">💾 Save &amp; Assign</button>
+          <button class="btn btn-outline btn-sm" onclick="tplPreview()">👁 Preview</button>
+          <button class="btn btn-ghost btn-sm" onclick="tplReset()">↺ Reset</button>
         </div>
+
         <div class="tpl-preview" id="tpl-preview" style="display:none"></div>
       </div>
     </div>
@@ -2178,7 +2256,6 @@ async function loadUserRoles() {
 
 let outreachPage = 1;
 let outreachTab  = 'pending';
-let tplPreviewTimer = null;
 
 // ── Tab switching ────────────────────────────────────────────
 function outreachSetTab(tab) {
@@ -2472,6 +2549,92 @@ async function generateOutreach() {
 }
 
 // ── Template builder ──────────────────────────────────────────
+
+const TPL_STYLES = {
+  professional: {
+    name: 'Professional',
+    prompt: `Write a formal professional cold outreach email (7-9 sentences) from SwarmHawk, a European cybersecurity intelligence company, to the IT security manager or webmaster of {domain}.
+
+Passive scan findings:
+- Exposed software stack: {sw_list}
+- Active CVEs detected: {cve_list}
+
+Requirements:
+1. Subject line on first line as: Subject: <subject>
+2. Open formally — address as "Dear Security Team at {domain}"
+3. Cite {top_cve_id} (CVSS {top_cvss}) as the lead finding with one plain-language risk sentence
+4. Reference NIS2 Article 21 obligation to manage cyber risk
+5. Mention our free full security report available at swarmhawk.com
+6. Close with a professional call-to-action to schedule a brief call
+7. Tone: formal, detailed, authoritative — not alarmist
+8. Sign off: The SwarmHawk Security Intelligence Team | swarmhawk.com
+
+Output ONLY the email. No preamble. No markdown.`
+  },
+  urgent: {
+    name: 'Urgent',
+    prompt: `Write a concise, urgent cold outreach email (5-6 sentences) from SwarmHawk to the webmaster or IT manager of {domain}.
+
+Active findings:
+- Software: {sw_list}
+- CVEs: {cve_list}
+
+Requirements:
+1. Subject line on first line as: Subject: <subject> — include the word URGENT or ALERT
+2. Open with the highest-severity finding: {top_cve_id} (CVSS {top_cvss}) — is being actively exploited in the wild
+3. One sentence: the concrete business impact if left unpatched (data breach, downtime, regulatory fine)
+4. NIS2 non-compliance exposure — one sentence only
+5. Direct CTA: "Get your free full exposure report at swarmhawk.com today"
+6. Tone: direct, brief, serious — conveys urgency without being alarmist
+7. Sign off: SwarmHawk Security | swarmhawk.com
+
+Output ONLY the email. No preamble. No markdown.`
+  },
+  educational: {
+    name: 'Educational',
+    prompt: `Write a helpful, educational outreach email (7-8 sentences) from SwarmHawk to the webmaster or IT team at {domain}.
+
+What our passive scan found:
+- Software in use: {sw_list}
+- Known vulnerabilities: {cve_list}
+
+Requirements:
+1. Subject line on first line as: Subject: <subject> — frame as "we noticed something" not a warning
+2. Open warmly — explain that SwarmHawk passively monitors internet-exposed software
+3. Briefly explain what {top_cve_id} (CVSS {top_cvss}) means in plain language — no jargon
+4. Educate on how these vulnerabilities are typically exploited (one sentence)
+5. Mention that a free detailed report is available at swarmhawk.com to help prioritise fixes
+6. Tone: friendly, advisory, low-pressure — position as a helpful resource not a sales pitch
+7. NO hard sell — just offer the free report and wish them well
+8. Sign off: The SwarmHawk Team | swarmhawk.com
+
+Output ONLY the email. No preamble. No markdown.`
+  },
+  partnership: {
+    name: 'Partnership',
+    prompt: `Write a collaborative partnership-focused outreach email (7-8 sentences) from SwarmHawk to the security or IT leadership at {domain}.
+
+Findings from our monitoring:
+- Technology detected: {sw_list}
+- Vulnerability exposure: {cve_list}
+
+Requirements:
+1. Subject line on first line as: Subject: <subject> — frame around collaboration or shared interest
+2. Open by acknowledging that {domain} clearly takes their technology seriously
+3. Frame the discovery of {top_cve_id} (CVSS {top_cvss}) as "we found something we think you'd want to know about"
+4. Position SwarmHawk as a partner in security — "we're in this together"
+5. Offer the free report at swarmhawk.com as a starting point for discussion
+6. Suggest a brief intro call to explore how our continuous monitoring could complement their existing security posture
+7. Tone: warm, collaborative, solution-led — peer-to-peer not vendor-to-buyer
+8. Sign off: The SwarmHawk Partnership Team | swarmhawk.com
+
+Output ONLY the email. No preamble. No markdown.`
+  }
+};
+
+var _tplActiveStyle = 'professional';
+var tplPreviewTimer = null;
+
 function toggleTplPanel() {
   const body = document.getElementById('tpl-panel-body');
   const icon = document.getElementById('tpl-toggle-icon');
@@ -2482,11 +2645,46 @@ function toggleTplPanel() {
 }
 
 async function tplLoad() {
+  // Load saved template from server (if any), otherwise use active style preset
   try {
     const data = await api('/outreach/templates');
-    const tpl  = document.getElementById('tpl-body');
-    if (tpl && data.default_template) tpl.value = data.default_template;
-  } catch(e) {}
+    const ta = document.getElementById('tpl-body');
+    if (ta && data.default_template) {
+      // Check if it matches any preset, otherwise show as-is
+      const savedPrompt = data.default_template;
+      ta.value = savedPrompt;
+      // Try to detect which style is active
+      let matched = null;
+      for (const [key, s] of Object.entries(TPL_STYLES)) {
+        if (savedPrompt.trim() === s.prompt.trim()) { matched = key; break; }
+      }
+      if (matched) tplSetActiveCard(matched, false);
+    }
+  } catch(e) {
+    // Fallback: load default preset
+    const ta = document.getElementById('tpl-body');
+    if (ta) ta.value = TPL_STYLES.professional.prompt;
+  }
+}
+
+function tplPickStyle(style) {
+  if (!TPL_STYLES[style]) return;
+  _tplActiveStyle = style;
+  const ta = document.getElementById('tpl-body');
+  if (ta) { ta.value = TPL_STYLES[style].prompt; ta.focus(); }
+  tplSetActiveCard(style, true);
+  document.getElementById('tpl-preview').style.display = 'none';
+}
+
+function tplSetActiveCard(style, updateBadge) {
+  document.querySelectorAll('.tpl-style-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('tpl-sc-' + style);
+  if (card) card.classList.add('active');
+  _tplActiveStyle = style;
+  if (updateBadge) {
+    const badge = document.getElementById('tpl-active-badge');
+    if (badge) { badge.textContent = TPL_STYLES[style].name + ' style'; badge.style.display = 'inline'; }
+  }
 }
 
 function tplInsert(variable) {
@@ -2500,7 +2698,7 @@ function tplInsert(variable) {
 
 function tplPreviewDebounce() {
   clearTimeout(tplPreviewTimer);
-  tplPreviewTimer = setTimeout(tplPreview, 800);
+  tplPreviewTimer = setTimeout(tplPreview, 900);
 }
 
 async function tplPreview() {
@@ -2508,11 +2706,11 @@ async function tplPreview() {
   if (!ta) return;
   const prev = document.getElementById('tpl-preview');
   prev.style.display = 'block';
-  prev.textContent = 'Generating preview…';
+  prev.textContent = '⟳ Generating preview with AI…';
   try {
     const data = await api('/outreach/templates/test', {
       method: 'POST',
-      body: JSON.stringify({ prompt: ta.value, domain: 'example.com' })
+      body: JSON.stringify({ prompt: ta.value, domain: 'acme-corp.cz' })
     });
     prev.textContent = data.email || data.result || 'No preview available';
   } catch(e) { prev.textContent = 'Preview failed: ' + e.message; }
@@ -2520,23 +2718,38 @@ async function tplPreview() {
 
 async function tplSave() {
   const ta = document.getElementById('tpl-body');
-  if (!ta) return;
+  if (!ta || !ta.value.trim()) return;
+  const country = document.getElementById('tpl-assign-country').value;
+  const style   = _tplActiveStyle;
+  const targets = country === '__all__'
+    ? ['CZ','SK','PL','DE','AT','HU','RO','FR','IT','ES','NL','BE','SE','NO','DK','FI','CH','GB','US']
+    : [country];
+
   try {
-    // Save as default (country=global) — fallback to saving first 3 countries
-    await api('/outreach/templates/US', {
-      method: 'PUT',
-      body: JSON.stringify({ language: 'en', prompt: ta.value })
-    });
-    toast('✓ Template saved');
-  } catch(e) { toast(e.message, true); }
+    await Promise.all(targets.map(cc =>
+      api('/outreach/templates/' + cc, {
+        method: 'PUT',
+        body: JSON.stringify({ language: 'en', prompt: ta.value })
+      })
+    ));
+    const label = country === '__all__' ? 'all countries' : country;
+    toast('✓ ' + TPL_STYLES[style].name + ' template saved for ' + label);
+    const badge = document.getElementById('tpl-active-badge');
+    if (badge) { badge.textContent = TPL_STYLES[style].name + ' · ' + (country === '__all__' ? 'Global' : country); badge.style.display = 'inline'; }
+  } catch(e) { toast('Save failed: ' + e.message, true); }
 }
 
 async function tplReset() {
-  if (!confirm('Reset template to default?')) return;
+  const country = document.getElementById('tpl-assign-country').value;
+  const targets = country === '__all__'
+    ? ['CZ','SK','PL','DE','AT','HU','RO','FR','GB','US']
+    : [country];
+  if (!confirm('Reset template for ' + (country === '__all__' ? 'all countries' : country) + ' to default?')) return;
   try {
-    const data = await api('/outreach/templates/US', { method: 'DELETE' });
+    const results = await Promise.all(targets.map(cc => api('/outreach/templates/' + cc, { method: 'DELETE' })));
     const ta = document.getElementById('tpl-body');
-    if (ta && data.prompt) ta.value = data.prompt;
+    if (ta && results[0] && results[0].prompt) ta.value = results[0].prompt;
+    tplSetActiveCard('professional', true);
     toast('✓ Reset to default');
   } catch(e) { toast(e.message, true); }
 }
