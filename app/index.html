@@ -503,9 +503,11 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
       <button class="nav-tab nav-tab-admin" id="tab-admin"     onclick="showTab('admin',this)">Admin</button>
     </div>
     <div class="nav-right">
-      <span class="nav-user-name" id="nav-username"></span>
-      <div class="nav-avatar-initials" id="nav-initials"></div>
-      <img class="nav-avatar" id="nav-avatar" src="" alt="">
+      <button onclick="showTab('account',document.getElementById('tab-account'))" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .15s" onmouseover="this.style.background='var(--surface-2,#1e1e2e)'" onmouseout="this.style.background='none'">
+        <span class="nav-user-name" id="nav-username"></span>
+        <div class="nav-avatar-initials" id="nav-initials"></div>
+        <img class="nav-avatar" id="nav-avatar" src="" alt="">
+      </button>
       <button class="btn-logout btn-sm" onclick="logout()">Log out</button>
     </div>
   </div>
