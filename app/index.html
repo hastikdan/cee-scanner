@@ -282,6 +282,20 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 .deepscan-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
 .deepscan-title{font-size:13px;font-weight:700;margin-bottom:4px}
 .deepscan-sub{font-size:12px;color:var(--muted)}
+/* Typosquat tab */
+.typo-section{margin-bottom:20px}
+.typo-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+.typo-domain-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:7px;margin-bottom:6px}
+.typo-domain-row.threat{border-color:rgba(192,57,43,.35);background:rgba(192,57,43,.05)}
+.typo-domain-row.available{border-color:rgba(46,204,113,.25);background:rgba(46,204,113,.04)}
+.typo-domain-name{font-size:13px;font-family:'JetBrains Mono',monospace;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.typo-domain-row.threat .typo-domain-name{color:var(--red)}
+.typo-domain-row.available .typo-domain-name{color:var(--lime)}
+.typo-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.typo-tag.threat{background:rgba(192,57,43,.15);color:var(--red);border:1px solid rgba(192,57,43,.3)}
+.typo-tag.available{background:rgba(46,204,113,.12);color:var(--lime);border:1px solid rgba(46,204,113,.25)}
+.typo-buy-btn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;background:var(--lime);color:#000;border:none;cursor:pointer;text-decoration:none;white-space:nowrap}
+.typo-buy-btn:hover{opacity:.85}
 
 /* ═══════════════════════════════════════════════════════
    BULK UPLOAD MODAL
@@ -873,11 +887,13 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
     <button class="panel-tab" onclick="showPanelTab('nis2',this)">NIS2</button>
     <button class="panel-tab" onclick="showPanelTab('history',this)">History</button>
     <button class="panel-tab" onclick="showPanelTab('deepscan',this)">DeepScan</button>
+    <button class="panel-tab" onclick="showPanelTab('typosquat',this);loadPanelTyposquat(activeDomain&&activeDomain.id)">Typosquat</button>
   </div>
-  <div id="ptab-checks" class="panel-tab-content active"></div>
-  <div id="ptab-nis2"   class="panel-tab-content"></div>
-  <div id="ptab-history" class="panel-tab-content"></div>
-  <div id="ptab-deepscan" class="panel-tab-content"></div>
+  <div id="ptab-checks"    class="panel-tab-content active"></div>
+  <div id="ptab-nis2"      class="panel-tab-content"></div>
+  <div id="ptab-history"   class="panel-tab-content"></div>
+  <div id="ptab-deepscan"  class="panel-tab-content"></div>
+  <div id="ptab-typosquat" class="panel-tab-content"></div>
 </div>
 
 <!-- Panel backdrop (mobile) -->
@@ -1442,6 +1458,8 @@ async function openPanel(domainId) {
   document.getElementById('ptab-nis2').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px">Click to load NIS2 compliance…</div>';
   document.getElementById('ptab-history').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px"><span class="spinner"></span> Loading…</div>';
   document.getElementById('ptab-deepscan').innerHTML = '';
+  document.getElementById('ptab-typosquat').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px">Click the Typosquat tab to load…</div>';
+  _typosquatLoaded = null;
   showPanelTab('checks', null);
   document.getElementById('domain-panel').classList.add('open');
   document.getElementById('panel-backdrop').style.display = 'block';
@@ -1752,6 +1770,72 @@ async function requestDeepScan(domainId) {
     toast('Deep scan queued — check back in 2–5 minutes');
     setTimeout(() => loadPanelDeepScan(domainId), 3000);
   } catch(e) { toast(e.message, true); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TYPOSQUAT TAB
+// ═══════════════════════════════════════════════════════════════
+
+var _typosquatLoaded = null; // cache domain id to avoid double-fetch
+
+async function loadPanelTyposquat(domainId) {
+  if (!domainId) return;
+  const el = document.getElementById('ptab-typosquat');
+  if (!el) return;
+  if (_typosquatLoaded === domainId) return; // already loaded for this domain
+  _typosquatLoaded = domainId;
+
+  el.innerHTML = '<div style="text-align:center;padding:32px"><span class="spinner"></span><div style="color:var(--muted);font-size:12px;margin-top:10px">Checking ~60 domain variants…</div></div>';
+
+  try {
+    const data = await api('/domains/' + domainId + '/typosquat');
+    const domain    = data.domain || '';
+    const threats   = data.registered  || [];
+    const available = data.available   || [];
+    const checked   = data.total_checked || 0;
+
+    let html = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;padding:12px 14px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
+      <span style="font-size:12px;font-weight:700;color:var(--red)">⚠ ${threats.length} Threats Registered</span>
+      <span style="font-size:12px;font-weight:700;color:var(--lime)">✓ ${available.length} Available to Buy</span>
+      <span style="font-size:12px;color:var(--muted);margin-left:auto">${checked} variants checked</span>
+    </div>`;
+
+    // Registered threats
+    if (threats.length) {
+      html += '<div class="typo-section">';
+      html += '<div class="typo-section-title">🚨 Registered Threats — domains squatting your brand</div>';
+      threats.forEach(d => {
+        html += `<div class="typo-domain-row threat">
+          <span class="typo-domain-name">${safeText(d)}</span>
+          <span class="typo-tag threat">SQUATTED</span>
+          <a href="https://www.whois.com/whois/${encodeURIComponent(d)}" target="_blank" class="btn btn-outline btn-xs" style="font-size:11px">WHOIS</a>
+        </div>`;
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="typo-section"><div class="typo-section-title">🚨 Registered Threats</div>';
+      html += '<div style="font-size:13px;color:var(--lime);padding:10px 0">✓ No active typosquat threats detected</div></div>';
+    }
+
+    // Available to buy
+    if (available.length) {
+      html += '<div class="typo-section">';
+      html += '<div class="typo-section-title">🛒 Available — protect your brand by registering these</div>';
+      available.forEach(item => {
+        html += `<div class="typo-domain-row available">
+          <span class="typo-domain-name">${safeText(item.domain)}</span>
+          <span class="typo-tag available">AVAILABLE</span>
+          <a href="${safeText(item.buy_url)}" target="_blank" class="typo-buy-btn">BUY →</a>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    el.innerHTML = html;
+  } catch(e) {
+    _typosquatLoaded = null; // allow retry
+    el.innerHTML = '<div style="color:var(--red);font-size:13px;padding:32px;text-align:center">Failed to load typosquat data: ' + safeText(e.message) + '</div>';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
