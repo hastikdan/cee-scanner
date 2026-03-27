@@ -363,20 +363,48 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 /* ═══════════════════════════════════════════════════════
    MARKETING TAB
 ═══════════════════════════════════════════════════════ */
-.outreach-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.prospect-row{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
-  padding:18px 20px;margin-bottom:12px;
-}
-.prospect-row-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-.prospect-domain{font-size:14px;font-weight:700}
-.prospect-meta{font-size:12px;color:var(--muted)}
-.prospect-email-preview{
-  background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  padding:12px;font-size:12px;color:var(--text);line-height:1.7;
-  max-height:120px;overflow-y:auto;margin:10px 0;font-family:'JetBrains Mono',monospace;
-}
+/* ══ MARKETING / OUTREACH ════════════════════════════════ */
+.outreach-kpi-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.outreach-kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px}
+.outreach-kpi-n{font-size:26px;font-weight:800;color:var(--lime);font-family:'JetBrains Mono',monospace}
+.outreach-kpi-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.outreach-machine{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:20px}
+.machine-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite;flex-shrink:0}
+.machine-dot.idle{background:var(--muted);animation:none}
+
+/* Template builder */
+.tpl-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:24px;overflow:hidden}
+.tpl-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;user-select:none}
+.tpl-panel-head:hover{background:var(--surface)}
+.tpl-panel-body{padding:20px;border-top:1px solid var(--border);display:none}
+.tpl-vars{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tpl-var{font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--lime);cursor:pointer}
+.tpl-var:hover{border-color:var(--lime)}
+.tpl-preview{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;color:var(--text);line-height:1.7;max-height:180px;overflow-y:auto;margin-top:12px;white-space:pre-wrap}
+
+/* Prospect queue */
+.outreach-tabs{display:flex;gap:2px;margin-bottom:16px;background:var(--surface);border-radius:8px;padding:3px;width:fit-content}
+.outreach-tab{padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--muted);transition:all .15s}
+.outreach-tab.active{background:var(--card);color:var(--text)}
+.prospect-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;transition:border-color .15s}
+.prospect-card:hover{border-color:var(--lime-border)}
+.prospect-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.prospect-domain{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.prospect-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.cvss-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace}
+.cvss-critical{background:#ff4444;color:#fff}
+.cvss-high{background:#ff8800;color:#fff}
+.cvss-medium{background:#ffbb00;color:#000}
+.cvss-low{background:#44aa44;color:#fff}
+.prospect-cves{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.prospect-contact{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.prospect-contact input{flex:1;padding:6px 10px;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text)}
+.prospect-contact input:focus{border-color:var(--lime);outline:none}
+.prospect-email-body{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;color:var(--text);line-height:1.7;max-height:140px;overflow-y:auto;margin-bottom:12px;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;cursor:pointer}
+.prospect-email-body:hover{border-color:var(--border-hover,#444)}
 .prospect-actions{display:flex;gap:8px;flex-wrap:wrap}
+.prospect-edit-area{width:100%;min-height:120px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--lime);border-radius:8px;color:var(--text);resize:vertical;margin-bottom:8px}
+@media(max-width:600px){.outreach-kpi-bar{grid-template-columns:repeat(2,1fr)}}
 
 /* ═══════════════════════════════════════════════════════
    TOAST NOTIFICATIONS
@@ -666,22 +694,66 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 
   <!-- ══ TAB: MARKETING (admin) ═══════════════════════════════════ -->
   <section class="page" id="page-marketing">
-    <div class="outreach-header">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
       <div>
-        <h2 style="font-size:20px;font-weight:800">Outreach Queue</h2>
-        <div style="font-size:13px;color:var(--muted);margin-top:2px">AI-generated emails pending your approval</div>
+        <h2 style="font-size:20px;font-weight:800">Outreach Machine</h2>
+        <div class="outreach-machine">
+          <div class="machine-dot" id="machine-dot"></div>
+          <span id="machine-status">Scanning domains · enriching contacts · drafting emails</span>
+        </div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <select class="search-input" id="outreach-status-filter" onchange="outreachLoad()">
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="sent">Sent</option>
-          <option value="rejected">Rejected</option>
-        </select>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="outreachLoad()">↻ Refresh</button>
         <button class="btn btn-lime btn-sm" onclick="generateOutreach()">⚡ Generate Batch</button>
+        <button class="btn btn-outline btn-sm" onclick="sendAllApproved()">▷ Send All Approved</button>
       </div>
     </div>
+
+    <!-- KPI bar -->
+    <div class="outreach-kpi-bar">
+      <div class="outreach-kpi"><div class="outreach-kpi-n" id="okpi-total">—</div><div class="outreach-kpi-l">Total Prospects</div></div>
+      <div class="outreach-kpi"><div class="outreach-kpi-n" id="okpi-pending">—</div><div class="outreach-kpi-l">Pending Review</div></div>
+      <div class="outreach-kpi"><div class="outreach-kpi-n" id="okpi-approved">—</div><div class="outreach-kpi-l">Ready to Send</div></div>
+      <div class="outreach-kpi"><div class="outreach-kpi-n" id="okpi-sent">—</div><div class="outreach-kpi-l">Emails Sent</div></div>
+    </div>
+
+    <!-- Template builder (collapsible) -->
+    <div class="tpl-panel">
+      <div class="tpl-panel-head" onclick="toggleTplPanel()">
+        <div style="font-size:13px;font-weight:700">✉ Email Template Builder</div>
+        <span id="tpl-toggle-icon" style="color:var(--muted);font-size:12px">▼ expand</span>
+      </div>
+      <div class="tpl-panel-body" id="tpl-panel-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+          Customize the AI prompt used to generate outreach emails. Variables are replaced before sending to the AI.
+        </div>
+        <div class="tpl-vars">
+          <span class="tpl-var" onclick="tplInsert('{domain}')">{domain}</span>
+          <span class="tpl-var" onclick="tplInsert('{sw_list}')">{sw_list}</span>
+          <span class="tpl-var" onclick="tplInsert('{cve_list}')">{cve_list}</span>
+          <span class="tpl-var" onclick="tplInsert('{top_cve_id}')">{top_cve_id}</span>
+          <span class="tpl-var" onclick="tplInsert('{top_cvss}')">{top_cvss}</span>
+        </div>
+        <textarea id="tpl-body" rows="8" style="width:100%;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);resize:vertical" placeholder="Loading default template…" oninput="tplPreviewDebounce()"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-lime btn-sm" onclick="tplSave()">Save Template</button>
+          <button class="btn btn-outline btn-sm" onclick="tplPreview()">Preview Email</button>
+          <button class="btn btn-ghost btn-sm" onclick="tplReset()">Reset to Default</button>
+        </div>
+        <div class="tpl-preview" id="tpl-preview" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Prospect queue tabs -->
+    <div class="outreach-tabs">
+      <button class="outreach-tab active" id="otab-pending"  onclick="outreachSetTab('pending')">Pending</button>
+      <button class="outreach-tab"        id="otab-approved" onclick="outreachSetTab('approved')">Approved</button>
+      <button class="outreach-tab"        id="otab-sent"     onclick="outreachSetTab('sent')">Sent</button>
+      <button class="outreach-tab"        id="otab-rejected" onclick="outreachSetTab('rejected')">Rejected</button>
+    </div>
+
     <div id="outreach-list"><div class="empty-state"><p>Loading prospects…</p></div></div>
     <div id="outreach-pagination" class="pagination"></div>
   </section>
@@ -1940,53 +2012,142 @@ async function loadUserRoles() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// MARKETING TAB
+// MARKETING TAB — Outreach Machine
 // ═══════════════════════════════════════════════════════════════
 
 let outreachPage = 1;
+let outreachTab  = 'pending';
+let tplPreviewTimer = null;
 
+// ── Tab switching ────────────────────────────────────────────
+function outreachSetTab(tab) {
+  outreachTab  = tab;
+  outreachPage = 1;
+  document.querySelectorAll('.outreach-tab').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('otab-' + tab);
+  if (btn) btn.classList.add('active');
+  outreachLoad();
+}
+
+// ── KPI bar ──────────────────────────────────────────────────
+async function outreachLoadStats() {
+  try {
+    const data = await api('/outreach/prospects/stats');
+    const countries = data.countries || [];
+    const total    = data.total || 0;
+    const pending  = countries.reduce((s, c) => s + (c.pending || 0), 0);
+    const approved = countries.reduce((s, c) => s + (c.approved || 0), 0);
+    const sent     = countries.reduce((s, c) => s + (c.sent || 0), 0);
+    document.getElementById('okpi-total').textContent    = total.toLocaleString();
+    document.getElementById('okpi-pending').textContent  = pending.toLocaleString();
+    document.getElementById('okpi-approved').textContent = approved.toLocaleString();
+    document.getElementById('okpi-sent').textContent     = sent.toLocaleString();
+    const dot = document.getElementById('machine-dot');
+    const lbl = document.getElementById('machine-status');
+    if (data.scanned_today > 0) {
+      dot && dot.classList.remove('idle');
+      lbl && (lbl.textContent = data.scanned_today.toLocaleString() + ' domains scanned today · ' + pending.toLocaleString() + ' pending review');
+    } else {
+      dot && dot.classList.add('idle');
+      lbl && (lbl.textContent = 'Idle · next scan scheduled at 01:00 CET');
+    }
+  } catch(e) {}
+}
+
+// ── Prospect list ─────────────────────────────────────────────
 async function outreachLoad() {
-  const status = (document.getElementById('outreach-status-filter')||{}).value || 'pending';
   const el = document.getElementById('outreach-list');
   el.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
+  outreachLoadStats();
   try {
-    const data = await api('/outreach/prospects?status=' + status + '&page=' + outreachPage + '&per_page=20');
+    const data = await api('/outreach/prospects?status=' + outreachTab + '&page=' + outreachPage + '&per_page=20');
     const prospects = data.prospects || data.results || [];
     if (!prospects.length) {
-      el.innerHTML = '<div class="empty-state"><p>No ' + status + ' prospects.</p></div>';
+      el.innerHTML = `<div class="empty-state"><p>No ${outreachTab} prospects.</p>${outreachTab==='pending'?'<p style="font-size:12px;color:var(--muted)">Run ⚡ Generate Batch to create AI-drafted emails from scanned domains.</p>':''}</div>`;
       document.getElementById('outreach-pagination').innerHTML = '';
       return;
     }
-    el.innerHTML = prospects.map((p, i) => {
-      const score = p.risk_score || p.max_cvss || 0;
-      const scoreColor = score>=60?'var(--red)':score>=30?'var(--amber)':'var(--lime)';
-      return `<div class="prospect-row">
-        <div class="prospect-row-head">
-          <div>
-            <div class="prospect-domain">${safeText(p.domain||'')}</div>
-            <div class="prospect-meta">
-              ${safeText(p.contact_email||p.sent_to||'')}
-              &nbsp;·&nbsp; Risk: <span style="color:${scoreColor};font-weight:700">${score}</span>
-              ${p.country?' &nbsp;·&nbsp; '+safeText(p.country):''}
-            </div>
-          </div>
-          ${riskBadge(score>=60?'critical':score>=30?'warning':'clean', score)}
-        </div>
-        ${p.email_body?`<div class="prospect-email-preview">${safeText(p.email_body)}</div>`:''}
-        <div class="prospect-actions">
-          ${status==='pending'?`
-            <button class="btn btn-lime btn-sm"    onclick="approveProspect('${p.id||p.domain}')">✓ Approve</button>
-            <button class="btn btn-outline btn-sm" onclick="editProspect('${p.id||p.domain}',${i})">Edit</button>
-            <button class="btn btn-danger btn-sm"  onclick="rejectProspect('${p.id||p.domain}')">✗ Reject</button>
-          `:''}
-          ${status==='approved'?`<button class="btn btn-lime btn-sm" onclick="sendProspect('${p.id||p.domain}')">▷ Send Email</button>`:''}
-          <span style="font-size:11px;color:var(--muted);margin-left:auto">${p.outreach_status||status}</span>
-        </div>
-      </div>`;
-    }).join('');
+    el.innerHTML = prospects.map(p => prospectCard(p, outreachTab)).join('');
     renderOutreachPagination(data.total || prospects.length, outreachPage);
   } catch(e) {
     el.innerHTML = '<div class="empty-state" style="color:var(--red)">' + safeText(e.message) + '</div>';
+  }
+}
+
+function cvssClass(cvss) {
+  if (cvss >= 9) return 'cvss-critical';
+  if (cvss >= 7) return 'cvss-high';
+  if (cvss >= 4) return 'cvss-medium';
+  return 'cvss-low';
+}
+
+function prospectCard(p, status) {
+  const id      = p.id || p.domain;
+  const cvss    = p.max_cvss || 0;
+  const risk    = p.risk_score || 0;
+  const cves    = (p.cves || []).slice(0,3).map(c => safeText(typeof c==='string'?c:c.id||'')).filter(Boolean);
+  const sw      = (p.software || []).slice(0,2).map(s => safeText(typeof s==='string'?s:(s.product||'')+(s.version?' '+s.version:''))).filter(Boolean);
+  const email   = p.contact_email || p.sent_to || '';
+  const body    = p.email_body || p.email_draft || '';
+  const country = p.country || '';
+
+  const sentInfo = status === 'sent'
+    ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">Sent to ${safeText(p.sent_to||email)} · ${p.sent_at?new Date(p.sent_at).toLocaleDateString():''}</div>`
+    : '';
+
+  const actions = status === 'pending' ? `
+    <button class="btn btn-lime btn-sm"    onclick="approveProspect('${id}')">✓ Approve</button>
+    <button class="btn btn-outline btn-sm" onclick="toggleEditProspect('${id}')">✎ Edit</button>
+    <button class="btn btn-danger btn-sm"  onclick="rejectProspect('${id}')">✗ Skip</button>
+  ` : status === 'approved' ? `
+    <button class="btn btn-lime btn-sm"    onclick="sendProspect('${id}',this)">▷ Send Email</button>
+    <button class="btn btn-outline btn-sm" onclick="toggleEditProspect('${id}')">✎ Edit</button>
+    <button class="btn btn-ghost btn-sm"   onclick="rejectProspect('${id}')">✗ Skip</button>
+  ` : status === 'sent' ? `
+    <button class="btn btn-outline btn-sm" onclick="approveProspect('${id}')">↩ Re-queue</button>
+  ` : `
+    <button class="btn btn-outline btn-sm" onclick="approveProspect('${id}')">↩ Restore</button>
+  `;
+
+  return `<div class="prospect-card" id="pcard-${id}">
+    <div class="prospect-card-head">
+      <div>
+        <div class="prospect-domain">${safeText(p.domain||'')}</div>
+        <div class="prospect-badges">
+          ${cvss>0?`<span class="cvss-badge ${cvssClass(cvss)}">CVSS ${cvss}</span>`:''}
+          ${risk>0?`<span class="cvss-badge" style="background:var(--surface);border:1px solid var(--border);color:var(--muted)">Risk ${risk}</span>`:''}
+          ${country?`<span class="cvss-badge" style="background:var(--surface);border:1px solid var(--border);color:var(--muted)">${safeText(country)}</span>`:''}
+        </div>
+        ${sentInfo}
+      </div>
+    </div>
+    ${cves.length||sw.length?`<div class="prospect-cves">${sw.length?'<b>Software:</b> '+sw.join(', ')+(cves.length?' &nbsp;·&nbsp; ':''):''}${cves.length?'<b>CVEs:</b> '+cves.join(', '):''}</div>`:''}
+    <div class="prospect-contact">
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap">To:</span>
+      <input type="email" id="cemail-${id}" value="${safeText(email)}" placeholder="contact@${safeText(p.domain||'')}" onchange="saveContactEmail('${id}',this.value)">
+    </div>
+    ${body?`<div class="prospect-email-body" id="ebody-${id}" onclick="toggleEditProspect('${id}')" title="Click to edit">${safeText(body)}</div>`:'<div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-style:italic">No email draft yet — click Generate Batch to create one.</div>'}
+    <div id="edit-zone-${id}" style="display:none">
+      <textarea class="prospect-edit-area" id="etarea-${id}">${safeText(body)}</textarea>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-lime btn-sm" onclick="saveProspectEdit('${id}')">Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleEditProspect('${id}')">Cancel</button>
+      </div>
+    </div>
+    <div class="prospect-actions" style="margin-top:12px">${actions}</div>
+  </div>`;
+}
+
+function toggleEditProspect(id) {
+  const zone  = document.getElementById('edit-zone-' + id);
+  const ebody = document.getElementById('ebody-' + id);
+  if (!zone) return;
+  const open = zone.style.display === 'none';
+  zone.style.display  = open ? 'block' : 'none';
+  if (ebody) ebody.style.display = open ? 'none' : 'block';
+  if (open) {
+    const ta = document.getElementById('etarea-' + id);
+    if (ta) ta.focus();
   }
 }
 
@@ -2003,55 +2164,138 @@ function renderOutreachPagination(total, current) {
 async function approveProspect(id) {
   try {
     await api('/outreach/prospects/' + id + '/approve', { method: 'POST', body: '{}' });
-    toast('✓ Approved');
+    toast('✓ Approved — moved to Ready to Send');
     outreachLoad();
   } catch(e) { toast(e.message, true); }
 }
 
 async function rejectProspect(id) {
   try {
-    await api('/outreach/prospects/' + id + '/reject', { method: 'POST', body: '{}' });
-    toast('Rejected');
+    await api('/outreach/prospects/' + id + '/skip', { method: 'POST', body: '{}' });
+    toast('Skipped');
     outreachLoad();
   } catch(e) { toast(e.message, true); }
 }
 
-async function sendProspect(id) {
+async function sendProspect(id, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '…Sending'; }
   try {
     await api('/outreach/prospects/' + id + '/send', { method: 'POST', body: '{}' });
-    toast('✓ Email sent');
+    toast('✓ Email sent with security report + signup CTA');
     outreachLoad();
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '▷ Send Email'; }
+    toast(e.message, true);
+  }
+}
+
+async function sendAllApproved() {
+  if (!confirm('Send emails to all approved prospects now?')) return;
+  try {
+    const data = await api('/outreach/send-approved', { method: 'POST', body: '{}' });
+    toast('✓ Sending all approved emails in background');
+    setTimeout(outreachLoad, 3000);
   } catch(e) { toast(e.message, true); }
 }
 
-function editProspect(id, idx) {
-  // Simple inline edit — swap email body to textarea
-  const rows = document.querySelectorAll('.prospect-row');
-  const row = rows[idx];
-  if (!row) return;
-  const preview = row.querySelector('.prospect-email-preview');
-  if (!preview) return;
-  const current = preview.textContent;
-  preview.outerHTML = `<textarea class="input" id="edit-body-${id}" rows="6" style="margin:10px 0;font-family:JetBrains Mono,monospace;font-size:12px">${safeText(current)}</textarea>
-    <button class="btn btn-lime btn-sm" onclick="saveProspectEdit('${id}')">Save</button>`;
+async function saveContactEmail(id, email) {
+  try {
+    await api('/outreach/prospects/' + id + '/contact', { method: 'PATCH', body: JSON.stringify({ contact_email: email }) });
+  } catch(e) {}
 }
 
 async function saveProspectEdit(id) {
-  const ta = document.getElementById('edit-body-' + id);
+  const ta = document.getElementById('etarea-' + id);
   if (!ta) return;
   try {
     await api('/outreach/prospects/' + id, { method: 'PATCH', body: JSON.stringify({ email_body: ta.value }) });
-    toast('✓ Saved');
+    toast('✓ Draft saved');
     outreachLoad();
   } catch(e) { toast(e.message, true); }
 }
 
 async function generateOutreach() {
   try {
-    const data = await api('/outreach/generate', { method: 'POST', body: '{}' });
-    toast('✓ Generated ' + (data.generated||0) + ' new prospects');
+    const data = await api('/outreach/draft-pending', { method: 'POST', body: '{}' });
+    toast('✓ Generating drafts for pending prospects…');
+    setTimeout(outreachLoad, 2000);
+  } catch(e) {
+    try {
+      const data = await api('/outreach/generate', { method: 'POST', body: '{}' });
+      toast('✓ Generated ' + (data.generated||0) + ' new prospects');
+    } catch(e2) { toast('Could not generate: ' + (e2.message||e.message), true); }
     outreachLoad();
-  } catch(e) { toast('Could not generate: ' + e.message, true); }
+  }
+}
+
+// ── Template builder ──────────────────────────────────────────
+function toggleTplPanel() {
+  const body = document.getElementById('tpl-panel-body');
+  const icon = document.getElementById('tpl-toggle-icon');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  icon.textContent   = open ? '▼ expand' : '▲ collapse';
+  if (!open) tplLoad();
+}
+
+async function tplLoad() {
+  try {
+    const data = await api('/outreach/templates');
+    const tpl  = document.getElementById('tpl-body');
+    if (tpl && data.default_template) tpl.value = data.default_template;
+  } catch(e) {}
+}
+
+function tplInsert(variable) {
+  const ta = document.getElementById('tpl-body');
+  if (!ta) return;
+  const pos = ta.selectionStart || ta.value.length;
+  ta.value = ta.value.slice(0, pos) + variable + ta.value.slice(pos);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = pos + variable.length;
+}
+
+function tplPreviewDebounce() {
+  clearTimeout(tplPreviewTimer);
+  tplPreviewTimer = setTimeout(tplPreview, 800);
+}
+
+async function tplPreview() {
+  const ta = document.getElementById('tpl-body');
+  if (!ta) return;
+  const prev = document.getElementById('tpl-preview');
+  prev.style.display = 'block';
+  prev.textContent = 'Generating preview…';
+  try {
+    const data = await api('/outreach/templates/test', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: ta.value, domain: 'example.com' })
+    });
+    prev.textContent = data.email || data.result || 'No preview available';
+  } catch(e) { prev.textContent = 'Preview failed: ' + e.message; }
+}
+
+async function tplSave() {
+  const ta = document.getElementById('tpl-body');
+  if (!ta) return;
+  try {
+    // Save as default (country=global) — fallback to saving first 3 countries
+    await api('/outreach/templates/US', {
+      method: 'PUT',
+      body: JSON.stringify({ language: 'en', prompt: ta.value })
+    });
+    toast('✓ Template saved');
+  } catch(e) { toast(e.message, true); }
+}
+
+async function tplReset() {
+  if (!confirm('Reset template to default?')) return;
+  try {
+    const data = await api('/outreach/templates/US', { method: 'DELETE' });
+    const ta = document.getElementById('tpl-body');
+    if (ta && data.prompt) ta.value = data.prompt;
+    toast('✓ Reset to default');
+  } catch(e) { toast(e.message, true); }
 }
 
 // ═══════════════════════════════════════════════════════════════
