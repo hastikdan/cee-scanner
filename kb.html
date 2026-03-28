@@ -254,6 +254,12 @@ footer{border-top:1px solid var(--border);padding:40px 0;background:var(--surfac
     <div class="sb-section">Compliance</div>
     <a class="sb-link" href="#compliance">NIS2 / DORA / GDPR</a>
 
+    <div class="sb-section">Integrations</div>
+    <a class="sb-link" href="#xdr-siem">XDR & SIEM Guide</a>
+    <a class="sb-link" href="#xdr-siem-polling">Polling vs Webhook</a>
+    <a class="sb-link" href="#xdr-siem-examples">Code Examples</a>
+    <a class="sb-link" href="#xdr-siem-fieldmap">Field Mapping</a>
+
     <div class="sb-section">Reference</div>
     <a class="sb-link" href="#plans">Plans & Limits</a>
     <a class="sb-link" href="#faq">FAQ</a>
@@ -773,6 +779,207 @@ curl -s https://swarmhawk-backend.onrender.com/scan-results/example.com \
     <p>API rate limits are enforced per API key. Exceeding the limit returns HTTP <code>429 Too Many Requests</code>. Limits reset at midnight UTC.</p>
 
     <p>Domain limits are enforced at the account level. Attempting to add a domain beyond your plan limit returns HTTP <code>403 Forbidden</code> with a <code>domain_limit_reached</code> error code.</p>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <h2 id="xdr-siem">XDR & SIEM Integration Guide</h2>
+
+    <div class="kb-eyebrow"><span>How-to Guide</span></div>
+    <p>This guide explains how to pull SwarmHawk external exposure data into your XDR platform, SIEM, or custom security tooling using the REST API. You can enrich internal endpoint alerts with domain-level breach path context, CVSS scores, and NIS2 compliance findings.</p>
+
+    <div class="callout callout-lime">
+      <span class="callout-icon">✓</span>
+      <p><strong>What you get:</strong> Real-time risk scores, CVE matches per domain, SSL/TLS posture, open ports, SPF/DMARC status, blacklist hits, NIS2 article violations — all queryable via REST or pushable via webhook.</p>
+    </div>
+
+    <h3>Prerequisites</h3>
+    <ul>
+      <li>A SwarmHawk account on <strong>Pro or above</strong> (API access required)</li>
+      <li>An API key — generate one from <strong>Account → API Keys</strong></li>
+      <li>Your domains added and scanned at least once</li>
+    </ul>
+
+    <h4>Base URL</h4>
+    <pre><code>https://swarmhawk-backend.onrender.com</code></pre>
+
+    <h4>Authentication</h4>
+    <p>All API requests require your API key as a header:</p>
+    <pre><code>X-API-Key: swh_YOUR_API_KEY_HERE</code></pre>
+
+    <div class="callout callout-amber">
+      <span class="callout-icon">⚠</span>
+      <p><strong>Keep your API key secret.</strong> Treat it like a password. Rotate it from the Account tab if compromised. Each key has a per-day request limit based on your plan.</p>
+    </div>
+
+    <!-- ─── Polling vs Webhook ─── -->
+    <h2 id="xdr-siem-polling">Polling vs Webhook</h2>
+
+    <p>There are two integration patterns depending on your SIEM architecture:</p>
+
+    <table class="kb-table">
+      <tr><th>Pattern</th><th>Best for</th><th>Latency</th><th>Complexity</th></tr>
+      <tr><td><strong>REST polling</strong></td><td>Splunk, Sentinel scheduled queries, custom scripts</td><td>Minutes (set your interval)</td><td>Low — one HTTP call</td></tr>
+      <tr><td><strong>Webhook push</strong></td><td>SOAR platforms, real-time alerting pipelines</td><td>Near real-time (on scan complete)</td><td>Medium — requires public endpoint</td></tr>
+    </table>
+
+    <h3>REST Polling — Pull All Domain Risks</h3>
+    <p>Use <code>GET /domains</code> to fetch all your monitored domains with their current risk scores:</p>
+
+    <pre><code>GET /domains
+X-API-Key: swh_YOUR_KEY
+
+Response:
+{
+  "domains": [
+    {
+      "id": "uuid",
+      "domain": "example.cz",
+      "risk_score": 74,
+      "max_cvss": 8.1,
+      "status": "critical",
+      "last_scanned_at": "2026-03-28T08:00:00Z",
+      "checks": [...]
+    }
+  ]
+}</code></pre>
+
+    <p>Filter to only high-risk domains by checking <code>risk_score >= 70</code> or <code>max_cvss >= 7.0</code> client-side. For a full findings breakdown on a specific domain use:</p>
+
+    <pre><code>GET /domains/{domain_id}/report
+X-API-Key: swh_YOUR_KEY</code></pre>
+
+    <h3>Webhook Push — Real-Time on Scan Complete</h3>
+    <p>Configure a webhook URL in <strong>Account → Integrations → Webhook</strong>. SwarmHawk will POST a JSON payload to your endpoint each time a scan completes for a high-risk domain (CVSS ≥ 7.0):</p>
+
+    <pre><code>POST https://your-siem.example.com/swarmhawk-hook
+Content-Type: application/json
+X-SwarmHawk-Signature: sha256=...
+
+{
+  "event": "scan.completed",
+  "domain": "target.cz",
+  "risk_score": 81,
+  "max_cvss": 9.3,
+  "critical_findings": 3,
+  "scan_id": "uuid",
+  "timestamp": "2026-03-28T09:12:00Z",
+  "report_url": "https://swarmhawk-backend.onrender.com/domains/uuid/report"
+}</code></pre>
+
+    <div class="callout callout-blue">
+      <span class="callout-icon">ℹ</span>
+      <p><strong>Verify the signature</strong> before processing: compute <code>HMAC-SHA256(payload, your_webhook_secret)</code> and compare to the <code>X-SwarmHawk-Signature</code> header.</p>
+    </div>
+
+    <!-- ─── Code Examples ─── -->
+    <h2 id="xdr-siem-examples">Code Examples</h2>
+
+    <h3>Python — Pull &amp; Filter High-Risk Domains</h3>
+    <pre><code>import requests
+
+API_KEY  = "swh_YOUR_KEY"
+BASE_URL = "https://swarmhawk-backend.onrender.com"
+HEADERS  = {"X-API-Key": API_KEY}
+
+def get_high_risk_domains(cvss_min=7.0):
+    resp = requests.get(f"{BASE_URL}/domains", headers=HEADERS, timeout=30)
+    resp.raise_for_status()
+    domains = resp.json().get("domains", [])
+    return [d for d in domains if (d.get("max_cvss") or 0) >= cvss_min]
+
+for domain in get_high_risk_domains():
+    print(f"{domain['domain']}  CVSS={domain['max_cvss']}  Risk={domain['risk_score']}")</code></pre>
+
+    <h3>Microsoft Sentinel — Logic App HTTP Connector</h3>
+    <p>Create a <strong>Logic App</strong> with a Recurrence trigger (e.g. every 4 hours) and an HTTP action:</p>
+    <pre><code>Method:  GET
+URI:     https://swarmhawk-backend.onrender.com/domains
+Headers:
+  X-API-Key: swh_YOUR_KEY
+
+→ Parse JSON response
+→ Filter: risk_score ge 70
+→ For each: Create Sentinel Incident
+    Title:    "SwarmHawk: High Risk Domain — @{item().domain}"
+    Severity: High
+    Description: "CVSS @{item().max_cvss} | Score @{item().risk_score}"</code></pre>
+
+    <h3>Splunk — HTTP Event Collector (HEC) Script</h3>
+    <pre><code>import requests, json
+
+SWARMHAWK_KEY = "swh_YOUR_KEY"
+SPLUNK_HEC    = "https://splunk.example.com:8088/services/collector"
+SPLUNK_TOKEN  = "Splunk YOUR_HEC_TOKEN"
+
+domains = requests.get(
+    "https://swarmhawk-backend.onrender.com/domains",
+    headers={"X-API-Key": SWARMHAWK_KEY}, timeout=30
+).json().get("domains", [])
+
+for d in domains:
+    event = {
+        "time":       d.get("last_scanned_at"),
+        "sourcetype": "swarmhawk:domain_risk",
+        "source":     "swarmhawk_api",
+        "event": {
+            "domain":     d["domain"],
+            "risk_score": d["risk_score"],
+            "max_cvss":   d.get("max_cvss"),
+            "status":     d.get("status"),
+        }
+    }
+    requests.post(SPLUNK_HEC, headers={"Authorization": SPLUNK_TOKEN},
+                  json=event, verify=False)</code></pre>
+
+    <h3>Generic Webhook Receiver (Python/Flask)</h3>
+    <pre><code>import hmac, hashlib, json
+from flask import Flask, request, abort
+
+app    = Flask(__name__)
+SECRET = b"your_webhook_secret"
+
+@app.post("/swarmhawk-hook")
+def handle():
+    sig = request.headers.get("X-SwarmHawk-Signature", "")
+    expected = "sha256=" + hmac.new(SECRET, request.data, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, expected):
+        abort(403)
+    payload = request.json
+    if payload["event"] == "scan.completed" and payload["max_cvss"] >= 7.0:
+        # Forward to your SOAR / ticketing system
+        forward_to_soar(payload)
+    return {"ok": True}</code></pre>
+
+    <!-- ─── Field Mapping ─── -->
+    <h2 id="xdr-siem-fieldmap">Field Mapping</h2>
+
+    <p>Use the table below to map SwarmHawk API fields to your SIEM's schema:</p>
+
+    <table class="kb-table">
+      <tr><th>SwarmHawk field</th><th>Type</th><th>Description</th><th>Sentinel / Splunk field</th></tr>
+      <tr><td><code>domain</code></td><td>string</td><td>Monitored domain name</td><td><code>DestinationDomain</code> / <code>dest</code></td></tr>
+      <tr><td><code>risk_score</code></td><td>int 0–100</td><td>Composite risk score</td><td><code>Severity</code> (map ≥70→High)</td></tr>
+      <tr><td><code>max_cvss</code></td><td>float</td><td>Highest CVE CVSS score found</td><td><code>VulnerabilityScore</code></td></tr>
+      <tr><td><code>status</code></td><td>string</td><td>critical / warning / ok / error</td><td><code>EventSeverity</code></td></tr>
+      <tr><td><code>last_scanned_at</code></td><td>ISO 8601</td><td>Timestamp of last completed scan</td><td><code>TimeGenerated</code> / <code>_time</code></td></tr>
+      <tr><td><code>checks[].check</code></td><td>string</td><td>Check name: ssl, cve, dmarc, ports…</td><td><code>CheckName</code></td></tr>
+      <tr><td><code>checks[].status</code></td><td>string</td><td>critical / warning / ok</td><td><code>CheckStatus</code></td></tr>
+      <tr><td><code>checks[].detail</code></td><td>string</td><td>Human-readable finding</td><td><code>Description</code> / <code>message</code></td></tr>
+      <tr><td><code>spf_status</code></td><td>string</td><td>present / missing / invalid</td><td><code>SPFStatus</code></td></tr>
+      <tr><td><code>dmarc_status</code></td><td>string</td><td>present / missing / invalid</td><td><code>DMARCStatus</code></td></tr>
+      <tr><td><code>blacklisted</code></td><td>bool</td><td>IP/domain on threat blacklist</td><td><code>IsMalicious</code></td></tr>
+      <tr><td><code>waf_detected</code></td><td>bool</td><td>WAF/CDN detected in front of domain</td><td><code>HasWAF</code></td></tr>
+    </table>
+
+    <h3>NIS2 Compliance Findings</h3>
+    <p>Pull per-article NIS2 findings for a domain via <code>GET /domains/{id}/nis2</code>. Each finding includes an article reference, pass/fail status, and remediation guidance — useful for compliance dashboards in Sentinel or Splunk ES.</p>
+
+    <div class="callout callout-blue">
+      <span class="callout-icon">ℹ</span>
+      <p><strong>STIX / TAXII 2.1 feed</strong> is planned for Q3 2026. This will allow native threat intelligence ingestion into any STIX-compatible platform (MISP, OpenCTI, Anomali, Recorded Future) without custom code.</p>
+    </div>
+
+    <h3>Need Help?</h3>
+    <p>For enterprise integration support, dedicated onboarding, or custom SIEM connectors, contact <a href="mailto:enterprise@swarmhawk.com">enterprise@swarmhawk.com</a> or open a ticket from the <a href="/contact.html">Contact page</a>.</p>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
     <h2 id="faq">FAQ</h2>
