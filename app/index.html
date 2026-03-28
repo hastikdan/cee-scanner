@@ -1330,7 +1330,7 @@ function renderDomainTable() {
       <td onclick="event.stopPropagation()"><div class="row-actions">
         <button class="btn btn-ghost btn-xs" onclick="openPanel('${d.id}')">Report</button>
         <button class="btn btn-ghost btn-xs" onclick="openSendReportModal('${d.id}','${safeText(d.domain)}')" title="Send PDF report by email">✉ Send</button>
-        <button class="btn btn-ghost btn-xs" onclick="openPanel('${d.id}');setTimeout(()=>{const t=document.querySelector(\'.panel-tab[onclick*=attack]\');if(t){showPanelTab(\'attack\',t);loadAttackSurface(\'${d.id}\')}},150)" title="Attacker view — Shodan, breaches, AI attack chain" style="color:#ef4444">⚡</button>
+        <button class="btn btn-ghost btn-xs" onclick="openPanelAttack('${d.id}')" title="Attacker view — Shodan, breaches, AI attack chain" style="color:#ef4444">⚡</button>
         <button class="btn btn-ghost btn-xs" onclick="rescanDomain('${d.id}','${safeText(d.domain)}')">↻</button>
         <button class="btn btn-danger btn-xs" onclick="deleteDomain('${d.id}','${safeText(d.domain)}')">✕</button>
       </div></td>
@@ -1708,6 +1708,12 @@ function closePanel() {
   document.getElementById('panel-email-row').style.display = 'none';
   renderDomainTable(); // immediate render from cache
   loadDomains();       // then refresh from server so list is always current
+}
+
+async function openPanelAttack(domainId) {
+  await openPanel(domainId);          // wait for openPanel to finish (sets checks tab)
+  showPanelTab('attack', null);       // now switch to attack tab
+  loadAttackSurface(domainId);        // kick off the load
 }
 
 function showPanelTab(tab, btn) {
