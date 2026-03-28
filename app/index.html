@@ -7,6 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════════════
    DESIGN TOKENS — matches www.swarmhawk.com exactly
@@ -307,11 +308,12 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 .attack-section{margin-bottom:22px}
 .attack-section-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--lime);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .attack-section-title span{opacity:.5;font-size:9px}
-.attack-graph-wrap{background:rgba(0,0,0,.3);border:1px solid rgba(203,255,0,.08);border-radius:10px;overflow:hidden;margin-bottom:22px}
-.attack-graph-wrap svg{display:block;width:100%;height:280px}
+.attack-graph-wrap{background:rgba(0,0,0,.3);border:1px solid rgba(203,255,0,.08);border-radius:10px;overflow:hidden;margin-bottom:22px;position:relative}
+.attack-graph-wrap svg{display:block;width:100%;height:360px}
 .graph-legend{display:flex;flex-wrap:wrap;gap:10px;padding:8px 14px;border-top:1px solid rgba(255,255,255,.05)}
-.graph-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--grey)}
+.graph-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
 .graph-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.attack-tooltip{position:fixed;pointer-events:none;display:none;background:#13131f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;font-size:12px;max-width:240px;line-height:1.5;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,.6)}
 .attack-table{width:100%;border-collapse:collapse;font-size:12px}
 .attack-table th{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--lime);padding:6px 8px;text-align:left;border-bottom:1px solid rgba(203,255,0,.1);text-transform:uppercase}
 .attack-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:#b0adc0;vertical-align:top}
@@ -1938,55 +1940,114 @@ var _attackLoaded = null;
 
 function renderAttackGraph(graphData, containerId) {
   const container = document.getElementById(containerId);
-  if (!container) return;
-  const nodes = graphData.nodes || [], edges = graphData.edges || [];
-  const W = 660, H = 280, cx = W/2, cy = H/2;
-  const typeRing = {domain:0,ip:1,service:2,cve:3,breach:3};
-  const rings = [[],[],[],[]];
-  nodes.forEach(n => { n._ring = typeRing[n.type]||2; rings[n._ring].push(n); });
-  if (rings[0][0]) { rings[0][0]._x = cx; rings[0][0]._y = cy; }
-  const radii = [0,90,165,240];
-  for (let r=1;r<=3;r++) {
-    rings[r].forEach((n,i) => {
-      const a = (2*Math.PI*i/rings[r].length) - Math.PI/2;
-      n._x = Math.max(30, Math.min(W-30, cx + radii[r]*Math.cos(a)));
-      n._y = Math.max(18, Math.min(H-18, cy + radii[r]*Math.sin(a)));
-    });
+  if (!container || typeof d3 === 'undefined') return;
+  const nodes = (graphData.nodes || []).map(n => ({...n}));
+  const links = (graphData.edges || []).map(e => ({source: e.from, target: e.to, label: e.label || ''}));
+  if (!nodes.length) return;
+
+  // node visual config — matches solutions page exactly
+  const color  = { entry: '#ef4444', pivot: '#f59e0b', critical: '#a3e635', safe: '#3b82f6' };
+  const radius = { entry: 22, pivot: 18, critical: 26, safe: 14 };
+
+  // clear and create SVG
+  container.innerHTML = '';
+  const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgEl.style.cssText = 'display:block;width:100%;height:360px';
+  container.appendChild(svgEl);
+
+  const W = container.getBoundingClientRect().width || 620;
+  const H = 360;
+  const svg = d3.select(svgEl).attr('viewBox', `0 0 ${W} ${H}`);
+
+  // arrow marker
+  svg.append('defs').append('marker')
+    .attr('id', 'atk-arrow').attr('viewBox', '0 -5 10 10')
+    .attr('refX', 30).attr('refY', 0)
+    .attr('markerWidth', 6).attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#444');
+
+  // force simulation
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(110).strength(0.6))
+    .force('charge', d3.forceManyBody().strength(-380))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collision', d3.forceCollide().radius(d => (radius[d.type] || 16) + 18));
+
+  const linkEl = svg.append('g')
+    .selectAll('line').data(links).join('line')
+    .attr('stroke', '#333').attr('stroke-width', 1.5)
+    .attr('marker-end', 'url(#atk-arrow)');
+
+  const linkLabel = svg.append('g')
+    .selectAll('text').data(links).join('text')
+    .attr('fill', '#555').attr('font-size', 9)
+    .attr('font-family', 'monospace').text(d => d.label);
+
+  const nodeG = svg.append('g')
+    .selectAll('g').data(nodes).join('g')
+    .call(d3.drag()
+      .on('start', (e,d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+      .on('end',   (e,d) => { if (!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }));
+
+  nodeG.append('circle')
+    .attr('r', d => radius[d.type] || 16)
+    .attr('fill', d => (color[d.type] || '#888') + '22')
+    .attr('stroke', d => color[d.type] || '#888')
+    .attr('stroke-width', d => d.type === 'critical' ? 2.5 : 1.5);
+
+  // pulse ring on critical and entry nodes
+  nodeG.filter(d => d.type === 'critical' || d.type === 'entry').append('circle')
+    .attr('r', d => (radius[d.type] || 16) + 8)
+    .attr('fill', 'none')
+    .attr('stroke', d => color[d.type] || '#888')
+    .attr('stroke-width', 1).attr('opacity', 0.25)
+    .attr('stroke-dasharray', '4,3');
+
+  nodeG.append('text')
+    .attr('text-anchor', 'middle').attr('dy', '0.35em')
+    .attr('fill', d => color[d.type] || '#888')
+    .attr('font-size', d => d.type === 'critical' ? 9 : 8)
+    .attr('font-family', 'monospace').attr('font-weight', '700')
+    .text(d => { const lbl = d.label || ''; return lbl.length > 12 ? lbl.slice(0,11)+'…' : lbl; });
+
+  // tooltip
+  let tipEl = document.getElementById('atk-tooltip');
+  if (!tipEl) {
+    tipEl = document.createElement('div');
+    tipEl.id = 'atk-tooltip';
+    tipEl.className = 'attack-tooltip';
+    document.body.appendChild(tipEl);
   }
-  const nodeMap = {}; nodes.forEach(n => nodeMap[n.id]=n);
-  const tColor = {domain:'#CBFF00',ip:'#60a5fa',service:'#34d399',cve:'#ef4444',breach:'#a78bfa'};
-  const tFill  = {domain:'rgba(203,255,0,.12)',ip:'rgba(96,165,250,.1)',service:'rgba(52,211,153,.08)',cve:'rgba(239,68,68,.12)',breach:'rgba(167,139,250,.1)'};
-  const tR     = {domain:26,ip:18,service:13,cve:11,breach:13};
-  const tIcon  = {domain:'●',ip:'◉',service:'▪',cve:'!',breach:'💧'};
-  let eSvg='', nSvg='';
-  edges.forEach(e => {
-    const f=nodeMap[e.from], t=nodeMap[e.to];
-    if (!f||!t||f._x==null||t._x==null) return;
-    eSvg += `<line x1="${f._x}" y1="${f._y}" x2="${t._x}" y2="${t._y}" stroke="${tColor[f.type]||'#555'}" stroke-width="1" stroke-opacity="0.18"/>`;
+  nodeG
+    .on('mousemove', (e, d) => {
+      const c = color[d.type] || '#888';
+      const detail = (d.detail || '').replace(/\n/g, '<br>');
+      const cvssHtml = d.cvss > 0 ? `<br><span style="color:#ef4444;font-weight:700">CVSS ${d.cvss}</span>` : '';
+      tipEl.style.display = 'block';
+      tipEl.style.left = (e.clientX + 16) + 'px';
+      tipEl.style.top  = (e.clientY - 12) + 'px';
+      tipEl.innerHTML = `<strong style="color:${c}">${d.label}</strong><br>${detail}${cvssHtml}`;
+    })
+    .on('mouseleave', () => { tipEl.style.display = 'none'; });
+
+  sim.on('tick', () => {
+    linkEl.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    linkLabel.attr('x', d => (d.source.x+d.target.x)/2).attr('y', d => (d.source.y+d.target.y)/2);
+    nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
   });
-  nodes.forEach(n => {
-    if (n._x==null) return;
-    const r=tR[n.type]||12, c=tColor[n.type]||'#888', f=tFill[n.type]||'rgba(255,255,255,.05)';
-    const sw = n.type==='domain'?2:1.5;
-    const lbl = n.label.length>16 ? n.label.slice(0,14)+'…' : n.label;
-    const fs = n.type==='domain'?9:8;
-    const pulse = (n.risk==='critical'&&n.type!=='domain') ? `<circle cx="${n._x}" cy="${n._y}" r="${r+5}" fill="none" stroke="#ef4444" stroke-width="1" opacity="0.3"/>` : '';
-    nSvg += `${pulse}<circle cx="${n._x}" cy="${n._y}" r="${r}" fill="${f}" stroke="${c}" stroke-width="${sw}"/>
-      <text x="${n._x}" y="${n._y+4}" text-anchor="middle" fill="${c}" font-size="${fs}" font-family="monospace" font-weight="700">${tIcon[n.type]||'▪'}</text>
-      <text x="${n._x}" y="${n._y+r+11}" text-anchor="middle" fill="${c}" font-size="${fs}" font-family="monospace" opacity="0.8">${lbl}</text>`;
-  });
-  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-    <defs><radialGradient id="gd" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(203,255,0,.06)"/><stop offset="100%" stop-color="rgba(203,255,0,0)"/></radialGradient></defs>
-    <circle cx="${cx}" cy="${cy}" r="110" fill="url(#gd)"/>
-    ${eSvg}${nSvg}
-  </svg>
-  <div class="graph-legend">
-    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#CBFF00"></div>Domain</div>
-    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#60a5fa"></div>IP</div>
-    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#34d399"></div>Service</div>
-    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#ef4444"></div>CVE</div>
-    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#a78bfa"></div>Breach</div>
-  </div>`;
+
+  // legend below graph
+  const legendEl = document.createElement('div');
+  legendEl.className = 'graph-legend';
+  legendEl.innerHTML = `
+    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#ef4444"></div>Entry point</div>
+    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#f59e0b"></div>Pivot</div>
+    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#a3e635"></div>Target</div>
+    <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#3b82f6"></div>Safe</div>`;
+  container.parentElement.appendChild(legendEl);
 }
 
 async function loadAttackSurface(domainId) {
@@ -2016,14 +2077,24 @@ async function loadAttackSurface(domainId) {
     const summaryHtml=narr.summary?`<div class="attack-narrative"><p>${safeText(narr.summary)}</p></div>`:'';
     const chainHtml=(narr.attack_chain||[]).length?`<ul class="attack-chain-list">${narr.attack_chain.map((s,i)=>`<li><span class="chain-num">${i+1}</span><span>${safeText(s.replace(/^\d+\.\s*/,''))}</span></li>`).join('')}</ul>`:'<div style="color:var(--grey);font-size:12px">—</div>';
     const fixHtml=(narr.fix_priority||[]).length?(narr.fix_priority.map((s,i)=>`<div class="fix-item"><div class="fix-num">${i+1}</div><div>${safeText(s.replace(/^\d+\.\s*/,''))}</div></div>`).join('')):'<div style="color:var(--grey);font-size:12px">—</div>';
+    // breach path summary counts
+    const gNodes = (data.graph && data.graph.nodes) || [];
+    const entryCount    = gNodes.filter(n => n.type === 'entry').length;
+    const pivotCount    = gNodes.filter(n => n.type === 'pivot').length;
+    const criticalCount = gNodes.filter(n => n.type === 'critical').length;
+    const pathSummary = entryCount > 0
+      ? `<div style="font-size:12px;color:var(--muted);margin-bottom:12px"><span style="color:#ef4444;font-weight:600">${entryCount} entry point${entryCount>1?'s':''}</span> → <span style="color:#f59e0b;font-weight:600">${pivotCount} pivot${pivotCount!==1?'s':''}</span> → <span style="color:#a3e635;font-weight:600">${criticalCount} critical asset${criticalCount!==1?'s':''}</span> — drag nodes to explore</div>`
+      : '';
+
     el.innerHTML=`
       <div class="attack-header">
         <div style="font-size:13px;font-weight:600;color:var(--white)">${safeText(data.domain)}</div>
         <span class="attack-risk-badge ${rl.toLowerCase()}">${rl}</span>
-        <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--grey)">Score ${rs}/100</span>
+        <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">Score ${rs}/100</span>
       </div>
       <div class="attack-section">
-        <div class="attack-section-title">Attack Map <span>key graph</span></div>
+        <div class="attack-section-title">Breach Path Visualization <span>force graph · MITRE ATT&amp;CK</span></div>
+        ${pathSummary}
         <div class="attack-graph-wrap"><div id="attack-graph-svg"></div></div>
       </div>
       <div class="attack-section">
