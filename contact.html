@@ -277,7 +277,7 @@ function faqToggle(item) {
   item.classList.toggle('open');
 }
 
-function submitContact(e) {
+async function submitContact(e) {
   e.preventDefault();
   const first   = document.getElementById('cf-first').value.trim();
   const last    = document.getElementById('cf-last').value.trim();
@@ -286,33 +286,27 @@ function submitContact(e) {
   const topic   = document.getElementById('cf-topic').value;
   const message = document.getElementById('cf-message').value.trim();
 
-  const subjectMap = {
-    sales: 'Sales & Pricing Enquiry',
-    technical: 'Technical Support Request',
-    api: 'API & Integration Question',
-    enterprise: 'Enterprise / Partnership',
-    security: 'Security Vulnerability Report',
-    gdpr: 'Privacy / GDPR Request',
-    media: 'Press & Media Enquiry',
-    other: 'General Enquiry',
-  };
+  const btn = document.getElementById('cf-btn');
+  btn.disabled = true;
+  btn.textContent = 'SENDING…';
 
-  const to = topic === 'security' ? 'security@swarmhawk.com' :
-             topic === 'gdpr'     ? 'privacy@swarmhawk.com'  :
-             topic === 'enterprise' ? 'enterprise@swarmhawk.com' :
-             'hello@swarmhawk.com';
-
-  const subject = encodeURIComponent(`[SwarmHawk] ${subjectMap[topic] || 'Enquiry'}`);
-  const body = encodeURIComponent(
-    `Name: ${first} ${last}\nEmail: ${email}${company ? '\nCompany: ' + company : ''}\nTopic: ${topic}\n\n${message}`
-  );
-
-  // Open mailto — in production this would POST to a backend endpoint
-  window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
-
-  // Show success state
-  document.getElementById('contact-form').style.display = 'none';
-  document.getElementById('success-msg').style.display = 'block';
+  try {
+    const resp = await fetch('https://swarmhawk-backend.onrender.com/contact', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({first, last, email, company, topic, message}),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || 'Send failed');
+    }
+    document.getElementById('contact-form').style.display = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'SEND MESSAGE →';
+    alert('Could not send message: ' + err.message + '\n\nPlease email us directly at hello@swarmhawk.com');
+  }
 }
 </script>
 </body>
