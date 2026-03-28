@@ -1167,8 +1167,11 @@ function grantSuperAdminFeatures() {
 // ═══════════════════════════════════════════════════════════════
 
 async function loadDomains() {
-  // Show loading row only when the list is currently empty (avoid flash on refresh)
-  if (!domains.length) {
+  if (domains.length) {
+    // Render cached data immediately so the table is never blank while fetching
+    renderDomainStats();
+    renderDomainTable();
+  } else {
     document.getElementById('domain-tbody').innerHTML =
       '<tr><td colspan="5"><div class="empty-state"><span class="spinner"></span> Loading domains…</div></td></tr>';
   }
@@ -1179,9 +1182,14 @@ async function loadDomains() {
     renderDomainTable();
   } catch(e) {
     console.error('loadDomains:', e);
-    document.getElementById('domain-tbody').innerHTML =
-      '<tr><td colspan="5"><div class="empty-state" style="color:var(--red)">' +
-      safeText(e.message) + ' &nbsp;<button class="btn btn-outline btn-sm" onclick="loadDomains()">Retry</button></div></td></tr>';
+    // Only replace table with error when there's nothing else to show
+    if (!domains.length) {
+      document.getElementById('domain-tbody').innerHTML =
+        '<tr><td colspan="5"><div class="empty-state" style="color:var(--red)">' +
+        safeText(e.message) + ' &nbsp;<button class="btn btn-outline btn-sm" onclick="loadDomains()">Retry</button></div></td></tr>';
+    } else {
+      toast('Could not refresh domain list: ' + e.message, true);
+    }
   }
 }
 
