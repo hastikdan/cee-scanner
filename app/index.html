@@ -1084,6 +1084,11 @@ label.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin
 // ── Constants ────────────────────────────────────────────────────
 const API = 'https://swarmhawk-backend.onrender.com';
 
+// Surface silent JS errors as console warnings (helpful for debugging)
+window.addEventListener('unhandledrejection', function(e) {
+  console.warn('Unhandled promise rejection:', e.reason);
+});
+
 // ── State ────────────────────────────────────────────────────────
 let token       = localStorage.getItem('sw_token') || '';
 let currentUser = null;
@@ -1163,7 +1168,11 @@ function toggleMobileMenu() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', function() {
+// The script is at the bottom of <body> so the DOM is already fully
+// constructed when this runs — no need to wait for DOMContentLoaded.
+// (DOMContentLoaded also waits for `defer` scripts like D3, which can
+//  delay domain loading by seconds or block it entirely on slow networks.)
+(function init() {
   // Nav user info
   if (currentUser) {
     const name = currentUser.name || currentUser.email || '';
@@ -1196,7 +1205,7 @@ window.addEventListener('DOMContentLoaded', function() {
       logout(); // expired session
     }
   });
-});
+}());
 
 function grantAdminTabs() {
   document.querySelectorAll('.nav-tab-admin').forEach(el => {
