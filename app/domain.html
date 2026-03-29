@@ -114,12 +114,19 @@ input,select{font-family:inherit;font-size:14px}
 .check-row.expanded{background:rgba(255,255,255,.03);border:1px solid var(--border)}
 .chk-icon{font-size:14px;flex-shrink:0;margin-top:1px;width:16px;text-align:center}
 .chk-main{flex:1;min-width:0}
-.chk-title{font-size:13px;font-weight:600;color:var(--text)}
+.chk-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .chk-detail{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
-.chk-rec{margin-top:8px;padding:10px 12px;background:rgba(163,230,53,.06);border:1px solid var(--lime-border);border-radius:6px;font-size:12px;color:var(--text);line-height:1.6}
+.kb-link{font-size:10px;font-weight:600;color:var(--lime);opacity:.7;text-decoration:none;letter-spacing:.3px;border:1px solid var(--lime-border);border-radius:3px;padding:1px 5px;white-space:nowrap;flex-shrink:0}
+.kb-link:hover{opacity:1;background:rgba(163,230,53,.08)}
+.chk-expanded{margin-top:6px}
+.chk-rec{padding:10px 12px;background:rgba(163,230,53,.06);border:1px solid var(--lime-border);border-radius:6px;font-size:12px;color:var(--text);line-height:1.6}
 .chk-rec::before{content:'→ Fix: ';color:var(--lime);font-weight:700}
 .chk-rec-warn{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.3)}
 .chk-rec-warn::before{color:var(--amber)}
+.chk-steps{margin-top:8px;padding:10px 12px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:6px}
+.chk-steps-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#60a5fa;margin-bottom:6px}
+.chk-steps-list{margin:0;padding-left:18px;font-size:12px;color:var(--text);line-height:1.7}
+.chk-steps-list li{margin-bottom:2px}
 .chk-status{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-top:2px;font-family:'JetBrains Mono',monospace}
 .chk-status.ok{background:var(--lime-pale);color:var(--lime)}
 .chk-status.fail,.chk-status.critical{background:rgba(248,113,113,.15);color:var(--red)}
@@ -472,6 +479,480 @@ function getCheckGroup(key) {
   return 'Other Checks';
 }
 
+// ── Knowledge base ─────────────────────────────────────────────
+// Each entry: { desc, url, steps[] }
+const KB = {
+  spf: {
+    desc: 'SPF (Sender Policy Framework) specifies which mail servers are authorised to send email on behalf of your domain. Missing or misconfigured SPF allows attackers to forge your address in phishing emails.',
+    url: 'https://datatracker.ietf.org/doc/html/rfc7208',
+    steps: [
+      'Log into your DNS provider and create a TXT record for the root domain (@).',
+      'Set the value to: v=spf1 include:<your-mail-provider> -all (replace with your actual mail server).',
+      'Use -all (hard fail) rather than ~all (soft fail) for strict enforcement.',
+      'Validate with: dig TXT yourdomain.com | grep spf or use mxtoolbox.com/spf.',
+      'Ensure you do not have more than 10 DNS lookups in the SPF record or it will fail.',
+    ],
+  },
+  dmarc: {
+    desc: 'DMARC (Domain-based Message Authentication, Reporting and Conformance) builds on SPF and DKIM to instruct receiving servers what to do with emails that fail authentication — quarantine or reject them.',
+    url: 'https://datatracker.ietf.org/doc/html/rfc7489',
+    steps: [
+      'Publish a TXT record at _dmarc.yourdomain.com.',
+      'Start with p=none to monitor: v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com.',
+      'After reviewing aggregate reports for 2–4 weeks, escalate to p=quarantine.',
+      'Once confident, move to p=reject to fully block spoofed emails.',
+      'Set pct=100 to apply the policy to all messages.',
+      'Use a service like Postmark or Valimail to parse DMARC reports.',
+    ],
+  },
+  dkim: {
+    desc: 'DKIM (DomainKeys Identified Mail) adds a cryptographic signature to outgoing emails so receivers can verify the message was not altered in transit and genuinely originates from your domain.',
+    url: 'https://datatracker.ietf.org/doc/html/rfc6376',
+    steps: [
+      'Generate a DKIM key pair in your email provider\'s admin panel (Google Workspace, Microsoft 365, Postfix, etc.).',
+      'Publish the public key as a TXT record at selector._domainkey.yourdomain.com.',
+      'Enable DKIM signing for outbound mail in your provider settings.',
+      'Test with: dig TXT default._domainkey.yourdomain.com or mail-tester.com.',
+      'Rotate DKIM keys annually as a security best practice.',
+    ],
+  },
+  dnssec: {
+    desc: 'DNSSEC adds cryptographic signatures to DNS records, preventing attackers from poisoning DNS caches and redirecting your visitors to malicious servers.',
+    url: 'https://www.cloudflare.com/dns/dnssec/how-dnssec-works/',
+    steps: [
+      'Enable DNSSEC in your DNS provider\'s control panel (most modern providers support it with one click).',
+      'Your registrar must support DS record delegation — check their documentation.',
+      'Copy the DS record generated by your DNS provider and add it at your domain registrar.',
+      'Verify with: dig +dnssec A yourdomain.com and check for the AD flag.',
+      'Monitor for key rollover — some providers automate this; others require manual renewal.',
+    ],
+  },
+  mx: {
+    desc: 'MX (Mail Exchanger) records define which servers receive email for your domain. Missing, incorrect, or low-priority MX records cause email delivery failures.',
+    url: 'https://datatracker.ietf.org/doc/html/rfc5321',
+    steps: [
+      'Add at least one MX record pointing to your mail server hostname (not an IP address).',
+      'Ensure the target hostname has a valid A/AAAA record.',
+      'Set a priority value (lower = higher priority, e.g. 10 for primary, 20 for backup).',
+      'Test with: dig MX yourdomain.com or mxtoolbox.com.',
+      'If using Google Workspace or Microsoft 365, follow their exact MX setup guide.',
+    ],
+  },
+  caa: {
+    desc: 'CAA (Certification Authority Authorization) records specify which Certificate Authorities are allowed to issue SSL/TLS certificates for your domain, preventing rogue CAs from issuing fraudulent certificates.',
+    url: 'https://datatracker.ietf.org/doc/html/rfc8659',
+    steps: [
+      'Identify which CA issues your certificates (Let\'s Encrypt, DigiCert, Sectigo, etc.).',
+      'Add a CAA TXT record: 0 issue "letsencrypt.org" (replace with your CA).',
+      'Add a wildcard record if needed: 0 issuewild "letsencrypt.org".',
+      'Optionally add a 0 iodef "mailto:security@yourdomain.com" record for violation reports.',
+      'Test with: dig CAA yourdomain.com or sslmate.com/caa.',
+    ],
+  },
+  bimi: {
+    desc: 'BIMI (Brand Indicators for Message Identification) displays your company logo in email clients that support it, increasing brand trust and email open rates.',
+    url: 'https://bimigroup.org/implementation-guide/',
+    steps: [
+      'BIMI requires a valid DMARC policy of p=quarantine or p=reject.',
+      'Create an SVG logo in the required BIMI format (square, <32KB, specific SVG profile).',
+      'Host the SVG at a publicly accessible HTTPS URL.',
+      'Publish a TXT record at default._bimi.yourdomain.com with v=BIMI1; l=https://url-to-logo.svg.',
+      'For major email clients (Gmail), obtain a Verified Mark Certificate (VMC) from DigiCert or Entrust.',
+    ],
+  },
+  cert_valid: {
+    desc: 'An invalid or untrusted SSL/TLS certificate causes browsers to show security warnings, destroys user trust, and can trigger SEO penalties.',
+    url: 'https://letsencrypt.org/docs/',
+    steps: [
+      'Check the certificate chain with: openssl s_client -connect yourdomain.com:443 -showcerts.',
+      'Ensure the certificate is signed by a trusted CA (not self-signed).',
+      'Verify the certificate covers the exact domain name (including www if needed).',
+      'If expired or revoked, renew via your CA or use Certbot (Let\'s Encrypt) for free automatic renewal.',
+      'Enable OCSP stapling on your web server to improve revocation checking.',
+    ],
+  },
+  cert_expiry: {
+    desc: 'An expired TLS certificate immediately breaks HTTPS for all visitors. Browsers block access and show a hard error — there is no bypass for end users.',
+    url: 'https://letsencrypt.org/docs/faq/',
+    steps: [
+      'Renew the certificate immediately — most CAs allow renewal 30 days before expiry.',
+      'Use Let\'s Encrypt with Certbot for free, auto-renewing certificates (certbot renew runs via cron).',
+      'Set a calendar reminder or monitoring alert 30 and 7 days before expiry.',
+      'Use a tool like cert-expiry-monitor or Datadog TLS monitoring for automated alerts.',
+      'After renewal, restart your web server to load the new certificate.',
+    ],
+  },
+  cert_chain: {
+    desc: 'An incomplete certificate chain means intermediate CA certificates are missing, causing validation failures in some browsers and mobile clients even if your leaf cert is valid.',
+    url: 'https://wiki.mozilla.org/Security/Server_Side_TLS',
+    steps: [
+      'Download the full certificate chain from your CA (usually a .pem or .crt bundle file).',
+      'Configure your web server to serve the full chain (nginx: ssl_certificate with bundle; Apache: SSLCertificateChainFile).',
+      'Test with: openssl s_client -connect yourdomain.com:443 -verify_return_error.',
+      'Use ssllabs.com/ssltest to verify chain completeness and get a detailed report.',
+      'Ensure intermediate certificates are in the correct order: leaf → intermediate → root.',
+    ],
+  },
+  tls_version: {
+    desc: 'Old TLS versions (1.0, 1.1) have known vulnerabilities like POODLE and BEAST and are deprecated by all major browsers and standards bodies.',
+    url: 'https://wiki.mozilla.org/Security/Server_Side_TLS',
+    steps: [
+      'Disable TLS 1.0 and 1.1 in your web server config.',
+      'Nginx: add "ssl_protocols TLSv1.2 TLSv1.3;" to your server block.',
+      'Apache: add "SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1" to your config.',
+      'Enable TLS 1.3 for best performance and forward secrecy.',
+      'Test with: ssllabs.com/ssltest or nmap --script ssl-enum-ciphers.',
+    ],
+  },
+  ssl_grade: {
+    desc: 'SSL Labs grades measure the overall quality of your TLS configuration including cipher suites, key exchange, and protocol versions. Grade below A indicates exploitable weaknesses.',
+    url: 'https://www.ssllabs.com/projects/rating-guide/',
+    steps: [
+      'Run a full SSL Labs test at ssllabs.com/ssltest to get a detailed breakdown.',
+      'Disable weak cipher suites (RC4, 3DES, export ciphers, anon ciphers).',
+      'Use only strong ciphers: ECDHE-RSA-AES128-GCM-SHA256 and equivalents.',
+      'Enable Forward Secrecy by preferring ECDHE and DHE key exchanges.',
+      'Use a 2048-bit or larger RSA key (4096-bit or ECDSA P-256 recommended).',
+      'Enable HSTS to prevent protocol downgrade attacks.',
+    ],
+  },
+  ssl: {
+    desc: 'SSL/TLS encrypts data in transit between your server and users. Without it, credentials, session tokens, and sensitive data are transmitted in plaintext and can be intercepted.',
+    url: 'https://letsencrypt.org/getting-started/',
+    steps: [
+      'Install a TLS certificate using Let\'s Encrypt (free) via Certbot: sudo certbot --nginx -d yourdomain.com.',
+      'Ensure HTTPS is enforced with a 301 redirect from HTTP to HTTPS.',
+      'Configure HSTS to prevent downgrade attacks.',
+      'Disable TLS 1.0/1.1 and only allow TLS 1.2+.',
+      'Test with ssllabs.com/ssltest and target grade A or A+.',
+    ],
+  },
+  hsts: {
+    desc: 'HSTS (HTTP Strict Transport Security) instructs browsers to always use HTTPS for your domain, preventing man-in-the-middle downgrade attacks that strip HTTPS from requests.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Strict_Transport_Security',
+    steps: [
+      'Add the header: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload',
+      'Start with a short max-age (e.g. 86400) to test, then increase to 31536000 (1 year).',
+      'Add includeSubDomains only after confirming all subdomains support HTTPS.',
+      'Submit your domain to the HSTS preload list at hstspreload.org for browser-level enforcement.',
+      'Nginx: add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;',
+    ],
+  },
+  csp: {
+    desc: 'Content Security Policy (CSP) is a browser security mechanism that mitigates XSS attacks by declaring which sources of scripts, styles, and other resources are trusted.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP',
+    steps: [
+      'Start with a report-only policy to understand your existing resource sources: Content-Security-Policy-Report-Only: default-src \'self\'',
+      'Build up the allowlist from reports — identify all CDNs, analytics, fonts used.',
+      'Move to enforcement mode: Content-Security-Policy: default-src \'self\'; script-src \'self\' cdn.yourtrustedprovider.com',
+      'Avoid using \'unsafe-inline\' and \'unsafe-eval\' — refactor inline scripts to external files.',
+      'Use a nonce or hash for any necessary inline scripts.',
+      'Test with csp-evaluator.withgoogle.com before deploying.',
+    ],
+  },
+  x_frame_options: {
+    desc: 'X-Frame-Options prevents your site from being embedded in iframes on other domains, blocking clickjacking attacks where attackers overlay your interface to trick users into unintended actions.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options',
+    steps: [
+      'Add the header: X-Frame-Options: DENY (blocks all framing) or SAMEORIGIN (allows same-origin framing).',
+      'Nginx: add_header X-Frame-Options "DENY" always;',
+      'Apache: Header always set X-Frame-Options "DENY"',
+      'Alternatively, use CSP frame-ancestors directive which is more flexible: Content-Security-Policy: frame-ancestors \'none\'',
+      'Verify with securityheaders.com.',
+    ],
+  },
+  x_content_type: {
+    desc: 'X-Content-Type-Options: nosniff prevents browsers from MIME-sniffing responses, stopping attackers from tricking browsers into executing malicious files as a different content type.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options',
+    steps: [
+      'Add the header: X-Content-Type-Options: nosniff',
+      'Nginx: add_header X-Content-Type-Options "nosniff" always;',
+      'Apache: Header always set X-Content-Type-Options "nosniff"',
+      'Ensure all responses serve the correct Content-Type for their actual file type.',
+      'This header has no downside — it should always be set.',
+    ],
+  },
+  referrer_policy: {
+    desc: 'Referrer-Policy controls how much referrer information is included in requests. Without it, sensitive URL parameters (auth tokens, user IDs) can leak to third-party analytics or ad platforms.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy',
+    steps: [
+      'Set: Referrer-Policy: strict-origin-when-cross-origin (recommended default).',
+      'For high-privacy apps, use no-referrer or same-origin.',
+      'Nginx: add_header Referrer-Policy "strict-origin-when-cross-origin" always;',
+      'Avoid unsafe-url which sends the full URL including query strings to external sites.',
+      'Verify headers at securityheaders.com.',
+    ],
+  },
+  permissions_policy: {
+    desc: 'Permissions-Policy (formerly Feature-Policy) restricts which browser features (camera, microphone, geolocation) your pages can use or grant to embedded iframes.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy',
+    steps: [
+      'Enumerate which browser features your site actually uses.',
+      'Disable all others: Permissions-Policy: camera=(), microphone=(), geolocation=()',
+      'If you use specific features, restrict to self: geolocation=(self)',
+      'Nginx: add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;',
+      'Use permissionspolicy.com to generate and test your policy.',
+    ],
+  },
+  cors: {
+    desc: 'CORS (Cross-Origin Resource Sharing) controls which external origins can make requests to your API. Misconfigured CORS (e.g. Access-Control-Allow-Origin: *) can expose sensitive APIs to any website.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS',
+    steps: [
+      'Never use Access-Control-Allow-Origin: * on authenticated endpoints.',
+      'Maintain an explicit allowlist of trusted origins and validate against it.',
+      'Do not reflect arbitrary Origin headers without validation.',
+      'Set Access-Control-Allow-Credentials: true only with a specific origin, not a wildcard.',
+      'Restrict Access-Control-Allow-Methods to only the methods your API actually uses.',
+    ],
+  },
+  https_redirect: {
+    desc: 'HTTP-to-HTTPS redirect ensures users who visit the HTTP version of your site are automatically upgraded to the encrypted HTTPS version, preventing plaintext exposure.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections',
+    steps: [
+      'Add a 301 permanent redirect from port 80 to port 443.',
+      'Nginx: server { listen 80; return 301 https://$host$request_uri; }',
+      'Apache: RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,NE,R=301]',
+      'After redirect is working, add HSTS to prevent the initial HTTP request.',
+      'Test with curl -I http://yourdomain.com and verify Location header shows https://.',
+    ],
+  },
+  www_redirect: {
+    desc: 'Consistent www vs. non-www handling prevents duplicate content issues and avoids session/cookie scope confusion.',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections',
+    steps: [
+      'Decide on a canonical form: www.yourdomain.com or yourdomain.com.',
+      'Add a 301 redirect from the non-canonical form to the canonical one.',
+      'Update your DNS accordingly (A record or CNAME).',
+      'Set your canonical URL in Google Search Console to the chosen form.',
+      'Ensure cookies are scoped correctly (Domain=.yourdomain.com covers both).',
+    ],
+  },
+  http_security: {
+    desc: 'General HTTP security encompasses a set of response headers and configuration practices that harden your web server against common browser-based attacks.',
+    url: 'https://owasp.org/www-project-secure-headers/',
+    steps: [
+      'Add all recommended security headers: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy.',
+      'Use securityheaders.com to scan your domain and identify missing headers.',
+      'Remove headers that leak server information: Server, X-Powered-By, X-AspNet-Version.',
+      'Disable HTTP TRACE method to prevent cross-site tracing (XST) attacks.',
+      'Enable server-side session security: HttpOnly and Secure flags on all cookies.',
+    ],
+  },
+  cms_version: {
+    desc: 'Running an outdated CMS (WordPress, Drupal, Joomla) or framework version with known CVEs is one of the most common root causes of web application compromise.',
+    url: 'https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities',
+    steps: [
+      'Identify your CMS version and check the vendor\'s security advisories.',
+      'Update to the latest stable version immediately.',
+      'Enable automatic security updates where available (WordPress: auto-update core + plugins).',
+      'Remove unused plugins, themes, and modules — they still represent attack surface.',
+      'Subscribe to the CMS security mailing list for future notifications.',
+      'Hide the version number from HTTP headers and HTML source where possible.',
+    ],
+  },
+  server_header: {
+    desc: 'The Server response header reveals your web server software and version, giving attackers a head start in identifying relevant CVEs to exploit.',
+    url: 'https://owasp.org/www-project-secure-headers/',
+    steps: [
+      'Nginx: add "server_tokens off;" to the http block in nginx.conf.',
+      'Apache: set "ServerTokens Prod" and "ServerSignature Off" in httpd.conf.',
+      'IIS: use URL Rewrite or custom headers to suppress or replace the Server header.',
+      'Also suppress X-Powered-By, X-AspNet-Version, and X-Generator headers.',
+      'Verify with: curl -I https://yourdomain.com and check response headers.',
+    ],
+  },
+  software_disclosure: {
+    desc: 'Software disclosure means your application reveals technology stack details (e.g. PHP version, framework names) that help attackers fingerprint and target your infrastructure.',
+    url: 'https://owasp.org/www-project-secure-headers/',
+    steps: [
+      'Remove X-Powered-By headers: PHP (expose_php = Off in php.ini), Node.js (app.disable("x-powered-by")), ASP.NET (remove from web.config).',
+      'Suppress version strings from error pages and HTTP headers.',
+      'Ensure custom 404/500 pages do not reveal technology details.',
+      'Review HTML source for generator meta tags and remove them.',
+      'Test with builtwith.com or wappalyzer.com to see what is detectable.',
+    ],
+  },
+  cve_exposure: {
+    desc: 'Exposed CVEs mean your running software has known, publicly-disclosed vulnerabilities. CVE databases (NVD, Shodan) are searched by automated attackers within days of a disclosure.',
+    url: 'https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities',
+    steps: [
+      'Identify CVE IDs from the scan report and look up severity on nvd.nist.gov.',
+      'Prioritise CVSS ≥ 7.0 (High/Critical) for immediate patching.',
+      'Update affected software components as quickly as possible.',
+      'If a patch is not yet available, apply vendor-recommended mitigations (WAF rules, config hardening).',
+      'Enroll in the vendor\'s security announcement mailing list.',
+      'Implement a vulnerability management cadence: scan → triage → patch → verify.',
+    ],
+  },
+  waf: {
+    desc: 'A Web Application Firewall (WAF) filters malicious HTTP traffic (SQLi, XSS, RCE attempts) before it reaches your application, providing a critical layer of defence in depth.',
+    url: 'https://owasp.org/www-community/Web_Application_Firewall',
+    steps: [
+      'If using a CDN, enable their WAF product (Cloudflare WAF, AWS WAF, Fastly WAF).',
+      'For self-hosted apps, consider ModSecurity (open source) with the OWASP Core Rule Set.',
+      'Start in detection (logging) mode before switching to blocking mode.',
+      'Tune rules to reduce false positives before enabling blocking for production traffic.',
+      'Monitor WAF logs for attack patterns and adjust rules accordingly.',
+    ],
+  },
+  open_ports: {
+    desc: 'Unnecessary open ports increase your attack surface. Each exposed service is a potential entry point — especially if running outdated software or using default credentials.',
+    url: 'https://owasp.org/www-project-top-ten/',
+    steps: [
+      'Audit all open ports with: nmap -sV -p- yourdomain.com.',
+      'Close or firewall any ports not required for the service\'s function.',
+      'Restrict administrative ports (SSH/22, RDP/3389, databases/3306/5432) to specific IP allowlists.',
+      'Change SSH from port 22 to a non-standard port as a basic noise reduction measure.',
+      'Use a host-based firewall (ufw, iptables, nftables) as a second layer behind your network firewall.',
+    ],
+  },
+  admin_panel: {
+    desc: 'Publicly accessible admin panels (wp-admin, /admin, Phpmyadmin) are aggressively targeted by automated scanners and brute-force tools.',
+    url: 'https://owasp.org/www-community/attacks/Brute_force_attack',
+    steps: [
+      'Restrict the admin path to specific IP addresses via firewall or web server config.',
+      'Enable multi-factor authentication on all admin accounts.',
+      'Rename or move the default admin path if the CMS supports it.',
+      'Implement login rate limiting and account lockout after N failed attempts.',
+      'Alert on any login attempt from an unexpected IP.',
+    ],
+  },
+  directory_listing: {
+    desc: 'Directory listing allows anyone to browse file system contents through a web browser, exposing configuration files, backup archives, credentials, and source code.',
+    url: 'https://owasp.org/www-community/attacks/Path_Traversal',
+    steps: [
+      'Nginx: ensure "autoindex off;" is set (it is the default but verify).',
+      'Apache: add "Options -Indexes" to your Directory block or .htaccess.',
+      'Remove or relocate sensitive files from the web root (backups, .env files, .git directories).',
+      'Scan with: dirb or gobuster to find any exposed directories.',
+      'Set up a catch-all rule to return 403 for any unexpected directory access.',
+    ],
+  },
+  headers: {
+    desc: 'HTTP security headers are a simple server-side configuration layer that instruct browsers to enforce security policies, dramatically reducing the impact of many common web attacks.',
+    url: 'https://owasp.org/www-project-secure-headers/',
+    steps: [
+      'Run securityheaders.com on your domain and review the missing headers.',
+      'Add at minimum: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy.',
+      'Configure headers at the web server layer (Nginx/Apache) so they apply to all responses.',
+      'Avoid setting duplicate or conflicting header values across server and app code.',
+      'Retest after changes and aim for an A or A+ rating on securityheaders.com.',
+    ],
+  },
+  email_security: {
+    desc: 'Email authentication (SPF + DKIM + DMARC) is the foundation of anti-phishing protection. Without all three, anyone can impersonate your domain in email.',
+    url: 'https://datatracker.ietf.org/doc/html/rfc7489',
+    steps: [
+      'Implement SPF first: publish a TXT record at the root domain.',
+      'Add DKIM: generate keys in your mail provider and publish the public key in DNS.',
+      'Add DMARC: publish _dmarc.yourdomain.com with p=none initially, then escalate.',
+      'Monitor DMARC aggregate reports (rua) for two weeks before tightening the policy.',
+      'Set p=reject as the final goal to block all spoofed emails.',
+    ],
+  },
+  shodan: {
+    desc: 'Shodan continuously indexes internet-facing services. If Shodan shows findings for your IPs, attackers already know about these services and may be actively probing them.',
+    url: 'https://help.shodan.io/',
+    steps: [
+      'Review findings at shodan.io — search for your domain name or IP addresses.',
+      'Close or firewall any exposed services that should not be internet-facing.',
+      'Update software on any services with associated CVEs.',
+      'Consider putting services behind a VPN or allowlisting specific IPs.',
+      'Set up Shodan Monitor alerts (free tier available) to notify you of new exposures.',
+    ],
+  },
+  virustotal: {
+    desc: 'VirusTotal aggregates detections from 70+ antivirus engines and URL scanners. A positive detection means your domain or IP is flagged as malicious by at least one security vendor.',
+    url: 'https://www.virustotal.com/gui/home/url',
+    steps: [
+      'Search your domain at virustotal.com to see which engines flagged it and why.',
+      'If flagged for malware hosting: scan your server for injected code and clean infected files.',
+      'If flagged for phishing: review your site content and submit a dispute to the flagging vendor.',
+      'Request re-analysis at VirusTotal after remediation.',
+      'Submit false-positive reports directly to vendors that incorrectly flag your domain.',
+    ],
+  },
+  urlhaus: {
+    desc: 'URLhaus tracks malware distribution URLs. If your domain appears here, it has been used to distribute malware — either your server was compromised or your domain was abused.',
+    url: 'https://urlhaus.abuse.ch/',
+    steps: [
+      'Search your domain at urlhaus.abuse.ch to see specific flagged URLs.',
+      'Perform a thorough server audit: check for web shells, injected code, and new/modified files.',
+      'Review web server access logs for suspicious requests and file uploads.',
+      'Restore clean files from a known-good backup if compromise is confirmed.',
+      'Contact abuse.ch to request removal once your domain is clean.',
+    ],
+  },
+  spamhaus: {
+    desc: 'Spamhaus maintains block lists (SBL, DBL, XBL) used by email servers worldwide. Being listed means your domain or IP is blocked from sending email by many organisations.',
+    url: 'https://www.spamhaus.org/organization/statement/',
+    steps: [
+      'Check your IP and domain at lookup.spamhaus.org.',
+      'Identify the listing reason (spam, malware hosting, compromised server, botnet C2).',
+      'Resolve the root cause (clean the server, stop spam, fix compromised accounts).',
+      'Submit a removal request via the Spamhaus website once the issue is resolved.',
+      'Implement SPF, DKIM, and DMARC to reduce future listing risk.',
+    ],
+  },
+  safebrowsing: {
+    desc: 'Google Safe Browsing flags sites that serve malware, phishing content, or unwanted software. A listing triggers full-page browser warnings for all Chrome, Firefox, and Safari users visiting your site.',
+    url: 'https://developers.google.com/safe-browsing',
+    steps: [
+      'Check your site at transparencyreport.google.com/safe-browsing/search.',
+      'If flagged for malware: scan your site with a tool like Sucuri SiteCheck or Wordfence.',
+      'Remove all malicious code, scripts, or redirect rules inserted by attackers.',
+      'Request a review via Google Search Console (Security Issues report).',
+      'Google typically lifts warnings within 24–72 hours of a successful review.',
+    ],
+  },
+  typosquat: {
+    desc: 'Typosquatting domains mimic your brand with slight misspellings. Attackers use them for phishing, malware distribution, or brand impersonation.',
+    url: 'https://owasp.org/www-community/attacks/Typosquatting',
+    steps: [
+      'Register common misspellings of your domain proactively.',
+      'File UDRP complaints for domains that are clearly abusive (ICANN dispute resolution).',
+      'Set up brand monitoring alerts (e.g. via PhishLabs, Cloudflare Brand Protection).',
+      'Submit malicious typosquat domains to Google Safe Browsing and VirusTotal.',
+      'Ensure your DMARC policy (p=reject) prevents phishing emails using your brand.',
+    ],
+  },
+  ip_intel: {
+    desc: 'IP intelligence checks whether your server IPs appear on threat intelligence feeds as sources of malicious activity, botnet C2 nodes, or known-bad hosting.',
+    url: 'https://www.abuseipdb.com/',
+    steps: [
+      'Check your IPs at abuseipdb.com and ipvoid.com.',
+      'If listed: investigate whether your server was compromised or used as a proxy.',
+      'Review server logs for anomalous outbound traffic.',
+      'Submit delisting requests after cleaning the server.',
+      'Consider migrating to a new IP range if the previous IP has a persistent bad reputation.',
+    ],
+  },
+  leaks: {
+    desc: 'Credential leaks mean email addresses or passwords from your domain have appeared in known data breaches. Attackers use these for credential stuffing attacks.',
+    url: 'https://haveibeenpwned.com/',
+    steps: [
+      'Check affected email addresses at haveibeenpwned.com.',
+      'Force a password reset for any accounts with leaked credentials.',
+      'Implement multi-factor authentication for all user accounts.',
+      'Integrate a breach monitoring API (e.g. HaveIBeenPwned API) into your signup/login flow.',
+      'Use a password manager policy and enforce strong unique passwords.',
+      'Add dark web monitoring for your domain via a threat intelligence service.',
+    ],
+  },
+  dast: {
+    desc: 'DAST (Dynamic Application Security Testing) runs live attacks against your running application to find exploitable vulnerabilities like SQLi, XSS, IDOR, and broken authentication.',
+    url: 'https://owasp.org/www-community/Vulnerability_Scanning_Tools',
+    steps: [
+      'Run OWASP ZAP or Burp Suite against a staging environment.',
+      'Fix any High/Critical findings before deploying to production.',
+      'Integrate DAST into your CI/CD pipeline for continuous coverage.',
+      'Address XSS findings by implementing CSP and output-encoding all user-supplied data.',
+      'Address SQLi findings by using parameterised queries / ORM throughout.',
+      'Schedule regular DAST scans (weekly minimum for public-facing applications).',
+    ],
+  },
+};
+
 // ── Render checks ──────────────────────────────────────────────
 function renderChecks(checks, isPaid) {
   const el = document.getElementById('checks-container');
@@ -516,19 +997,27 @@ function renderChecks(checks, isPaid) {
       const detail=c.detail||c.description||'';
       const rec=c.recommendation||c.fix||'';
       const rowId='chk-'+i+'-'+(c.check||i);
+      const kb=KB[c.check||c.key||'']||null;
       let icon,sc;
       if (status==='ok'||status==='pass')         {icon='✓';sc='ok';}
       else if (status==='critical'||status==='fail'){icon='✗';sc='fail';}
       else if (status==='warning')                  {icon='⚠';sc='warning';}
       else                                          {icon='○';sc='info';}
       const iC=sc==='ok'?'var(--lime)':sc==='fail'?'var(--red)':sc==='warning'?'var(--amber)':'var(--muted)';
-      const showRec=(status==='critical'||status==='fail'||status==='warning');
-      html+=`<div class="check-row" id="${rowId}" onclick="toggleCheck('${rowId}')">
+      const isActionable=(status==='critical'||status==='fail'||status==='warning');
+      const hasExpanded=isActionable&&(rec||(kb&&kb.steps));
+      const kbLink=kb&&kb.url?`<a class="kb-link" href="${kb.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Learn more →</a>`:'';
+      const kbDesc=kb&&kb.desc&&!detail?`<div class="chk-detail">${safeText(kb.desc)}</div>`:'';
+      const stepsHtml=kb&&kb.steps&&isActionable?`<div class="chk-steps"><div class="chk-steps-title">Next Steps</div><ol class="chk-steps-list">${kb.steps.map(s=>`<li>${safeText(s)}</li>`).join('')}</ol></div>`:'';
+      html+=`<div class="check-row" id="${rowId}" onclick="${hasExpanded?`toggleCheck('${rowId}')`:''}" style="${hasExpanded?'':'cursor:default'}">
         <div class="chk-icon" style="color:${iC}">${icon}</div>
         <div class="chk-main">
-          <div class="chk-title">${safeText(title)}</div>
-          ${detail?`<div class="chk-detail">${formatDetail(detail)}</div>`:''}
-          ${rec?`<div class="chk-rec${sc==='warning'?' chk-rec-warn':''}" style="${showRec?'':'display:none'}">${safeText(rec)}</div>`:''}
+          <div class="chk-title">${safeText(title)}${kbLink}</div>
+          ${detail?`<div class="chk-detail">${formatDetail(detail)}</div>`:kbDesc}
+          ${hasExpanded?`<div class="chk-expanded" style="display:none">
+            ${rec?`<div class="chk-rec${sc==='warning'?' chk-rec-warn':''}">${safeText(rec)}</div>`:''}
+            ${stepsHtml}
+          </div>`:''}
         </div>
         <div class="chk-status ${sc}">${sc.toUpperCase()}</div>
       </div>`;
@@ -541,10 +1030,10 @@ function renderChecks(checks, isPaid) {
 function toggleCheck(id) {
   const row=document.getElementById(id);
   if (!row) return;
-  const rec=row.querySelector('.chk-rec');
-  if (!rec) return;
-  rec.style.display = rec.style.display==='none'?'block':'none';
-  row.classList.toggle('expanded', rec.style.display!=='none');
+  const exp=row.querySelector('.chk-expanded');
+  if (!exp) return;
+  exp.style.display = exp.style.display==='none'?'block':'none';
+  row.classList.toggle('expanded', exp.style.display!=='none');
 }
 
 // ── Render history ─────────────────────────────────────────────
