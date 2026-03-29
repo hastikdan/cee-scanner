@@ -1331,15 +1331,15 @@ function renderDomainTable() {
     const scanning = d.status === 'scanning' || d.status === 'pending';
     const scannedAt = d.scanned_at ? new Date(d.scanned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
     const isSelected = activeDomain && activeDomain.id === d.id ? 'selected' : '';
-    return `<tr class="${isSelected}" onclick="openPanel('${d.id}')">
+    return `<tr class="${isSelected}" onclick="window.location='/app/domain.html?id=${d.id}'" style="cursor:pointer">
       <td><div class="domain-name-cell">${safeText(d.domain)}</div></td>
       <td><span style="font-size:13px">${flagEmoji(d.country)} ${safeText(d.country||'—')}</span></td>
       <td>${scanning ? '<span style="color:var(--lime);font-size:12px;font-family:JetBrains Mono,monospace">⟳ SCANNING</span>' : badge}</td>
       <td><span style="font-size:12px;color:var(--muted)">${scannedAt}</span></td>
       <td onclick="event.stopPropagation()"><div class="row-actions">
-        <button class="btn btn-ghost btn-xs" onclick="openPanel('${d.id}')">Report</button>
+        <button class="btn btn-ghost btn-xs" onclick="window.location='/app/domain.html?id=${d.id}'">Report</button>
         <button class="btn btn-ghost btn-xs" onclick="openSendReportModal('${d.id}','${safeText(d.domain)}')" title="Send PDF report by email">✉ Send</button>
-        <button class="btn btn-ghost btn-xs" onclick="openPanelAttack('${d.id}')" title="Attacker view — Shodan, breaches, AI attack chain" style="color:#ef4444">⚡</button>
+        <button class="btn btn-ghost btn-xs" onclick="window.location='/app/domain.html?id=${d.id}#attack'" title="Attacker view — Shodan, breaches, AI attack chain" style="color:#ef4444">⚡</button>
         <button class="btn btn-ghost btn-xs" onclick="rescanDomain('${d.id}','${safeText(d.domain)}')">↻</button>
         <button class="btn btn-danger btn-xs" onclick="deleteDomain('${d.id}','${safeText(d.domain)}')">✕</button>
       </div></td>
