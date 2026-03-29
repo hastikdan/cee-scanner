@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js" defer></script>
 <style>
 /* ═══════════════════════════════════════════════════════
    DESIGN TOKENS — matches www.swarmhawk.com exactly
@@ -1572,7 +1572,17 @@ async function scanAll() {
 
 async function openPanel(domainId) {
   const d = domains.find(x => x.id === domainId);
-  if (!d) return;
+  if (!d) {
+    // Domain not in local cache — trigger a refresh and retry once
+    try {
+      const data = await api('/domains');
+      domains = data.domains || [];
+      renderDomainTable();
+    } catch(e) { /* ignore */ }
+    const d2 = domains.find(x => x.id === domainId);
+    if (!d2) { toast('Could not load domain — please refresh the page', true); return; }
+    return openPanel(domainId); // retry with fresh data
+  }
   activeDomain = d;
   renderDomainTable(); // update selected row
 
@@ -1711,9 +1721,13 @@ function closePanel() {
 }
 
 async function openPanelAttack(domainId) {
-  await openPanel(domainId);          // wait for openPanel to finish (sets checks tab)
-  showPanelTab('attack', null);       // now switch to attack tab
-  loadAttackSurface(domainId);        // kick off the load
+  try {
+    await openPanel(domainId);        // wait for openPanel to finish (sets checks tab)
+    showPanelTab('attack', null);     // now switch to attack tab
+    loadAttackSurface(domainId);      // kick off the load
+  } catch(e) {
+    toast('Could not open Attack view: ' + e.message, true);
+  }
 }
 
 function showPanelTab(tab, btn) {
